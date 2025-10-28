@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Users,
   FolderKanban,
+  CheckSquare,
   BarChart3,
   Settings,
   LogOut,
@@ -34,6 +35,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
   const navigationItems = [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
     { icon: FolderKanban, label: 'Projects', href: '/projects' },
+    { icon: CheckSquare, label: 'Tasks', href: '/tasks' },
     { icon: Users, label: 'Teams', href: '/teams' },
     { icon: BarChart3, label: 'Analytics', href: '/analytics' },
     { icon: Settings, label: 'Settings', href: '/settings' },
