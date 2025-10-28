@@ -279,7 +279,25 @@ export default function TasksPage() {
   const [canManageTasks, setCanManageTasks] = useState(false);
   const [activeTaskMenu, setActiveTaskMenu] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('kanban');
+  
+  // Advanced filtering
+  const [priorityFilter, setPriorityFilter] = useState<'all' | TaskPriority>('all');
+  const [assigneeFilter, setAssigneeFilter] = useState<'all' | 'me' | 'unassigned'>('all');
+  const [showOverdueOnly, setShowOverdueOnly] = useState(false);
+  const [sortBy, setSortBy] = useState<'created' | 'due_date' | 'priority' | 'title'>('created');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  
+  // Bulk actions
+  const [selectedTasks, setSelectedTasks] = useState<Set<string>>(new Set());
+  const [showBulkActions, setShowBulkActions] = useState(false);
+  
+  // Quick edit
+  const [editingTask, setEditingTask] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  
+  // Keyboard shortcuts
+  const [showShortcuts, setShowShortcuts] = useState(false);
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -298,6 +316,58 @@ export default function TasksPage() {
       loadData();
     }
   }, [currentWorkspace]);
+  
+  // Keyboard shortcuts
+  useEffect(() => {
+    function handleKeyPress(e: KeyboardEvent) {
+      // CMD/CTRL + K = Search focus
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        document.getElementById('task-search')?.focus();
+      }
+      
+      // CMD/CTRL + N = New task
+      if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
+        e.preventDefault();
+        if (projects.length === 1) {
+          handleCreateTask(projects[0]);
+        }
+      }
+      
+      // ESC = Clear selection
+      if (e.key === 'Escape') {
+        setSelectedTasks(new Set());
+        setEditingTask(null);
+        setActiveTaskMenu(null);
+      }
+      
+      // CMD/CTRL + A = Select all
+      if ((e.metaKey || e.ctrlKey) && e.key === 'a' && tasks.length > 0) {
+        e.preventDefault();
+        const filtered = tasks.filter(task => {
+          const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                               task.description?.toLowerCase().includes(searchQuery.toLowerCase());
+          let matchesFilter = true;
+          if (statusFilter === 'my_tasks') {
+            matchesFilter = task.assigned_to === user?.id;
+          } else if (statusFilter !== 'all') {
+            matchesFilter = task.status === statusFilter;
+          }
+          const matchesProject = selectedProject === 'all' || task.project_id === selectedProject;
+          return matchesSearch && matchesFilter && matchesProject;
+        });
+        setSelectedTasks(new Set(filtered.map(t => t.id)));
+      }
+      
+      // ? = Show shortcuts
+      if (e.key === '?' && !editingTask) {
+        setShowShortcuts(!showShortcuts);
+      }
+    }
+    
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [showShortcuts, projects, tasks, searchQuery, statusFilter, selectedProject, user, editingTask]);
 
   async function loadData() {
     if (!currentWorkspace || !user) return;
@@ -393,22 +463,155 @@ export default function TasksPage() {
       alert('Only team leaders and instructors can create tasks');
     }
   }
+  
+  // Bulk actions
+  function toggleTaskSelection(taskId: string) {
+    const newSelection = new Set(selectedTasks);
+    if (newSelection.has(taskId)) {
+      newSelection.delete(taskId);
+    } else {
+      newSelection.add(taskId);
+    }
+    setSelectedTasks(newSelection);
+  }
+  
+  function selectAllTasks() {
+    const filtered = tasks.filter(task => {
+      const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           task.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      let matchesFilter = true;
+      if (statusFilter === 'my_tasks') {
+        matchesFilter = task.assigned_to === user?.id;
+      } else if (statusFilter !== 'all') {
+        matchesFilter = task.status === statusFilter;
+      }
+      const matchesProject = selectedProject === 'all' || task.project_id === selectedProject;
+      return matchesSearch && matchesFilter && matchesProject;
+    });
+    setSelectedTasks(new Set(filtered.map(t => t.id)));
+  }
+  
+  function clearSelection() {
+    setSelectedTasks(new Set());
+  }
+  
+  async function bulkUpdateStatus(newStatus: TaskStatus) {
+    try {
+      const updates = Array.from(selectedTasks).map(taskId =>
+        updateTask(taskId, { status: newStatus })
+      );
+      await Promise.all(updates);
+      await loadData();
+      clearSelection();
+    } catch (error) {
+      console.error('Bulk update error:', error);
+    }
+  }
+  
+  async function bulkDeleteTasks() {
+    if (!confirm(`Delete ${selectedTasks.size} tasks? This cannot be undone.`)) return;
+    
+    try {
+      const deletes = Array.from(selectedTasks).map(taskId => deleteTask(taskId));
+      await Promise.all(deletes);
+      await loadData();
+      clearSelection();
+    } catch (error) {
+      console.error('Bulk delete error:', error);
+    }
+  }
+  
+  // Quick edit
+  function startEditingTask(task: any) {
+    setEditingTask(task.id);
+    setEditTitle(task.title);
+  }
+  
+  async function saveTaskEdit(taskId: string) {
+    if (!editTitle.trim()) return;
+    
+    try {
+      await updateTask(taskId, { title: editTitle.trim() });
+      await loadData();
+      setEditingTask(null);
+    } catch (error) {
+      console.error('Edit task error:', error);
+    }
+  }
+  
+  function cancelEdit() {
+    setEditingTask(null);
+    setEditTitle('');
+  }
 
-  // Filter tasks
+  // Advanced filter tasks
   const filteredTasks = tasks.filter(task => {
+    // Search filter
     const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          task.description?.toLowerCase().includes(searchQuery.toLowerCase());
     
-    let matchesFilter = true;
+    // Status filter
+    let matchesStatus = true;
     if (statusFilter === 'my_tasks') {
-      matchesFilter = task.assigned_to === user?.id;
+      matchesStatus = task.assigned_to === user?.id;
     } else if (statusFilter !== 'all') {
-      matchesFilter = task.status === statusFilter;
+      matchesStatus = task.status === statusFilter;
     }
     
+    // Project filter
     const matchesProject = selectedProject === 'all' || task.project_id === selectedProject;
     
-    return matchesSearch && matchesFilter && matchesProject;
+    // Priority filter
+    const matchesPriority = priorityFilter === 'all' || task.priority === priorityFilter;
+    
+    // Assignee filter
+    let matchesAssignee = true;
+    if (assigneeFilter === 'me') {
+      matchesAssignee = task.assigned_to === user?.id;
+    } else if (assigneeFilter === 'unassigned') {
+      matchesAssignee = !task.assigned_to;
+    }
+    
+    // Overdue filter
+    let matchesOverdue = true;
+    if (showOverdueOnly && task.due_date) {
+      const dueDate = new Date(task.due_date);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      matchesOverdue = dueDate < today && task.status !== 'completed';
+    } else if (showOverdueOnly) {
+      matchesOverdue = false; // Tasks without due dates can't be overdue
+    }
+    
+    return matchesSearch && matchesStatus && matchesProject && matchesPriority && matchesAssignee && matchesOverdue;
+  });
+  
+  // Sort tasks
+  const sortedTasks = [...filteredTasks].sort((a, b) => {
+    let comparison = 0;
+    
+    switch (sortBy) {
+      case 'title':
+        comparison = a.title.localeCompare(b.title);
+        break;
+      case 'due_date':
+        if (!a.due_date && !b.due_date) comparison = 0;
+        else if (!a.due_date) comparison = 1;
+        else if (!b.due_date) comparison = -1;
+        else comparison = new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
+        break;
+      case 'priority':
+        const priorityOrder = { high: 3, medium: 2, low: 1 };
+        comparison = (priorityOrder[b.priority as keyof typeof priorityOrder] || 0) - 
+                     (priorityOrder[a.priority as keyof typeof priorityOrder] || 0);
+        break;
+      case 'created':
+      default:
+        comparison = new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        break;
+    }
+    
+    return sortOrder === 'asc' ? comparison : -comparison;
   });
 
   const getStatusConfig = (status: TaskStatus) => {
@@ -445,9 +648,9 @@ export default function TasksPage() {
 
   // Group tasks by status for Kanban view
   const tasksByStatus = {
-    todo: filteredTasks.filter(t => t.status === 'todo'),
-    in_progress: filteredTasks.filter(t => t.status === 'in_progress'),
-    completed: filteredTasks.filter(t => t.status === 'completed'),
+    todo: sortedTasks.filter(t => t.status === 'todo'),
+    in_progress: sortedTasks.filter(t => t.status === 'in_progress'),
+    completed: sortedTasks.filter(t => t.status === 'completed'),
   };
 
   const taskCounts = {
@@ -457,6 +660,20 @@ export default function TasksPage() {
     in_progress: tasks.filter(t => t.status === 'in_progress').length,
     completed: tasks.filter(t => t.status === 'completed').length,
   };
+  
+  // Get unique assignees for filter
+  const uniqueAssignees = Array.from(new Set(
+    tasks.filter(t => t.assignee).map(t => t.assignee.full_name)
+  ));
+  
+  // Count overdue tasks
+  const overdueCount = tasks.filter(t => {
+    if (!t.due_date || t.status === 'completed') return false;
+    const dueDate = new Date(t.due_date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return dueDate < today;
+  }).length;
 
   if (!currentWorkspace) {
     return (
