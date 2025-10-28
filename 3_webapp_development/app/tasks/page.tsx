@@ -23,6 +23,7 @@ import {
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/Button';
 import { TaskModal } from '@/components/projects/TaskModal';
+import { TaskDetailModal } from '@/components/tasks/TaskDetailModal';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
 import { 
@@ -63,6 +64,7 @@ interface DraggableTaskCardProps {
   activeTaskMenu: string | null;
   setActiveTaskMenu: (id: string | null) => void;
   handleDeleteTask: (id: string) => void;
+  onTaskClick: (task: any) => void;
 }
 
 function DraggableTaskCard({
@@ -73,6 +75,7 @@ function DraggableTaskCard({
   activeTaskMenu,
   setActiveTaskMenu,
   handleDeleteTask,
+  onTaskClick,
 }: DraggableTaskCardProps) {
   const {
     attributes,
@@ -96,7 +99,8 @@ function DraggableTaskCard({
     <div
       ref={setNodeRef}
       style={style}
-      className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-all group relative"
+      className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-all group relative cursor-pointer"
+      onClick={() => onTaskClick(task)}
     >
       <div className="flex items-start gap-2">
         <div
@@ -201,6 +205,7 @@ interface KanbanColumnProps {
   activeTaskMenu: string | null;
   setActiveTaskMenu: (id: string | null) => void;
   handleDeleteTask: (id: string) => void;
+  onTaskClick: (task: any) => void;
 }
 
 function KanbanColumn({
@@ -216,6 +221,7 @@ function KanbanColumn({
   activeTaskMenu,
   setActiveTaskMenu,
   handleDeleteTask,
+  onTaskClick,
 }: KanbanColumnProps) {
   const colorClasses = {
     orange: 'bg-orange-100 text-orange-700',
@@ -251,6 +257,7 @@ function KanbanColumn({
               activeTaskMenu={activeTaskMenu}
               setActiveTaskMenu={setActiveTaskMenu}
               handleDeleteTask={handleDeleteTask}
+              onTaskClick={onTaskClick}
             />
           ))}
           {tasks.length === 0 && (
@@ -280,6 +287,10 @@ export default function TasksPage() {
   const [activeTaskMenu, setActiveTaskMenu] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'kanban'>('kanban');
+  
+  // Task detail modal
+  const [selectedTask, setSelectedTask] = useState<any>(null);
+  const [showTaskDetail, setShowTaskDetail] = useState(false);
   
   // Advanced filtering
   const [priorityFilter, setPriorityFilter] = useState<'all' | TaskPriority>('all');
@@ -462,6 +473,33 @@ export default function TasksPage() {
     } else {
       alert('Only team leaders and instructors can create tasks');
     }
+  }
+  
+  // Task detail modal
+  async function openTaskDetail(task: any) {
+    if (!task || !user || !currentWorkspace) return;
+    
+    // Check if user can manage this task
+    const canManage = await isTeamLeaderOrInstructor(user.id, task.team_id, currentWorkspace.id);
+    setCanManageTasks(canManage);
+    
+    setSelectedTask(task);
+    setShowTaskDetail(true);
+  }
+  
+  function closeTaskDetail() {
+    setShowTaskDetail(false);
+    setSelectedTask(null);
+  }
+  
+  async function handleTaskUpdated() {
+    await loadData();
+    closeTaskDetail();
+  }
+  
+  async function handleTaskDeleted() {
+    await loadData();
+    closeTaskDetail();
   }
   
   // Bulk actions
@@ -883,6 +921,7 @@ export default function TasksPage() {
                 activeTaskMenu={activeTaskMenu}
                 setActiveTaskMenu={setActiveTaskMenu}
                 handleDeleteTask={handleDeleteTask}
+                onTaskClick={openTaskDetail}
               />
 
               {/* In Progress Column */}
@@ -899,6 +938,7 @@ export default function TasksPage() {
                 activeTaskMenu={activeTaskMenu}
                 setActiveTaskMenu={setActiveTaskMenu}
                 handleDeleteTask={handleDeleteTask}
+                onTaskClick={openTaskDetail}
               />
 
               {/* Completed Column */}
@@ -915,6 +955,7 @@ export default function TasksPage() {
                 activeTaskMenu={activeTaskMenu}
                 setActiveTaskMenu={setActiveTaskMenu}
                 handleDeleteTask={handleDeleteTask}
+                onTaskClick={openTaskDetail}
               />
             </div>
 
@@ -941,7 +982,8 @@ export default function TasksPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.03 }}
-                  className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-all group relative"
+                  className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-all group relative cursor-pointer"
+                  onClick={() => openTaskDetail(task)}
                 >
                   {/* Task Header */}
                   <div className="flex items-start justify-between mb-3">
@@ -1042,6 +1084,18 @@ export default function TasksPage() {
             setShowTaskModal(false);
             setSelectedTaskProject(null);
           }}
+        />
+      )}
+      
+      {/* Task Detail Modal */}
+      {showTaskDetail && selectedTask && (
+        <TaskDetailModal
+          isOpen={showTaskDetail}
+          onClose={closeTaskDetail}
+          task={selectedTask}
+          onTaskUpdated={handleTaskUpdated}
+          onTaskDeleted={handleTaskDeleted}
+          canManage={canManageTasks}
         />
       )}
     </DashboardLayout>
