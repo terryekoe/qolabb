@@ -18,6 +18,7 @@ import {
   MoreVertical,
   Edit2,
   Trash2,
+  GripVertical,
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/Button';
@@ -32,8 +33,236 @@ import {
   isTeamLeaderOrInstructor,
 } from '@/lib/db/queries';
 import type { TaskStatus, TaskPriority } from '@/lib/types/database';
+import {
+  DndContext,
+  DragOverlay,
+  closestCorners,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragStartEvent,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 type FilterType = 'all' | 'my_tasks' | 'todo' | 'in_progress' | 'completed';
+
+// Draggable Task Card Component
+interface DraggableTaskCardProps {
+  task: any;
+  user: any;
+  getStatusConfig: (status: TaskStatus) => any;
+  getPriorityColor: (priority: TaskPriority) => string;
+  activeTaskMenu: string | null;
+  setActiveTaskMenu: (id: string | null) => void;
+  handleDeleteTask: (id: string) => void;
+}
+
+function DraggableTaskCard({
+  task,
+  user,
+  getStatusConfig,
+  getPriorityColor,
+  activeTaskMenu,
+  setActiveTaskMenu,
+  handleDeleteTask,
+}: DraggableTaskCardProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const isMyTask = task.assigned_to === user?.id;
+  const statusConfig = getStatusConfig(task.status);
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-all group relative"
+    >
+      <div className="flex items-start gap-2">
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing mt-1 opacity-0 group-hover:opacity-100 transition-opacity"
+        >
+          <GripVertical size={16} className="text-gray-400" />
+        </div>
+        
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between mb-2">
+            <div className="flex-1 min-w-0 pr-2">
+              <h3 className="font-semibold text-gray-900 text-sm mb-1 line-clamp-2">
+                {task.title}
+              </h3>
+              <div className="flex items-center text-xs text-gray-500 space-x-1.5">
+                <FolderKanban size={10} />
+                <span className="truncate">{task.project_name}</span>
+              </div>
+            </div>
+            
+            <div className="relative">
+              <button
+                onClick={() => setActiveTaskMenu(activeTaskMenu === task.id ? null : task.id)}
+                className="p-1 hover:bg-gray-100 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <MoreVertical size={14} className="text-gray-400" />
+              </button>
+              
+              {activeTaskMenu === task.id && (
+                <div className="absolute right-0 top-6 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-10 min-w-[140px]">
+                  <button
+                    onClick={() => handleDeleteTask(task.id)}
+                    className="w-full text-left px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 flex items-center"
+                  >
+                    <Trash2 size={12} className="mr-2" />
+                    Delete
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {task.description && (
+            <p className="text-xs text-gray-600 mb-2 line-clamp-2">
+              {task.description}
+            </p>
+          )}
+
+          <div className="flex items-center justify-between mb-2">
+            <Flag size={12} className={getPriorityColor(task.priority)} />
+          </div>
+
+          <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-100">
+            {task.assignee ? (
+              <div className="flex items-center">
+                <div
+                  className={`w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold mr-1 ${
+                    isMyTask
+                      ? 'bg-gradient-to-br from-qolabb-navy-600 to-qolabb-navy-400'
+                      : 'bg-gradient-to-br from-gray-400 to-gray-300'
+                  }`}
+                >
+                  {task.assignee.full_name?.charAt(0) || 'U'}
+                </div>
+                <span className="truncate max-w-[80px]">
+                  {isMyTask ? 'You' : task.assignee.full_name}
+                </span>
+              </div>
+            ) : (
+              <span className="text-gray-400">Unassigned</span>
+            )}
+
+            {task.due_date && (
+              <span className="flex items-center">
+                <Calendar size={10} className="mr-1" />
+                {new Date(task.due_date).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                })}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Kanban Column Component
+interface KanbanColumnProps {
+  id: string;
+  title: string;
+  icon: React.ReactNode;
+  count: number;
+  color: string;
+  tasks: any[];
+  user: any;
+  getStatusConfig: (status: TaskStatus) => any;
+  getPriorityColor: (priority: TaskPriority) => string;
+  activeTaskMenu: string | null;
+  setActiveTaskMenu: (id: string | null) => void;
+  handleDeleteTask: (id: string) => void;
+}
+
+function KanbanColumn({
+  id,
+  title,
+  icon,
+  count,
+  color,
+  tasks,
+  user,
+  getStatusConfig,
+  getPriorityColor,
+  activeTaskMenu,
+  setActiveTaskMenu,
+  handleDeleteTask,
+}: KanbanColumnProps) {
+  const colorClasses = {
+    orange: 'bg-orange-100 text-orange-700',
+    blue: 'bg-blue-100 text-blue-700',
+    green: 'bg-green-100 text-green-700',
+  };
+
+  return (
+    <div className="bg-gray-50 rounded-xl p-4">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          {icon}
+          <h4 className="font-semibold text-gray-900">{title}</h4>
+        </div>
+        <span
+          className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+            colorClasses[color as keyof typeof colorClasses]
+          }`}
+        >
+          {count}
+        </span>
+      </div>
+
+      <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+        <div className="space-y-3 min-h-[200px]">
+          {tasks.map((task) => (
+            <DraggableTaskCard
+              key={task.id}
+              task={task}
+              user={user}
+              getStatusConfig={getStatusConfig}
+              getPriorityColor={getPriorityColor}
+              activeTaskMenu={activeTaskMenu}
+              setActiveTaskMenu={setActiveTaskMenu}
+              handleDeleteTask={handleDeleteTask}
+            />
+          ))}
+          {tasks.length === 0 && (
+            <div className="text-center py-8 text-sm text-gray-400">
+              Drop tasks here
+            </div>
+          )}
+        </div>
+      </SortableContext>
+    </div>
+  );
+}
 
 export default function TasksPage() {
   const { user } = useAuth();
@@ -49,6 +278,20 @@ export default function TasksPage() {
   const [selectedTaskProject, setSelectedTaskProject] = useState<any>(null);
   const [canManageTasks, setCanManageTasks] = useState(false);
   const [activeTaskMenu, setActiveTaskMenu] = useState<string | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
+
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   useEffect(() => {
     if (currentWorkspace) {
@@ -87,11 +330,41 @@ export default function TasksPage() {
 
   async function handleUpdateTaskStatus(taskId: string, newStatus: TaskStatus) {
     try {
+      // Optimistic update
+      setTasks(prevTasks => 
+        prevTasks.map(task => 
+          task.id === taskId ? { ...task, status: newStatus } : task
+        )
+      );
+      
       await updateTask(taskId, { status: newStatus });
       await loadData();
     } catch (error) {
       console.error('Error updating task:', error);
+      // Revert on error
+      await loadData();
     }
+  }
+
+  function handleDragStart(event: DragStartEvent) {
+    setActiveId(event.active.id as string);
+  }
+
+  async function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    
+    setActiveId(null);
+    
+    if (!over) return;
+    
+    const taskId = active.id as string;
+    const newStatus = over.id as TaskStatus;
+    
+    // Find the task to check if status actually changed
+    const task = tasks.find(t => t.id === taskId);
+    if (!task || task.status === newStatus) return;
+    
+    await handleUpdateTaskStatus(taskId, newStatus);
   }
 
   async function handleDeleteTask(taskId: string) {
@@ -170,6 +443,13 @@ export default function TasksPage() {
     }
   };
 
+  // Group tasks by status for Kanban view
+  const tasksByStatus = {
+    todo: filteredTasks.filter(t => t.status === 'todo'),
+    in_progress: filteredTasks.filter(t => t.status === 'in_progress'),
+    completed: filteredTasks.filter(t => t.status === 'completed'),
+  };
+
   const taskCounts = {
     all: tasks.length,
     my_tasks: tasks.filter(t => t.assigned_to === user?.id).length,
@@ -241,16 +521,42 @@ export default function TasksPage() {
 
         {/* Filters */}
         <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-4">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Search tasks..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
-            />
+          {/* Search and View Toggle */}
+          <div className="flex gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+              <input
+                type="text"
+                placeholder="Search tasks..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+              />
+            </div>
+            
+            {/* View Mode Toggle */}
+            <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg">
+              <button
+                onClick={() => setViewMode('kanban')}
+                className={`px-4 py-2 rounded font-medium text-sm transition-colors ${
+                  viewMode === 'kanban'
+                    ? 'bg-white text-qolabb-navy-700 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Kanban
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`px-4 py-2 rounded font-medium text-sm transition-colors ${
+                  viewMode === 'list'
+                    ? 'bg-white text-qolabb-navy-700 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                List
+              </button>
+            </div>
           </div>
 
           {/* Status & Project Filters */}
@@ -338,6 +644,74 @@ export default function TasksPage() {
               </Button>
             ) : null}
           </motion.div>
+        ) : viewMode === 'kanban' ? (
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCorners}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* To Do Column */}
+              <KanbanColumn
+                id="todo"
+                title="To Do"
+                icon={<AlertCircle size={18} className="text-orange-600" />}
+                count={tasksByStatus.todo.length}
+                color="orange"
+                tasks={tasksByStatus.todo}
+                user={user}
+                getStatusConfig={getStatusConfig}
+                getPriorityColor={getPriorityColor}
+                activeTaskMenu={activeTaskMenu}
+                setActiveTaskMenu={setActiveTaskMenu}
+                handleDeleteTask={handleDeleteTask}
+              />
+
+              {/* In Progress Column */}
+              <KanbanColumn
+                id="in_progress"
+                title="In Progress"
+                icon={<Clock size={18} className="text-blue-600" />}
+                count={tasksByStatus.in_progress.length}
+                color="blue"
+                tasks={tasksByStatus.in_progress}
+                user={user}
+                getStatusConfig={getStatusConfig}
+                getPriorityColor={getPriorityColor}
+                activeTaskMenu={activeTaskMenu}
+                setActiveTaskMenu={setActiveTaskMenu}
+                handleDeleteTask={handleDeleteTask}
+              />
+
+              {/* Completed Column */}
+              <KanbanColumn
+                id="completed"
+                title="Completed"
+                icon={<CheckCircle2 size={18} className="text-green-600" />}
+                count={tasksByStatus.completed.length}
+                color="green"
+                tasks={tasksByStatus.completed}
+                user={user}
+                getStatusConfig={getStatusConfig}
+                getPriorityColor={getPriorityColor}
+                activeTaskMenu={activeTaskMenu}
+                setActiveTaskMenu={setActiveTaskMenu}
+                handleDeleteTask={handleDeleteTask}
+              />
+            </div>
+
+            {/* Drag Overlay */}
+            <DragOverlay>
+              {activeId ? (
+                <div className="bg-white border-2 border-qolabb-navy-500 rounded-xl p-4 shadow-2xl opacity-90">
+                  <p className="font-semibold text-gray-900">
+                    {filteredTasks.find(t => t.id === activeId)?.title}
+                  </p>
+                </div>
+              ) : null}
+            </DragOverlay>
+          </DndContext>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredTasks.map((task, index) => {
