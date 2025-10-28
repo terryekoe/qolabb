@@ -6,10 +6,11 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Mail, Lock, User, ArrowRight, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/Button';
-import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/lib/auth/AuthContext';
 
 export default function SignupPage() {
   const router = useRouter();
+  const { signUp } = useAuth();
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -48,17 +49,7 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            full_name: formData.fullName,
-          },
-        },
-      });
-
-      if (error) throw error;
+      await signUp(formData.email, formData.password, formData.fullName);
 
       setSuccess(true);
       

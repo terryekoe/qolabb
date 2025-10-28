@@ -53,8 +53,8 @@ export default function OnboardingPage() {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Complete onboarding
-      router.push('/dashboard');
+      // Complete onboarding - redirect to workspace selection
+      router.push('/workspace');
     }
   };
 

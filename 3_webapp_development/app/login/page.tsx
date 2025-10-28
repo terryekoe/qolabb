@@ -6,10 +6,11 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/Button';
-import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/lib/auth/AuthContext';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -21,12 +22,7 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) throw error;
+      await signIn(email, password);
 
       // Redirect to dashboard
       router.push('/dashboard');

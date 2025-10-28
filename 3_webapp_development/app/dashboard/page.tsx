@@ -1,118 +1,260 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { LayoutDashboard, Users, BarChart3, Settings, LogOut } from 'lucide-react';
-import Link from 'next/link';
+import { FolderKanban, Users, BarChart3, TrendingUp, Plus, Clock } from 'lucide-react';
+import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
+import { StatCard } from '@/components/dashboard/StatCard';
+import { Button } from '@/components/Button';
+import { useAuth } from '@/lib/auth/AuthContext';
+import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
+import { getWorkspaceStats, getWorkspaceActivity, getWorkspaceProjects } from '@/lib/db/queries';
 
 export default function DashboardPage() {
-  const sidebarItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
-    { icon: Users, label: 'My Teams', href: '/coming-soon' },
-    { icon: BarChart3, label: 'Analytics', href: '/coming-soon' },
-    { icon: Settings, label: 'Settings', href: '/coming-soon' },
-  ];
+  const { profile } = useAuth();
+  const { currentWorkspace } = useWorkspace();
+  const userName = profile?.full_name?.split(' ')[0] || 'User';
+  
+  const [stats, setStats] = useState({ activeProjects: 0, totalMembers: 0, tasksCompleted: 0, avgParticipation: 0 });
+  const [recentProjects, setRecentProjects] = useState<any[]>([]);
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (currentWorkspace) {
+      loadDashboardData();
+    } else {
+      setLoading(false);
+    }
+  }, [currentWorkspace]);
+
+  async function loadDashboardData() {
+    if (!currentWorkspace) return;
+    
+    try {
+      setLoading(true);
+      
+      // Load stats
+      const statsData = await getWorkspaceStats(currentWorkspace.id);
+      setStats(statsData);
+      
+      // Load recent projects
+      const projectsData = await getWorkspaceProjects(currentWorkspace.id);
+      setRecentProjects(projectsData?.slice(0, 3) || []);
+      
+      // Load recent activity
+      const activityData = await getWorkspaceActivity(currentWorkspace.id, 5);
+      setRecentActivity(activityData || []);
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (!currentWorkspace) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center">
+            <FolderKanban size={64} className="mx-auto text-gray-300 mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">No Workspace Selected</h2>
+            <p className="text-gray-600">Select or create a workspace to get started</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar */}
-      <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
-        {/* Logo */}
-        <div className="p-6 border-b border-gray-200">
-          <Link href="/">
-            <div className="text-2xl font-bold">
-              <span className="text-black">Qol</span>
-              <span className="text-qolabb-navy-600">abb</span>
-            </div>
-          </Link>
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-2">
-          {sidebarItems.map((item) => (
-            <Link key={item.label} href={item.href}>
-              <motion.div
-                whileHover={{ x: 4 }}
-                className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
-              >
-                <item.icon size={20} className="text-gray-600" />
-                <span className="font-medium text-gray-700">{item.label}</span>
-              </motion.div>
-            </Link>
-          ))}
-        </nav>
-
-        {/* Logout */}
-        <div className="p-4 border-t border-gray-200">
-          <button className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-red-50 text-red-600 w-full transition-colors">
-            <LogOut size={20} />
-            <span className="font-medium">Logout</span>
-          </button>
-        </div>
+    <DashboardLayout>
+      {/* Welcome Header */}
+      <div className="bg-white border-b border-gray-200 p-6">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Welcome back, {userName}! 👋
+          </h1>
+          <p className="text-gray-600">
+            Here's what's happening in {currentWorkspace.name}
+          </p>
+        </motion.div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 p-8">
-        <div className="max-w-6xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <h1 className="text-4xl font-bold mb-2 text-gray-900">Welcome to Qolabb!</h1>
-            <p className="text-xl text-gray-600 mb-8">Your team collaboration dashboard</p>
-
-            {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              {[
-                { label: 'Active Teams', value: '0', color: 'bg-blue-500' },
-                { label: 'Total Contributions', value: '0', color: 'bg-green-500' },
-                { label: 'Avg. Participation', value: '0%', color: 'bg-purple-500' },
-              ].map((stat, index) => (
-                <motion.div
-                  key={stat.label}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="bg-white rounded-xl shadow-sm p-6 border border-gray-200"
-                >
-                  <div className={`${stat.color} w-12 h-12 rounded-lg flex items-center justify-center mb-4`}>
-                    <span className="text-white text-xl font-bold">{stat.value}</span>
-                  </div>
-                  <h3 className="text-gray-600 font-medium">{stat.label}</h3>
-                </motion.div>
-              ))}
+      <div className="p-6 space-y-6">
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="bg-white rounded-xl p-6 border border-gray-200 animate-pulse">
+                <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
+                <div className="h-8 bg-gray-200 rounded w-3/4"></div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <>
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <StatCard
+                title="Active Projects"
+                value={stats.activeProjects.toString()}
+                change={stats.activeProjects > 0 ? `${stats.activeProjects} total` : 'No projects yet'}
+                changeType={stats.activeProjects > 0 ? 'positive' : 'neutral'}
+                icon={FolderKanban}
+                color="blue"
+              />
+              <StatCard
+                title="Team Members"
+                value={stats.totalMembers.toString()}
+                change={stats.totalMembers > 0 ? `${stats.totalMembers} total` : 'No members yet'}
+                changeType={stats.totalMembers > 0 ? 'positive' : 'neutral'}
+                icon={Users}
+                color="green"
+              />
+              <StatCard
+                title="Avg. Participation"
+                value={`${stats.avgParticipation}%`}
+                change={stats.avgParticipation > 0 ? 'Based on contributions' : 'No data yet'}
+                changeType={stats.avgParticipation > 70 ? 'positive' : stats.avgParticipation > 50 ? 'neutral' : 'negative'}
+                icon={TrendingUp}
+                color="purple"
+              />
+              <StatCard
+                title="Tasks Completed"
+                value={stats.tasksCompleted.toString()}
+                change={stats.tasksCompleted > 0 ? `${stats.tasksCompleted} total` : 'No tasks yet'}
+                changeType={stats.tasksCompleted > 0 ? 'positive' : 'neutral'}
+                icon={BarChart3}
+                color="orange"
+              />
             </div>
 
-            {/* Coming Soon Section */}
+            {/* Quick Actions */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="bg-gradient-to-br from-qolabb-navy-600 to-qolabb-navy-800 rounded-2xl p-12 text-center text-white"
+              transition={{ delay: 0.1 }}
+              className="bg-gradient-to-r from-qolabb-navy-600 to-qolabb-navy-800 rounded-2xl p-8 text-white"
             >
-              <h2 className="text-3xl font-bold mb-4">Dashboard Features Coming Soon</h2>
-              <p className="text-xl mb-6 opacity-90">
-                We're building amazing features to help you track and manage your team projects.
-              </p>
-              <ul className="text-left max-w-md mx-auto space-y-3">
-                {[
-                  'Create and manage teams',
-                  'Track member contributions',
-                  'View real-time analytics',
-                  'Export detailed reports',
-                  'Set team goals and milestones',
-                ].map((feature) => (
-                  <li key={feature} className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-white rounded-full"></div>
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
+              <h2 className="text-2xl font-bold mb-4">Quick Actions</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-4 text-left transition-colors group">
+                  <Plus className="mb-2 group-hover:scale-110 transition-transform" size={24} />
+                  <p className="font-semibold">Create Project</p>
+                  <p className="text-sm opacity-80">Start a new team project</p>
+                </button>
+                <button className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-4 text-left transition-colors group">
+                  <Users className="mb-2 group-hover:scale-110 transition-transform" size={24} />
+                  <p className="font-semibold">Invite Members</p>
+                  <p className="text-sm opacity-80">Add people to workspace</p>
+                </button>
+                <button className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-4 text-left transition-colors group">
+                  <BarChart3 className="mb-2 group-hover:scale-110 transition-transform" size={24} />
+                  <p className="font-semibold">View Analytics</p>
+                  <p className="text-sm opacity-80">Check team insights</p>
+                </button>
+              </div>
             </motion.div>
-          </motion.div>
-        </div>
+
+            {/* Content Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Recent Projects */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-gray-900">Recent Projects</h2>
+                  {recentProjects.length > 0 && (
+                    <Button variant="ghost" size="sm">View All</Button>
+                  )}
+                </div>
+                
+                {recentProjects.length === 0 ? (
+                  <div className="text-center py-12">
+                    <FolderKanban size={48} className="mx-auto text-gray-300 mb-4" />
+                    <p className="text-gray-600 mb-4">No projects yet</p>
+                    <Button variant="primary" size="sm">
+                      <Plus size={16} className="mr-2" />
+                      Create First Project
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {recentProjects.map((project) => (
+                      <div
+                        key={project.id}
+                        className="p-4 rounded-lg border border-gray-200 hover:border-qolabb-navy-300 hover:shadow-sm transition-all cursor-pointer"
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="font-semibold text-gray-900">{project.name}</h3>
+                          <span className={`flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full ${
+                            project.status === 'active' ? 'text-blue-600 bg-blue-50' :
+                            project.status === 'completed' ? 'text-green-600 bg-green-50' :
+                            'text-orange-600 bg-orange-50'
+                          }`}>
+                            <Clock size={14} />
+                            {project.status}
+                          </span>
+                        </div>
+                        {project.description && (
+                          <p className="text-sm text-gray-600 mb-3">{project.description}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+
+              {/* Recent Activity */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-gray-900">Recent Activity</h2>
+                  {recentActivity.length > 0 && (
+                    <Button variant="ghost" size="sm">View All</Button>
+                  )}
+                </div>
+                
+                {recentActivity.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Clock size={48} className="mx-auto text-gray-300 mb-4" />
+                    <p className="text-gray-600">No activity yet</p>
+                    <p className="text-sm text-gray-500 mt-2">Activity will appear here when team members start working</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {recentActivity.map((activity) => (
+                      <div key={activity.id} className="flex items-start space-x-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-qolabb-navy-400 to-qolabb-beige-400 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                          {activity.user?.full_name?.charAt(0) || 'U'}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-gray-900">
+                            <span className="font-semibold">{activity.user?.full_name || 'Someone'}</span>{' '}
+                            {activity.action_type}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {new Date(activity.created_at).toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            </div>
+          </>
+        )}
       </div>
-    </div>
+    </DashboardLayout>
   );
 }
