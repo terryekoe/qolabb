@@ -173,10 +173,35 @@ export async function updateProfile(userId: string, updates: Partial<Profile>) {
 // =====================================================
 
 export async function createWorkspace(workspace: WorkspaceInsert, userId: string) {
+  // Generate unique invite code
+  const generateInviteCode = () => {
+    return Math.random().toString(36).substring(2, 8).toUpperCase();
+  };
+
+  let inviteCode = generateInviteCode();
+  let attempts = 0;
+  
+  // Ensure invite code is unique
+  while (attempts < 5) {
+    const { data: existing } = await supabase
+      .from('workspaces')
+      .select('id')
+      .eq('invite_code', inviteCode)
+      .single();
+    
+    if (!existing) break;
+    inviteCode = generateInviteCode();
+    attempts++;
+  }
+
   // Create workspace
   const { data: newWorkspace, error: workspaceError } = await supabase
     .from('workspaces')
-    .insert({ ...workspace, owner_id: userId } as any)
+    .insert({ 
+      ...workspace, 
+      owner_id: userId,
+      invite_code: inviteCode 
+    } as any)
     .select()
     .single()
 
