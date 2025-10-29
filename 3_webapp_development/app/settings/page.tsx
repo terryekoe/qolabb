@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Settings as SettingsIcon,
   User,
@@ -38,24 +38,31 @@ import {
   Clock,
   FileText,
   HelpCircle,
-} from 'lucide-react';
-import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
-import { Button } from '@/components/Button';
-import { useAuth } from '@/lib/auth/AuthContext';
-import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
-import { getWorkspaceMembers, getProfile, updateProfile } from '@/lib/db/queries';
-import { supabase } from '@/lib/supabase';
+  Upload,
+  X,
+} from "lucide-react";
+import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { Button } from "@/components/Button";
+import { useAuth } from "@/lib/auth/AuthContext";
+import { useWorkspace } from "@/lib/workspace/WorkspaceContext";
+import {
+  getWorkspaceMembers,
+  getProfile,
+  updateProfile,
+} from "@/lib/db/queries";
+import { supabase } from "@/lib/supabase";
+import type { UserRole } from "@/lib/types/database";
 
-type SettingsCategory = 
-  | 'profile' 
-  | 'account' 
-  | 'workspace' 
-  | 'notifications' 
-  | 'privacy' 
-  | 'appearance' 
-  | 'integrations' 
-  | 'billing' 
-  | 'support';
+type SettingsCategory =
+  | "profile"
+  | "account"
+  | "workspace"
+  | "notifications"
+  | "privacy"
+  | "appearance"
+  | "integrations"
+  | "billing"
+  | "support";
 
 interface SettingsSection {
   id: SettingsCategory;
@@ -66,99 +73,102 @@ interface SettingsSection {
 
 const settingsSections: SettingsSection[] = [
   {
-    id: 'profile',
-    label: 'Profile',
+    id: "profile",
+    label: "Profile",
     icon: User,
-    description: 'Manage your personal information and preferences'
+    description: "Manage your personal information and preferences",
   },
   {
-    id: 'account',
-    label: 'Account & Security',
+    id: "account",
+    label: "Account & Security",
     icon: Shield,
-    description: 'Password, authentication, and account settings'
+    description: "Password, authentication, and account settings",
   },
   {
-    id: 'workspace',
-    label: 'Workspace',
+    id: "workspace",
+    label: "Workspace",
     icon: Building2,
-    description: 'Workspace settings and member management'
+    description: "Workspace settings and member management",
   },
   {
-    id: 'notifications',
-    label: 'Notifications',
+    id: "notifications",
+    label: "Notifications",
     icon: Bell,
-    description: 'Email, push, and in-app notification preferences'
+    description: "Email, push, and in-app notification preferences",
   },
   {
-    id: 'privacy',
-    label: 'Privacy',
+    id: "privacy",
+    label: "Privacy",
     icon: Eye,
-    description: 'Control your data and privacy settings'
+    description: "Control your data and privacy settings",
   },
   {
-    id: 'appearance',
-    label: 'Appearance',
+    id: "appearance",
+    label: "Appearance",
     icon: Palette,
-    description: 'Theme, display, and interface customization'
+    description: "Theme, display, and interface customization",
   },
   {
-    id: 'integrations',
-    label: 'Integrations',
+    id: "integrations",
+    label: "Integrations",
     icon: Globe,
-    description: 'Connected apps and external services'
+    description: "Connected apps and external services",
   },
   {
-    id: 'billing',
-    label: 'Billing & Plans',
+    id: "billing",
+    label: "Billing & Plans",
     icon: FileText,
-    description: 'Subscription, usage, and payment information'
+    description: "Subscription, usage, and payment information",
   },
   {
-    id: 'support',
-    label: 'Help & Support',
+    id: "support",
+    label: "Help & Support",
     icon: HelpCircle,
-    description: 'Documentation, contact support, and feedback'
-  }
+    description: "Documentation, contact support, and feedback",
+  },
 ];
 
 export default function SettingsPage() {
   const { user } = useAuth();
   const { currentWorkspace, refreshWorkspaces } = useWorkspace();
-  const [activeSection, setActiveSection] = useState<SettingsCategory>('profile');
+  const [activeSection, setActiveSection] =
+    useState<SettingsCategory>("profile");
   const [members, setMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   // Profile settings state
   const [profileData, setProfileData] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
-    institution: '',
-    role: '',
+    fullName: "",
+    email: "",
+    phone: "",
+    institution: "",
+    role: "",
     goals: [] as string[],
-    bio: '',
-    location: '',
-    timezone: '',
-    avatar: ''
+    bio: "",
+    location: "",
+    timezone: "",
+    avatar: "",
   });
 
   // Account settings state
   const [accountSettings, setAccountSettings] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
     twoFactorEnabled: false,
-    sessionTimeout: '24h'
+    sessionTimeout: "24h",
   });
 
   // Workspace settings state
   const [workspaceSettings, setWorkspaceSettings] = useState({
-    name: '',
-    description: '',
-    inviteCode: '',
-    defaultRole: 'member',
-    allowPublicJoin: false
+    name: "",
+    description: "",
+    inviteCode: "",
+    defaultRole: "member",
+    allowPublicJoin: false,
   });
 
   // Notification settings state
@@ -169,28 +179,28 @@ export default function SettingsPage() {
     taskAssignments: true,
     teamInvites: true,
     weeklyDigest: true,
-    marketingEmails: false
+    marketingEmails: false,
   });
 
   // Privacy settings state
   const [privacySettings, setPrivacySettings] = useState({
-    profileVisibility: 'workspace',
+    profileVisibility: "workspace",
     showEmail: false,
     showPhone: false,
     allowDirectMessages: true,
     dataExport: false,
-    analyticsOptOut: false
+    analyticsOptOut: false,
   });
 
   // Appearance settings state
   const [appearanceSettings, setAppearanceSettings] = useState({
-    theme: 'system',
-    language: 'en',
-    dateFormat: 'MM/DD/YYYY',
-    timeFormat: '12h',
-    density: 'comfortable',
+    theme: "system",
+    language: "en",
+    dateFormat: "MM/DD/YYYY",
+    timeFormat: "12h",
+    density: "comfortable",
     animations: true,
-    soundEffects: true
+    soundEffects: true,
   });
 
   const [copiedCode, setCopiedCode] = useState(false);
@@ -200,10 +210,10 @@ export default function SettingsPage() {
     if (currentWorkspace) {
       setWorkspaceSettings({
         name: currentWorkspace.name,
-        description: currentWorkspace.description || '',
-        inviteCode: currentWorkspace.invite_code || '',
-        defaultRole: 'member',
-        allowPublicJoin: false
+        description: currentWorkspace.description || "",
+        inviteCode: currentWorkspace.invite_code || "",
+        defaultRole: "member",
+        allowPublicJoin: false,
       });
       loadMembers();
     }
@@ -215,36 +225,37 @@ export default function SettingsPage() {
         try {
           const profile = await getProfile(user.id);
           setProfileData({
-            fullName: profile?.full_name || user.user_metadata?.full_name || '',
-            email: user.email || '',
-            phone: user.user_metadata?.phone || '',
-            institution: profile?.institution || user.user_metadata?.institution || '',
-            role: profile?.role || user.user_metadata?.role || '',
+            fullName: profile?.full_name || user.user_metadata?.full_name || "",
+            email: user.email || "",
+            phone: user.user_metadata?.phone || "",
+            institution:
+              profile?.institution || user.user_metadata?.institution || "",
+            role: profile?.role || user.user_metadata?.role || "",
             goals: profile?.goals || [],
-            bio: user.user_metadata?.bio || '',
-            location: user.user_metadata?.location || '',
-            timezone: user.user_metadata?.timezone || 'UTC',
-            avatar: profile?.avatar_url || user.user_metadata?.avatar_url || ''
+            bio: user.user_metadata?.bio || "",
+            location: user.user_metadata?.location || "",
+            timezone: user.user_metadata?.timezone || "UTC",
+            avatar: profile?.avatar_url || user.user_metadata?.avatar_url || "",
           });
         } catch (error) {
-          console.error('Error loading profile:', error);
+          console.error("Error loading profile:", error);
           // Fallback to auth metadata
           setProfileData({
-            fullName: user.user_metadata?.full_name || '',
-            email: user.email || '',
-            phone: user.user_metadata?.phone || '',
-            institution: user.user_metadata?.institution || '',
-            role: user.user_metadata?.role || '',
+            fullName: user.user_metadata?.full_name || "",
+            email: user.email || "",
+            phone: user.user_metadata?.phone || "",
+            institution: user.user_metadata?.institution || "",
+            role: user.user_metadata?.role || "",
             goals: [],
-            bio: user.user_metadata?.bio || '',
-            location: user.user_metadata?.location || '',
-            timezone: user.user_metadata?.timezone || 'UTC',
-            avatar: user.user_metadata?.avatar_url || ''
+            bio: user.user_metadata?.bio || "",
+            location: user.user_metadata?.location || "",
+            timezone: user.user_metadata?.timezone || "UTC",
+            avatar: user.user_metadata?.avatar_url || "",
           });
         }
       }
     }
-    
+
     loadProfileData();
   }, [user]);
 
@@ -256,7 +267,7 @@ export default function SettingsPage() {
       const membersData = await getWorkspaceMembers(currentWorkspace.id);
       setMembers(membersData || []);
     } catch (error) {
-      console.error('Error loading members:', error);
+      console.error("Error loading members:", error);
     } finally {
       setLoading(false);
     }
@@ -264,7 +275,7 @@ export default function SettingsPage() {
 
   async function handleSaveProfile() {
     if (!user) return;
-    
+
     setSaving(true);
     try {
       // Update auth metadata
@@ -273,11 +284,11 @@ export default function SettingsPage() {
           full_name: profileData.fullName,
           phone: profileData.phone,
           institution: profileData.institution,
-          role: profileData.role,
+          role: profileData.role as UserRole,
           bio: profileData.bio,
           location: profileData.location,
-          timezone: profileData.timezone
-        }
+          timezone: profileData.timezone,
+        },
       });
 
       if (authError) throw authError;
@@ -286,16 +297,132 @@ export default function SettingsPage() {
       await updateProfile(user.id, {
         full_name: profileData.fullName,
         institution: profileData.institution,
-        role: profileData.role,
+        role: profileData.role as UserRole | undefined,
         goals: profileData.goals,
-        avatar_url: profileData.avatar
+        avatar_url: profileData.avatar,
       });
 
-      alert('Profile updated successfully!');
+      alert("Profile updated successfully!");
     } catch (error: any) {
-      alert('Failed to update profile: ' + error.message);
+      alert("Failed to update profile: " + error.message);
     } finally {
       setSaving(false);
+    }
+  }
+
+  // File upload functions
+  function handleFileSelect() {
+    fileInputRef.current?.click();
+  }
+
+  function validateFile(file: File): string | null {
+    // Check file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+      return 'Please select a valid image file (JPG, PNG, or GIF)';
+    }
+
+    // Check file size (2MB limit)
+    const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+    if (file.size > maxSize) {
+      return 'File size must be less than 2MB';
+    }
+
+    return null;
+  }
+
+  async function handleFileUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file
+    const validationError = validateFile(file);
+    if (validationError) {
+      alert(validationError);
+      return;
+    }
+
+    setUploading(true);
+    try {
+      // Create unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+
+      // Upload to Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      const avatarUrl = urlData.publicUrl;
+
+      // Update profile data state
+      setProfileData({ ...profileData, avatar: avatarUrl });
+
+      // Update database immediately
+      await updateProfile(user.id, {
+        avatar_url: avatarUrl,
+      });
+
+      alert('Profile picture updated successfully!');
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      
+      // Provide specific error messages based on the error type
+      let errorMessage = 'Failed to upload profile picture. Please try again.';
+      
+      if (error.message?.includes('bucket')) {
+        errorMessage = 'Storage not configured. Please contact support.';
+      } else if (error.message?.includes('size')) {
+        errorMessage = 'File is too large. Please use an image under 2MB.';
+      } else if (error.message?.includes('type')) {
+        errorMessage = 'Invalid file type. Please use JPG, PNG, or GIF.';
+      } else if (error.message) {
+        errorMessage = `Upload failed: ${error.message}`;
+      }
+      
+      alert(errorMessage);
+    } finally {
+      setUploading(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  }
+
+  async function handleRemoveAvatar() {
+    if (!user) return;
+
+    try {
+      setUploading(true);
+      
+      // Update profile data state
+      setProfileData({ ...profileData, avatar: '' });
+
+      // Update database
+      await updateProfile(user.id, {
+        avatar_url: null,
+      });
+
+      alert('Profile picture removed successfully!');
+    } catch (error: any) {
+      console.error('Remove avatar error:', error);
+      alert('Failed to remove profile picture: ' + error.message);
+    } finally {
+      setUploading(false);
     }
   }
 
@@ -305,19 +432,19 @@ export default function SettingsPage() {
     setSaving(true);
     try {
       const { error } = await supabase
-        .from('workspaces')
+        .from("workspaces")
         .update({
           name: workspaceSettings.name,
           description: workspaceSettings.description || null,
         } as any)
-        .eq('id', currentWorkspace.id);
+        .eq("id", currentWorkspace.id);
 
       if (error) throw error;
 
       await refreshWorkspaces();
-      alert('Workspace updated successfully!');
+      alert("Workspace updated successfully!");
     } catch (error: any) {
-      alert('Failed to update workspace: ' + error.message);
+      alert("Failed to update workspace: " + error.message);
     } finally {
       setSaving(false);
     }
@@ -331,9 +458,10 @@ export default function SettingsPage() {
   }
 
   const currentMember = members.find((m) => m.user_id === user?.id);
-  const isOwnerOrAdmin = currentMember?.role === 'owner' || currentMember?.role === 'admin';
+  const isOwnerOrAdmin =
+    currentMember?.role === "owner" || currentMember?.role === "admin";
 
-  if (!currentWorkspace && activeSection === 'workspace') {
+  if (!currentWorkspace && activeSection === "workspace") {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-96">
@@ -349,42 +477,111 @@ export default function SettingsPage() {
   const renderProfileSettings = () => (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Profile Settings</h2>
-        <p className="text-gray-600">Manage your personal information and preferences</p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          Profile Settings
+        </h2>
+        <p className="text-gray-600">
+          Manage your personal information and preferences
+        </p>
       </div>
 
       {/* Profile Picture */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Picture</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Profile Picture
+        </h3>
         <div className="flex items-center space-x-6">
-          <div className="w-20 h-20 bg-gradient-to-br from-qolabb-navy-400 to-qolabb-beige-400 rounded-full flex items-center justify-center text-white font-bold text-2xl">
-            {profileData.fullName?.charAt(0) || 'U'}
+          {/* Avatar Display */}
+          <div className="relative">
+            {profileData.avatar ? (
+              <img
+                src={profileData.avatar}
+                alt="Profile"
+                className="w-20 h-20 rounded-full object-cover border-2 border-gray-200"
+              />
+            ) : (
+              <div className="w-20 h-20 bg-gradient-to-br from-qolabb-navy-400 to-qolabb-beige-400 rounded-full flex items-center justify-center text-white font-bold text-2xl">
+                {profileData.fullName?.charAt(0) || "U"}
+              </div>
+            )}
+            {uploading && (
+              <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+              </div>
+            )}
           </div>
+
+          {/* Upload Controls */}
           <div className="flex-1">
-            <Button variant="ghost" className="flex items-center space-x-2">
-              <Camera size={18} />
-              <span>Change Photo</span>
-            </Button>
-            <p className="text-sm text-gray-500 mt-1">JPG, PNG or GIF. Max size 2MB.</p>
+            <div className="flex items-center space-x-3">
+              <Button 
+                variant="ghost" 
+                className="flex items-center space-x-2"
+                onClick={handleFileSelect}
+                disabled={uploading}
+              >
+                <Camera size={18} />
+                <span>{profileData.avatar ? 'Change Photo' : 'Upload Photo'}</span>
+              </Button>
+              
+              {profileData.avatar && (
+                <Button 
+                  variant="ghost" 
+                  className="flex items-center space-x-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                  onClick={handleRemoveAvatar}
+                  disabled={uploading}
+                >
+                  <X size={18} />
+                  <span>Remove</span>
+                </Button>
+              )}
+            </div>
+            
+            <p className="text-sm text-gray-500 mt-1">
+              JPG, PNG or GIF. Max size 2MB.
+            </p>
+            
+            {uploading && (
+              <p className="text-sm text-qolabb-navy-600 mt-1">
+                Uploading...
+              </p>
+            )}
           </div>
         </div>
+
+        {/* Hidden File Input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/jpg,image/png,image/gif"
+          onChange={handleFileUpload}
+          className="hidden"
+        />
       </div>
 
       {/* Personal Information */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Personal Information</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Personal Information
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Full Name
+            </label>
             <input
               type="text"
               value={profileData.fullName}
-              onChange={(e) => setProfileData({ ...profileData, fullName: e.target.value })}
+              onChange={(e) =>
+                setProfileData({ ...profileData, fullName: e.target.value })
+              }
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Email
+            </label>
             <input
               type="email"
               value={profileData.email}
@@ -393,28 +590,40 @@ export default function SettingsPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Phone
+            </label>
             <input
               type="tel"
               value={profileData.phone}
-              onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+              onChange={(e) =>
+                setProfileData({ ...profileData, phone: e.target.value })
+              }
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Institution</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Institution
+            </label>
             <input
               type="text"
               value={profileData.institution}
-              onChange={(e) => setProfileData({ ...profileData, institution: e.target.value })}
+              onChange={(e) =>
+                setProfileData({ ...profileData, institution: e.target.value })
+              }
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Role
+            </label>
             <select
               value={profileData.role}
-              onChange={(e) => setProfileData({ ...profileData, role: e.target.value })}
+              onChange={(e) =>
+                setProfileData({ ...profileData, role: e.target.value })
+              }
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
             >
               <option value="">Select Role</option>
@@ -425,56 +634,68 @@ export default function SettingsPage() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Location
+            </label>
             <input
               type="text"
               value={profileData.location}
-              onChange={(e) => setProfileData({ ...profileData, location: e.target.value })}
+              onChange={(e) =>
+                setProfileData({ ...profileData, location: e.target.value })
+              }
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
               placeholder="City, Country"
             />
           </div>
         </div>
         <div className="mt-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Bio
+          </label>
           <textarea
             value={profileData.bio}
-            onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })}
+            onChange={(e) =>
+              setProfileData({ ...profileData, bio: e.target.value })
+            }
             rows={3}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
             placeholder="Tell us about yourself..."
           />
         </div>
-        
+
         {/* Goals Section */}
         <div className="mt-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Goals</label>
-          <p className="text-sm text-gray-500 mb-3">Select your learning and research goals</p>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Goals
+          </label>
+          <p className="text-sm text-gray-500 mb-3">
+            Select your learning and research goals
+          </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {[
-              'Research Excellence',
-              'Academic Publishing',
-              'Grant Writing',
-              'Data Analysis',
-              'Collaboration',
-              'Teaching',
-              'Innovation',
-              'Leadership',
-              'Networking'
+              "Research Excellence",
+              "Academic Publishing",
+              "Grant Writing",
+              "Data Analysis",
+              "Collaboration",
+              "Teaching",
+              "Innovation",
+              "Leadership",
+              "Networking",
             ].map((goal) => (
               <button
                 key={goal}
                 type="button"
                 onClick={() => {
                   const newGoals = profileData.goals.includes(goal)
-                    ? profileData.goals.filter(g => g !== goal)
+                    ? profileData.goals.filter((g) => g !== goal)
                     : [...profileData.goals, goal];
                   setProfileData({ ...profileData, goals: newGoals });
                 }}
                 className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
                   profileData.goals.includes(goal)
-                    ? 'bg-qolabb-navy-500 text-white border-qolabb-navy-500'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-qolabb-navy-300'
+                    ? "bg-qolabb-navy-500 text-white border-qolabb-navy-500"
+                    : "bg-white text-gray-700 border-gray-300 hover:border-qolabb-navy-300"
                 }`}
               >
                 {goal}
@@ -488,7 +709,7 @@ export default function SettingsPage() {
             onClick={handleSaveProfile}
             disabled={saving}
           >
-            {saving ? 'Saving...' : 'Save Changes'}
+            {saving ? "Saving..." : "Save Changes"}
           </Button>
         </div>
       </div>
@@ -498,21 +719,34 @@ export default function SettingsPage() {
   const renderAccountSettings = () => (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Account & Security</h2>
-        <p className="text-gray-600">Manage your password, authentication, and security settings</p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          Account & Security
+        </h2>
+        <p className="text-gray-600">
+          Manage your password, authentication, and security settings
+        </p>
       </div>
 
       {/* Password */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Change Password</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Change Password
+        </h3>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Current Password
+            </label>
             <div className="relative">
               <input
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 value={accountSettings.currentPassword}
-                onChange={(e) => setAccountSettings({ ...accountSettings, currentPassword: e.target.value })}
+                onChange={(e) =>
+                  setAccountSettings({
+                    ...accountSettings,
+                    currentPassword: e.target.value,
+                  })
+                }
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent pr-12"
               />
               <button
@@ -525,20 +759,34 @@ export default function SettingsPage() {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              New Password
+            </label>
             <input
               type="password"
               value={accountSettings.newPassword}
-              onChange={(e) => setAccountSettings({ ...accountSettings, newPassword: e.target.value })}
+              onChange={(e) =>
+                setAccountSettings({
+                  ...accountSettings,
+                  newPassword: e.target.value,
+                })
+              }
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Confirm New Password
+            </label>
             <input
               type="password"
               value={accountSettings.confirmPassword}
-              onChange={(e) => setAccountSettings({ ...accountSettings, confirmPassword: e.target.value })}
+              onChange={(e) =>
+                setAccountSettings({
+                  ...accountSettings,
+                  confirmPassword: e.target.value,
+                })
+              }
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
             />
           </div>
@@ -550,17 +798,26 @@ export default function SettingsPage() {
 
       {/* Two-Factor Authentication */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Two-Factor Authentication</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Two-Factor Authentication
+        </h3>
         <div className="flex items-center justify-between">
           <div>
             <p className="text-gray-900 font-medium">Enable 2FA</p>
-            <p className="text-sm text-gray-600">Add an extra layer of security to your account</p>
+            <p className="text-sm text-gray-600">
+              Add an extra layer of security to your account
+            </p>
           </div>
           <label className="relative inline-flex items-center cursor-pointer">
             <input
               type="checkbox"
               checked={accountSettings.twoFactorEnabled}
-              onChange={(e) => setAccountSettings({ ...accountSettings, twoFactorEnabled: e.target.checked })}
+              onChange={(e) =>
+                setAccountSettings({
+                  ...accountSettings,
+                  twoFactorEnabled: e.target.checked,
+                })
+              }
               className="sr-only peer"
             />
             <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-qolabb-navy-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-qolabb-navy-600"></div>
@@ -570,13 +827,22 @@ export default function SettingsPage() {
 
       {/* Session Management */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Session Management</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Session Management
+        </h3>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Session Timeout</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Session Timeout
+            </label>
             <select
               value={accountSettings.sessionTimeout}
-              onChange={(e) => setAccountSettings({ ...accountSettings, sessionTimeout: e.target.value })}
+              onChange={(e) =>
+                setAccountSettings({
+                  ...accountSettings,
+                  sessionTimeout: e.target.value,
+                })
+              }
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
             >
               <option value="1h">1 hour</option>
@@ -597,14 +863,20 @@ export default function SettingsPage() {
   const renderWorkspaceSettings = () => (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Workspace Settings</h2>
-        <p className="text-gray-600">Manage {currentWorkspace?.name || 'your workspace'}</p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          Workspace Settings
+        </h2>
+        <p className="text-gray-600">
+          Manage {currentWorkspace?.name || "your workspace"}
+        </p>
       </div>
 
       {/* Workspace Info */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Workspace Information</h3>
-        
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Workspace Information
+        </h3>
+
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -613,7 +885,12 @@ export default function SettingsPage() {
             <input
               type="text"
               value={workspaceSettings.name}
-              onChange={(e) => setWorkspaceSettings({ ...workspaceSettings, name: e.target.value })}
+              onChange={(e) =>
+                setWorkspaceSettings({
+                  ...workspaceSettings,
+                  name: e.target.value,
+                })
+              }
               disabled={!isOwnerOrAdmin}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
@@ -625,7 +902,12 @@ export default function SettingsPage() {
             </label>
             <textarea
               value={workspaceSettings.description}
-              onChange={(e) => setWorkspaceSettings({ ...workspaceSettings, description: e.target.value })}
+              onChange={(e) =>
+                setWorkspaceSettings({
+                  ...workspaceSettings,
+                  description: e.target.value,
+                })
+              }
               disabled={!isOwnerOrAdmin}
               rows={3}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
@@ -640,7 +922,7 @@ export default function SettingsPage() {
                 onClick={handleSaveWorkspace}
                 disabled={saving || !workspaceSettings.name.trim()}
               >
-                {saving ? 'Saving...' : 'Save Changes'}
+                {saving ? "Saving..." : "Save Changes"}
               </Button>
             </div>
           )}
@@ -649,11 +931,13 @@ export default function SettingsPage() {
 
       {/* Invite Code */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Invite Code</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Invite Code
+        </h3>
         <p className="text-gray-600 mb-4">
           Share this code with others to invite them to your workspace
         </p>
-        
+
         <div className="flex items-center space-x-3">
           <div className="flex-1 px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg font-mono text-lg tracking-wider text-gray-900">
             {workspaceSettings.inviteCode}
@@ -683,14 +967,18 @@ export default function SettingsPage() {
         <div className="p-6 border-b border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900">Members</h3>
           <p className="text-gray-600 text-sm mt-1">
-            {members.length} member{members.length !== 1 ? 's' : ''} in this workspace
+            {members.length} member{members.length !== 1 ? "s" : ""} in this
+            workspace
           </p>
         </div>
 
         {loading ? (
           <div className="p-6 space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center space-x-4 animate-pulse">
+              <div
+                key={i}
+                className="flex items-center space-x-4 animate-pulse"
+              >
                 <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
                 <div className="flex-1 space-y-2">
                   <div className="h-4 bg-gray-200 rounded w-1/4"></div>
@@ -702,15 +990,18 @@ export default function SettingsPage() {
         ) : (
           <div className="divide-y divide-gray-200">
             {members.map((member) => (
-              <div key={member.id} className="p-6 flex items-center justify-between hover:bg-gray-50 transition-colors">
+              <div
+                key={member.id}
+                className="p-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
+              >
                 <div className="flex items-center space-x-4">
                   <div className="w-12 h-12 bg-gradient-to-br from-qolabb-navy-400 to-qolabb-beige-400 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                    {member.profile?.full_name?.charAt(0) || 'U'}
+                    {member.profile?.full_name?.charAt(0) || "U"}
                   </div>
                   <div>
                     <div className="flex items-center space-x-2">
                       <p className="font-semibold text-gray-900">
-                        {member.profile?.full_name || 'Unknown User'}
+                        {member.profile?.full_name || "Unknown User"}
                       </p>
                       {member.user_id === user?.id && (
                         <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-0.5 rounded-full">
@@ -719,35 +1010,37 @@ export default function SettingsPage() {
                       )}
                     </div>
                     <p className="text-sm text-gray-600">
-                      {member.profile?.institution || 'No institution'}
+                      {member.profile?.institution || "No institution"}
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center space-x-3">
                   <div className="flex items-center space-x-2">
-                    {member.role === 'owner' && (
+                    {member.role === "owner" && (
                       <div className="flex items-center space-x-1 bg-qolabb-navy-100 text-qolabb-navy-700 px-3 py-1 rounded-full">
                         <Crown size={14} />
                         <span className="text-sm font-semibold">Owner</span>
                       </div>
                     )}
-                    {member.role === 'admin' && (
+                    {member.role === "admin" && (
                       <div className="flex items-center space-x-1 bg-purple-100 text-purple-700 px-3 py-1 rounded-full">
                         <Shield size={14} />
                         <span className="text-sm font-semibold">Admin</span>
                       </div>
                     )}
-                    {member.role === 'member' && (
+                    {member.role === "member" && (
                       <span className="text-sm text-gray-500">Member</span>
                     )}
                   </div>
 
-                  {isOwnerOrAdmin && member.user_id !== user?.id && member.role !== 'owner' && (
-                    <button className="p-2 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-600 transition-colors">
-                      <UserMinus size={18} />
-                    </button>
-                  )}
+                  {isOwnerOrAdmin &&
+                    member.user_id !== user?.id &&
+                    member.role !== "owner" && (
+                      <button className="p-2 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-600 transition-colors">
+                        <UserMinus size={18} />
+                      </button>
+                    )}
                 </div>
               </div>
             ))}
@@ -758,7 +1051,9 @@ export default function SettingsPage() {
       {/* Danger Zone */}
       {isOwnerOrAdmin && (
         <div className="bg-red-50 rounded-xl border border-red-200 p-6">
-          <h3 className="text-lg font-semibold text-red-900 mb-2">Danger Zone</h3>
+          <h3 className="text-lg font-semibold text-red-900 mb-2">
+            Danger Zone
+          </h3>
           <p className="text-red-700 text-sm mb-4">
             Deleting a workspace is permanent and cannot be undone
           </p>
@@ -774,22 +1069,55 @@ export default function SettingsPage() {
   const renderNotificationSettings = () => (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Notification Settings</h2>
-        <p className="text-gray-600">Control how and when you receive notifications</p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          Notification Settings
+        </h2>
+        <p className="text-gray-600">
+          Control how and when you receive notifications
+        </p>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Email Notifications</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Email Notifications
+        </h3>
         <div className="space-y-4">
           {[
-            { key: 'emailNotifications', label: 'Email Notifications', description: 'Receive notifications via email' },
-            { key: 'projectUpdates', label: 'Project Updates', description: 'Get notified about project changes and milestones' },
-            { key: 'taskAssignments', label: 'Task Assignments', description: 'Notifications when tasks are assigned to you' },
-            { key: 'teamInvites', label: 'Team Invitations', description: 'Get notified when invited to teams' },
-            { key: 'weeklyDigest', label: 'Weekly Digest', description: 'Weekly summary of your activity and updates' },
-            { key: 'marketingEmails', label: 'Marketing Emails', description: 'Product updates and promotional content' }
+            {
+              key: "emailNotifications",
+              label: "Email Notifications",
+              description: "Receive notifications via email",
+            },
+            {
+              key: "projectUpdates",
+              label: "Project Updates",
+              description: "Get notified about project changes and milestones",
+            },
+            {
+              key: "taskAssignments",
+              label: "Task Assignments",
+              description: "Notifications when tasks are assigned to you",
+            },
+            {
+              key: "teamInvites",
+              label: "Team Invitations",
+              description: "Get notified when invited to teams",
+            },
+            {
+              key: "weeklyDigest",
+              label: "Weekly Digest",
+              description: "Weekly summary of your activity and updates",
+            },
+            {
+              key: "marketingEmails",
+              label: "Marketing Emails",
+              description: "Product updates and promotional content",
+            },
           ].map((setting) => (
-            <div key={setting.key} className="flex items-center justify-between">
+            <div
+              key={setting.key}
+              className="flex items-center justify-between"
+            >
               <div>
                 <p className="text-gray-900 font-medium">{setting.label}</p>
                 <p className="text-sm text-gray-600">{setting.description}</p>
@@ -797,11 +1125,17 @@ export default function SettingsPage() {
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={notificationSettings[setting.key as keyof typeof notificationSettings] as boolean}
-                  onChange={(e) => setNotificationSettings({ 
-                    ...notificationSettings, 
-                    [setting.key]: e.target.checked 
-                  })}
+                  checked={
+                    notificationSettings[
+                      setting.key as keyof typeof notificationSettings
+                    ] as boolean
+                  }
+                  onChange={(e) =>
+                    setNotificationSettings({
+                      ...notificationSettings,
+                      [setting.key]: e.target.checked,
+                    })
+                  }
                   className="sr-only peer"
                 />
                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-qolabb-navy-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-qolabb-navy-600"></div>
@@ -812,17 +1146,26 @@ export default function SettingsPage() {
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Push Notifications</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Push Notifications
+        </h3>
         <div className="flex items-center justify-between">
           <div>
             <p className="text-gray-900 font-medium">Browser Notifications</p>
-            <p className="text-sm text-gray-600">Receive push notifications in your browser</p>
+            <p className="text-sm text-gray-600">
+              Receive push notifications in your browser
+            </p>
           </div>
           <label className="relative inline-flex items-center cursor-pointer">
             <input
               type="checkbox"
               checked={notificationSettings.pushNotifications}
-              onChange={(e) => setNotificationSettings({ ...notificationSettings, pushNotifications: e.target.checked })}
+              onChange={(e) =>
+                setNotificationSettings({
+                  ...notificationSettings,
+                  pushNotifications: e.target.checked,
+                })
+              }
               className="sr-only peer"
             />
             <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-qolabb-navy-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-qolabb-navy-600"></div>
@@ -835,18 +1178,31 @@ export default function SettingsPage() {
   const renderPrivacySettings = () => (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Privacy Settings</h2>
-        <p className="text-gray-600">Control your data and privacy preferences</p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          Privacy Settings
+        </h2>
+        <p className="text-gray-600">
+          Control your data and privacy preferences
+        </p>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Visibility</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Profile Visibility
+        </h3>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Who can see your profile?</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Who can see your profile?
+            </label>
             <select
               value={privacySettings.profileVisibility}
-              onChange={(e) => setPrivacySettings({ ...privacySettings, profileVisibility: e.target.value })}
+              onChange={(e) =>
+                setPrivacySettings({
+                  ...privacySettings,
+                  profileVisibility: e.target.value,
+                })
+              }
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
             >
               <option value="public">Everyone</option>
@@ -855,13 +1211,28 @@ export default function SettingsPage() {
               <option value="private">Only Me</option>
             </select>
           </div>
-          
+
           {[
-            { key: 'showEmail', label: 'Show Email Address', description: 'Allow others to see your email address' },
-            { key: 'showPhone', label: 'Show Phone Number', description: 'Allow others to see your phone number' },
-            { key: 'allowDirectMessages', label: 'Allow Direct Messages', description: 'Let others send you direct messages' }
+            {
+              key: "showEmail",
+              label: "Show Email Address",
+              description: "Allow others to see your email address",
+            },
+            {
+              key: "showPhone",
+              label: "Show Phone Number",
+              description: "Allow others to see your phone number",
+            },
+            {
+              key: "allowDirectMessages",
+              label: "Allow Direct Messages",
+              description: "Let others send you direct messages",
+            },
           ].map((setting) => (
-            <div key={setting.key} className="flex items-center justify-between">
+            <div
+              key={setting.key}
+              className="flex items-center justify-between"
+            >
               <div>
                 <p className="text-gray-900 font-medium">{setting.label}</p>
                 <p className="text-sm text-gray-600">{setting.description}</p>
@@ -869,11 +1240,17 @@ export default function SettingsPage() {
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={privacySettings[setting.key as keyof typeof privacySettings] as boolean}
-                  onChange={(e) => setPrivacySettings({ 
-                    ...privacySettings, 
-                    [setting.key]: e.target.checked 
-                  })}
+                  checked={
+                    privacySettings[
+                      setting.key as keyof typeof privacySettings
+                    ] as boolean
+                  }
+                  onChange={(e) =>
+                    setPrivacySettings({
+                      ...privacySettings,
+                      [setting.key]: e.target.checked,
+                    })
+                  }
                   className="sr-only peer"
                 />
                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-qolabb-navy-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-qolabb-navy-600"></div>
@@ -884,30 +1261,44 @@ export default function SettingsPage() {
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Data & Analytics</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Data & Analytics
+        </h3>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-900 font-medium">Analytics Opt-out</p>
-              <p className="text-sm text-gray-600">Opt out of anonymous usage analytics</p>
+              <p className="text-sm text-gray-600">
+                Opt out of anonymous usage analytics
+              </p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
                 checked={privacySettings.analyticsOptOut}
-                onChange={(e) => setPrivacySettings({ ...privacySettings, analyticsOptOut: e.target.checked })}
+                onChange={(e) =>
+                  setPrivacySettings({
+                    ...privacySettings,
+                    analyticsOptOut: e.target.checked,
+                  })
+                }
                 className="sr-only peer"
               />
               <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-qolabb-navy-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-qolabb-navy-600"></div>
             </label>
           </div>
-          
+
           <div className="pt-4 border-t border-gray-200">
-            <Button variant="ghost" className="text-qolabb-navy-600 hover:bg-qolabb-navy-50">
+            <Button
+              variant="ghost"
+              className="text-qolabb-navy-600 hover:bg-qolabb-navy-50"
+            >
               <Download size={18} className="mr-2" />
               Export My Data
             </Button>
-            <p className="text-sm text-gray-500 mt-2">Download a copy of all your data</p>
+            <p className="text-sm text-gray-500 mt-2">
+              Download a copy of all your data
+            </p>
           </div>
         </div>
       </div>
@@ -917,25 +1308,34 @@ export default function SettingsPage() {
   const renderAppearanceSettings = () => (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Appearance Settings</h2>
-        <p className="text-gray-600">Customize the look and feel of your interface</p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          Appearance Settings
+        </h2>
+        <p className="text-gray-600">
+          Customize the look and feel of your interface
+        </p>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Theme</h3>
         <div className="grid grid-cols-3 gap-4">
           {[
-            { value: 'light', label: 'Light', icon: Sun },
-            { value: 'dark', label: 'Dark', icon: Moon },
-            { value: 'system', label: 'System', icon: Monitor }
+            { value: "light", label: "Light", icon: Sun },
+            { value: "dark", label: "Dark", icon: Moon },
+            { value: "system", label: "System", icon: Monitor },
           ].map((theme) => (
             <button
               key={theme.value}
-              onClick={() => setAppearanceSettings({ ...appearanceSettings, theme: theme.value })}
+              onClick={() =>
+                setAppearanceSettings({
+                  ...appearanceSettings,
+                  theme: theme.value,
+                })
+              }
               className={`p-4 border-2 rounded-lg flex flex-col items-center space-y-2 transition-colors ${
                 appearanceSettings.theme === theme.value
-                  ? 'border-qolabb-navy-500 bg-qolabb-navy-50'
-                  : 'border-gray-200 hover:border-gray-300'
+                  ? "border-qolabb-navy-500 bg-qolabb-navy-50"
+                  : "border-gray-200 hover:border-gray-300"
               }`}
             >
               <theme.icon size={24} />
@@ -946,13 +1346,22 @@ export default function SettingsPage() {
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Language & Region</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Language & Region
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Language</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Language
+            </label>
             <select
               value={appearanceSettings.language}
-              onChange={(e) => setAppearanceSettings({ ...appearanceSettings, language: e.target.value })}
+              onChange={(e) =>
+                setAppearanceSettings({
+                  ...appearanceSettings,
+                  language: e.target.value,
+                })
+              }
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
             >
               <option value="en">English</option>
@@ -963,10 +1372,17 @@ export default function SettingsPage() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Date Format</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Date Format
+            </label>
             <select
               value={appearanceSettings.dateFormat}
-              onChange={(e) => setAppearanceSettings({ ...appearanceSettings, dateFormat: e.target.value })}
+              onChange={(e) =>
+                setAppearanceSettings({
+                  ...appearanceSettings,
+                  dateFormat: e.target.value,
+                })
+              }
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
             >
               <option value="MM/DD/YYYY">MM/DD/YYYY</option>
@@ -981,10 +1397,17 @@ export default function SettingsPage() {
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Interface</h3>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Display Density</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Display Density
+            </label>
             <select
               value={appearanceSettings.density}
-              onChange={(e) => setAppearanceSettings({ ...appearanceSettings, density: e.target.value })}
+              onChange={(e) =>
+                setAppearanceSettings({
+                  ...appearanceSettings,
+                  density: e.target.value,
+                })
+              }
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
             >
               <option value="compact">Compact</option>
@@ -992,12 +1415,23 @@ export default function SettingsPage() {
               <option value="spacious">Spacious</option>
             </select>
           </div>
-          
+
           {[
-            { key: 'animations', label: 'Enable Animations', description: 'Show smooth transitions and animations' },
-            { key: 'soundEffects', label: 'Sound Effects', description: 'Play sounds for notifications and interactions' }
+            {
+              key: "animations",
+              label: "Enable Animations",
+              description: "Show smooth transitions and animations",
+            },
+            {
+              key: "soundEffects",
+              label: "Sound Effects",
+              description: "Play sounds for notifications and interactions",
+            },
           ].map((setting) => (
-            <div key={setting.key} className="flex items-center justify-between">
+            <div
+              key={setting.key}
+              className="flex items-center justify-between"
+            >
               <div>
                 <p className="text-gray-900 font-medium">{setting.label}</p>
                 <p className="text-sm text-gray-600">{setting.description}</p>
@@ -1005,11 +1439,17 @@ export default function SettingsPage() {
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={appearanceSettings[setting.key as keyof typeof appearanceSettings] as boolean}
-                  onChange={(e) => setAppearanceSettings({ 
-                    ...appearanceSettings, 
-                    [setting.key]: e.target.checked 
-                  })}
+                  checked={
+                    appearanceSettings[
+                      setting.key as keyof typeof appearanceSettings
+                    ] as boolean
+                  }
+                  onChange={(e) =>
+                    setAppearanceSettings({
+                      ...appearanceSettings,
+                      [setting.key]: e.target.checked,
+                    })
+                  }
                   className="sr-only peer"
                 />
                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-qolabb-navy-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-qolabb-navy-600"></div>
@@ -1032,9 +1472,12 @@ export default function SettingsPage() {
         <div className="w-16 h-16 bg-qolabb-navy-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <SettingsIcon size={32} className="text-qolabb-navy-600" />
         </div>
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">Coming Soon</h3>
+        <h3 className="text-xl font-semibold text-gray-900 mb-2">
+          Coming Soon
+        </h3>
         <p className="text-gray-600 max-w-md mx-auto">
-          This section is currently under development. We're working hard to bring you these features soon!
+          This section is currently under development. We're working hard to
+          bring you these features soon!
         </p>
       </div>
     </div>
@@ -1042,24 +1485,33 @@ export default function SettingsPage() {
 
   const renderContent = () => {
     switch (activeSection) {
-      case 'profile':
+      case "profile":
         return renderProfileSettings();
-      case 'account':
+      case "account":
         return renderAccountSettings();
-      case 'workspace':
+      case "workspace":
         return renderWorkspaceSettings();
-      case 'notifications':
+      case "notifications":
         return renderNotificationSettings();
-      case 'privacy':
+      case "privacy":
         return renderPrivacySettings();
-      case 'appearance':
+      case "appearance":
         return renderAppearanceSettings();
-      case 'integrations':
-        return renderComingSoonSection('Integrations', 'Connect external apps and services');
-      case 'billing':
-        return renderComingSoonSection('Billing & Plans', 'Manage your subscription and billing');
-      case 'support':
-        return renderComingSoonSection('Help & Support', 'Get help and contact support');
+      case "integrations":
+        return renderComingSoonSection(
+          "Integrations",
+          "Connect external apps and services"
+        );
+      case "billing":
+        return renderComingSoonSection(
+          "Billing & Plans",
+          "Manage your subscription and billing"
+        );
+      case "support":
+        return renderComingSoonSection(
+          "Help & Support",
+          "Get help and contact support"
+        );
       default:
         return renderProfileSettings();
     }
@@ -1072,9 +1524,11 @@ export default function SettingsPage() {
         <div className="w-80 bg-white border-r border-gray-200 flex-shrink-0">
           <div className="p-6 border-b border-gray-200">
             <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-            <p className="text-gray-600 text-sm mt-1">Manage your account and preferences</p>
+            <p className="text-gray-600 text-sm mt-1">
+              Manage your account and preferences
+            </p>
           </div>
-          
+
           <nav className="p-4 space-y-1">
             {settingsSections.map((section) => (
               <button
@@ -1082,14 +1536,16 @@ export default function SettingsPage() {
                 onClick={() => setActiveSection(section.id)}
                 className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${
                   activeSection === section.id
-                    ? 'bg-qolabb-navy-50 text-qolabb-navy-700 border border-qolabb-navy-200'
-                    : 'text-gray-700 hover:bg-gray-50'
+                    ? "bg-qolabb-navy-50 text-qolabb-navy-700 border border-qolabb-navy-200"
+                    : "text-gray-700 hover:bg-gray-50"
                 }`}
               >
                 <section.icon size={20} />
                 <div className="flex-1 min-w-0">
                   <p className="font-medium truncate">{section.label}</p>
-                  <p className="text-xs text-gray-500 truncate">{section.description}</p>
+                  <p className="text-xs text-gray-500 truncate">
+                    {section.description}
+                  </p>
                 </div>
               </button>
             ))}
