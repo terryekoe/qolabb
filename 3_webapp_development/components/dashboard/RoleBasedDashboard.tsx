@@ -219,7 +219,7 @@ export function RoleBasedDashboard() {
       action: () => console.log('Create team'),
       permissions: ['team:create'],
       roles: ['instructor', 'admin'],
-      variant: 'primary'
+      variant: 'primary' as const
     },
     {
       id: 'new-task',
@@ -229,7 +229,7 @@ export function RoleBasedDashboard() {
       action: () => console.log('New task'),
       permissions: ['task:create'],
       roles: ['student', 'instructor', 'teaching_assistant'],
-      variant: 'secondary'
+      variant: 'secondary' as const
     },
     {
       id: 'view-analytics',
@@ -239,7 +239,7 @@ export function RoleBasedDashboard() {
       action: () => console.log('View analytics'),
       permissions: ['analytics:view_basic'],
       roles: ['instructor', 'teaching_assistant', 'admin'],
-      variant: 'outline'
+      variant: 'outline' as const
     },
     {
       id: 'manage-workspace',
@@ -249,7 +249,7 @@ export function RoleBasedDashboard() {
       action: () => console.log('Workspace settings'),
       permissions: ['workspace:manage'],
       roles: ['instructor', 'admin'],
-      variant: 'outline'
+      variant: 'outline' as const
     }
   ].filter(action => {
     const hasRole = action.roles.includes(userRole);
