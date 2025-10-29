@@ -5,10 +5,14 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, ArrowLeft, Check, Users, Briefcase, GraduationCap } from 'lucide-react';
 import { Button } from '@/components/Button';
+import { useAuth } from '@/lib/auth/AuthContext';
+import { updateProfile } from '@/lib/db/queries';
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
+  const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     role: '',
     institution: '',
@@ -49,11 +53,27 @@ export default function OnboardingPage() {
     'Better teamwork',
   ];
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Complete onboarding - redirect to workspace selection
+      // Complete onboarding - save data and redirect to workspace selection
+      if (user) {
+        setSaving(true);
+        try {
+          await updateProfile(user.id, {
+            role: formData.role as 'student' | 'instructor' | 'both',
+            institution: formData.institution || null,
+            goals: formData.goals.length > 0 ? formData.goals : null,
+          });
+          console.log('Onboarding data saved to profile');
+        } catch (error) {
+          console.error('Failed to save onboarding data:', error);
+          // Continue anyway - user can update in settings
+        } finally {
+          setSaving(false);
+        }
+      }
       router.push('/workspace');
     }
   };
@@ -240,11 +260,11 @@ export default function OnboardingPage() {
             <Button
               variant="primary"
               onClick={handleNext}
-              disabled={!canProceed()}
+              disabled={!canProceed() || saving}
               className="group"
             >
-              {currentStep === steps.length - 1 ? 'Get Started' : 'Continue'}
-              <ArrowRight className="inline-block ml-2 group-hover:translate-x-1 transition-transform" size={20} />
+              {saving ? 'Saving...' : (currentStep === steps.length - 1 ? 'Get Started' : 'Continue')}
+              {!saving && <ArrowRight className="inline-block ml-2 group-hover:translate-x-1 transition-transform" size={20} />}
             </Button>
           </div>
         </motion.div>

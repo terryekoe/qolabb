@@ -89,6 +89,7 @@ export interface Profile {
   avatar_url: string | null
   role: UserRole
   institution: string | null
+  goals: string[] | null
   created_at: string
   updated_at: string
 }

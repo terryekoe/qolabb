@@ -35,6 +35,7 @@ export async function createProfile(profile: {
   role?: 'student' | 'instructor' | 'both';
   avatar_url?: string | null;
   institution?: string | null;
+  goals?: string[] | null;
 }) {
   try {
     const profileData = {
@@ -43,6 +44,7 @@ export async function createProfile(profile: {
       role: profile.role || 'student',
       avatar_url: profile.avatar_url || null,
       institution: profile.institution || null,
+      goals: profile.goals || null,
     };
 
     const { data, error } = await supabase
@@ -147,6 +149,9 @@ export async function updateProfile(userId: string, updates: Partial<Profile>) {
     }
     if (updates.institution !== undefined) {
       sanitizedUpdates.institution = updates.institution;
+    }
+    if (updates.goals !== undefined) {
+      sanitizedUpdates.goals = updates.goals;
     }
 
     const { data, error } = await supabase
