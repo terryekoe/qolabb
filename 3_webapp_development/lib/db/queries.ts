@@ -251,37 +251,59 @@ export async function getUserWorkspaces(userId: string) {
 }
 
 export async function joinWorkspaceByCode(inviteCode: string, userId: string) {
-  // Find workspace by invite code
+  // First, try to find workspace by invite code
+  // This might fail due to RLS, but we'll handle it
   const { data: workspace, error: findError } = await supabase
     .from('workspaces')
-    .select('*')
-    .eq('invite_code', inviteCode)
+    .select('id, name, description, invite_code, owner_id, created_at, updated_at, settings')
+    .eq('invite_code', inviteCode.toUpperCase())
     .single()
 
-  if (findError) throw findError
+  if (findError) {
+    console.error('Error finding workspace:', findError)
+    
+    // If it's an RLS error, provide a more helpful message
+    if (findError.code === 'PGRST116' || findError.message?.includes('row-level security')) {
+      throw new Error('Cannot find workspace with this invite code. The workspace may not exist or you may not have permission to view it.')
+    }
+    
+    throw new Error('Invalid invite code. Please check and try again.')
+  }
+
+  if (!workspace) {
+    throw new Error('Invalid invite code. Please check and try again.')
+  }
 
   // Check if already a member
-  const { data: existing } = await supabase
+  const { data: existing, error: memberCheckError } = await supabase
     .from('workspace_members')
     .select('*')
-    .eq('workspace_id', (workspace as any).id)
+    .eq('workspace_id', workspace.id)
     .eq('user_id', userId)
-    .single()
+    .maybeSingle()
+
+  if (memberCheckError) {
+    console.error('Error checking membership:', memberCheckError)
+    throw new Error('Failed to check workspace membership.')
+  }
 
   if (existing) {
-    throw new Error('Already a member of this workspace')
+    throw new Error('You are already a member of this workspace.')
   }
 
   // Add as member
   const { error: joinError } = await supabase
     .from('workspace_members')
     .insert({
-      workspace_id: (workspace as any).id,
+      workspace_id: workspace.id,
       user_id: userId,
       role: 'member',
-    } as any)
+    })
 
-  if (joinError) throw joinError
+  if (joinError) {
+    console.error('Error joining workspace:', joinError)
+    throw new Error('Failed to join workspace. Please try again.')
+  }
 
   return workspace as Workspace
 }

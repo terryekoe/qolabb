@@ -7,7 +7,8 @@ import { Plus, Users, ArrowRight, Building2, Mail } from 'lucide-react';
 import { Button } from '@/components/Button';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
-import { createWorkspace, joinWorkspaceByCode } from '@/lib/db/queries';
+import { createWorkspace } from '@/lib/db/queries';
+import { joinWorkspaceByInviteCode } from '@/app/actions/workspace';
 
 export default function WorkspacePage() {
   const router = useRouter();
@@ -46,17 +47,22 @@ export default function WorkspacePage() {
   };
 
   const handleJoinWorkspace = async () => {
-    if (!user || !inviteCode.trim()) return;
+    if (!inviteCode.trim()) return;
 
     setLoading(true);
     setError('');
 
     try {
-      await joinWorkspaceByCode(inviteCode.toUpperCase(), user.id);
-      await refreshWorkspaces();
-      router.push('/dashboard');
+      const result = await joinWorkspaceByInviteCode(inviteCode.toUpperCase());
+      
+      if (result.success) {
+        await refreshWorkspaces();
+        router.push('/dashboard');
+      } else {
+        setError(result.error || 'Failed to join workspace. Check your invite code.');
+      }
     } catch (error: any) {
-      setError(error.message || 'Failed to join workspace. Check your invite code.');
+      setError('Failed to join workspace. Please try again.');
     } finally {
       setLoading(false);
     }
