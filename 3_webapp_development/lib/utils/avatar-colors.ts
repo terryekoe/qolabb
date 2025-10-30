@@ -35,7 +35,7 @@ export interface GradientColors {
 
 export interface AvatarColorConfig {
   userId: string;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
   variant?: 'gradient' | 'solid' | 'colorblind';
   customSeed?: string;
 }
