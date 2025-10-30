@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, UserPlus, Search, Loader2, Users } from 'lucide-react'
 import Avatar from '@/components/ui/Avatar'
-import { addTeamMember, getAvailableWorkspaceMembers, debugWorkspaceMembers } from '@/lib/db/queries'
+import { addTeamMember, getAvailableWorkspaceMembers, debugWorkspaceMembers, fixTeamMemberDataConsistency } from '@/lib/db/queries'
 import { Profile } from '@/lib/types/database'
 import { toast } from 'react-hot-toast'
+import { useAuth } from '@/lib/auth/AuthContext'
 
 interface AddMemberModalProps {
   isOpen: boolean
@@ -28,6 +29,7 @@ export default function AddMemberModal({
   workspaceId,
   onMemberAdded
 }: AddMemberModalProps) {
+  const { user } = useAuth()
   const [availableMembers, setAvailableMembers] = useState<WorkspaceMember[]>([])
   const [filteredMembers, setFilteredMembers] = useState<WorkspaceMember[]>([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -45,7 +47,7 @@ export default function AddMemberModal({
       setFilteredMembers(availableMembers)
     } else {
       const filtered = availableMembers.filter(member =>
-        member.user.full_name.toLowerCase().includes(searchQuery.toLowerCase())
+        (member.user.full_name || '').toLowerCase().includes(searchQuery.toLowerCase())
       )
       setFilteredMembers(filtered)
     }
@@ -56,7 +58,15 @@ export default function AddMemberModal({
       setLoading(true)
       console.log('🚀 AddMemberModal: Loading available members for team:', teamId, 'in workspace:', workspaceId)
       
-      // First, debug all workspace members
+      // First, fix any data consistency issues
+      console.log('🔧 AddMemberModal: Checking and fixing data consistency...')
+      const fixResult = await fixTeamMemberDataConsistency(workspaceId, teamId)
+      if (fixResult.fixed) {
+        console.log('✅ AddMemberModal: Fixed data consistency issues')
+        toast.success('Fixed team membership data')
+      }
+      
+      // Debug all workspace members
       await debugWorkspaceMembers(workspaceId)
       
       // Then get available members (excluding current team members)
@@ -75,9 +85,14 @@ export default function AddMemberModal({
   }
 
   const handleAddMember = async (userId: string, userName: string) => {
+    if (!user) {
+      toast.error('You must be logged in to add members')
+      return
+    }
+    
     try {
       setAddingMember(userId)
-      await addTeamMember(teamId, userId)
+      await addTeamMember(teamId, userId, 'member', user.id)
       toast.success(`${userName} has been added to the team`)
       onMemberAdded()
       

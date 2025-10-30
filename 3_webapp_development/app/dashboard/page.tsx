@@ -10,10 +10,12 @@ import Avatar from '@/components/ui/Avatar';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
 import { getWorkspaceStats, getWorkspaceActivity, getWorkspaceProjects } from '@/lib/db/queries';
+import { useRouter } from 'next/navigation';
 
 export default function DashboardPage() {
   const { profile } = useAuth();
   const { currentWorkspace } = useWorkspace();
+  const router = useRouter();
   const userName = profile?.full_name?.split(' ')[0] || 'User';
   
   const [stats, setStats] = useState({ activeProjects: 0, totalMembers: 0, tasksCompleted: 0, avgParticipation: 0 });
@@ -141,17 +143,26 @@ export default function DashboardPage() {
             >
               <h2 className="text-2xl font-bold mb-4">Quick Actions</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <button className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-4 text-left transition-colors group">
+                <button 
+                  onClick={() => router.push('/projects?create=true')}
+                  className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-4 text-left transition-colors group"
+                >
                   <Plus className="mb-2 group-hover:scale-110 transition-transform" size={24} />
                   <p className="font-semibold">Create Project</p>
                   <p className="text-sm opacity-80">Start a new team project</p>
                 </button>
-                <button className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-4 text-left transition-colors group">
+                <button 
+                  onClick={() => router.push('/settings?tab=workspace&section=invite')}
+                  className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-4 text-left transition-colors group"
+                >
                   <Users className="mb-2 group-hover:scale-110 transition-transform" size={24} />
                   <p className="font-semibold">Invite Members</p>
                   <p className="text-sm opacity-80">Add people to workspace</p>
                 </button>
-                <button className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-4 text-left transition-colors group">
+                <button 
+                  onClick={() => router.push('/analytics')}
+                  className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-4 text-left transition-colors group"
+                >
                   <BarChart3 className="mb-2 group-hover:scale-110 transition-transform" size={24} />
                   <p className="font-semibold">View Analytics</p>
                   <p className="text-sm opacity-80">Check team insights</p>

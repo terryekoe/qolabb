@@ -36,6 +36,7 @@ export async function createProfile(profile: {
   avatar_url?: string | null;
   institution?: string | null;
   goals?: string[] | null;
+  email?: string | null;
 }) {
   try {
     const profileData = {
@@ -45,6 +46,7 @@ export async function createProfile(profile: {
       avatar_url: profile.avatar_url || null,
       institution: profile.institution || null,
       goals: profile.goals || null,
+      email: profile.email || null,
     };
 
     const { data, error } = await supabase
@@ -127,6 +129,7 @@ export async function getOrCreateProfile(
         id: userId,
         full_name: fullName,
         role: 'student',
+        email: defaultData?.email || null,
       });
     } catch (createError: any) {
       // If we get a duplicate key error, it means the profile was created by another process
@@ -621,8 +624,31 @@ export async function isTeamLeaderOrInstructor(userId: string, teamId: string, w
   return teamMember?.role === 'leader'
 }
 
-export async function addTeamMember(teamId: string, userId: string, role: 'leader' | 'member' = 'member') {
-  // First, check if the user is already a member of this team
+export async function addTeamMember(teamId: string, userId: string, role: 'leader' | 'member' = 'member', assignedBy?: string) {
+  // First, get the team's workspace and settings
+  const { data: team } = await supabase
+    .from('teams')
+    .select('workspace_id, name, settings')
+    .eq('id', teamId)
+    .single()
+
+  if (!team) {
+    throw new Error('Team not found')
+  }
+
+  // Check if the user is a member of the workspace
+  const { data: workspaceMember } = await supabase
+    .from('workspace_members')
+    .select('id')
+    .eq('workspace_id', (team as any).workspace_id)
+    .eq('user_id', userId)
+    .single()
+
+  if (!workspaceMember) {
+    throw new Error('User must be a workspace member before being added to a team')
+  }
+
+  // Check if the user is already a member of this team
   const { data: existingMember } = await supabase
     .from('team_members')
     .select('id')
@@ -632,6 +658,19 @@ export async function addTeamMember(teamId: string, userId: string, role: 'leade
 
   if (existingMember) {
     throw new Error('User is already a member of this team')
+  }
+
+  // Check team capacity if max_members is set
+  const teamSettings = (team as any).settings || {}
+  if (teamSettings.max_members) {
+    const { count: currentMemberCount } = await supabase
+      .from('team_members')
+      .select('*', { count: 'exact', head: true })
+      .eq('team_id', teamId)
+
+    if (currentMemberCount && currentMemberCount >= teamSettings.max_members) {
+      throw new Error(`Team has reached maximum member capacity (${teamSettings.max_members} members)`)
+    }
   }
 
   const { data, error } = await supabase
@@ -649,22 +688,27 @@ export async function addTeamMember(teamId: string, userId: string, role: 'leade
 
   if (error) throw error
 
-  // Log activity
-  const { data: team } = await supabase
-    .from('teams')
-    .select('workspace_id, name')
-    .eq('id', teamId)
-    .single()
-
+  // Log activity and create notification
   if (team) {
-    await logActivity({
-      workspace_id: (team as any).workspace_id,
-      user_id: userId,
-      action_type: 'joined_team',
-      entity_type: 'team',
-      entity_id: teamId,
-      metadata: { team_name: (team as any).name, role },
-    })
+    await Promise.all([
+      // Log activity
+      logActivity({
+        workspace_id: (team as any).workspace_id,
+        user_id: userId,
+        action_type: 'joined_team',
+        entity_type: 'team',
+        entity_id: teamId,
+        metadata: { team_name: (team as any).name, role },
+      }),
+      // Create notification if assigned by someone else
+      assignedBy && assignedBy !== userId ? 
+        createTeamAssignmentNotification(
+          userId,
+          (team as any).name,
+          assignedBy,
+          role
+        ) : Promise.resolve()
+    ])
   }
 
   return data
@@ -706,14 +750,37 @@ export async function getAvailableWorkspaceMembers(workspaceId: string, teamId: 
   try {
     console.log('🔍 getAvailableWorkspaceMembers called with:', { workspaceId, teamId })
     
-    // First, get all team members for this team
+    // First, get ALL workspace members to see if there are any
+    const { data: allWorkspaceMembers, error: workspaceError } = await supabase
+      .from('workspace_members')
+      .select(`
+        user_id,
+        user:profiles!user_id(*)
+      `)
+      .eq('workspace_id', workspaceId)
+
+    if (workspaceError) {
+      console.error('❌ Error fetching workspace members:', workspaceError)
+      throw workspaceError
+    }
+
+    console.log('🏢 ALL workspace members found:', allWorkspaceMembers)
+    console.log('📊 Total workspace members count:', allWorkspaceMembers?.length || 0)
+    console.log('🔍 WORKSPACE MEMBER USER IDs:', allWorkspaceMembers?.map(m => m.user_id))
+
+    if (!allWorkspaceMembers || allWorkspaceMembers.length === 0) {
+      console.log('⚠️ No workspace members found at all!')
+      return []
+    }
+
+    // Now get team members for this team
     const { data: teamMembers, error: teamError } = await supabase
       .from('team_members')
       .select('user_id')
       .eq('team_id', teamId)
 
     if (teamError) {
-      console.error('Error fetching team members:', teamError)
+      console.error('❌ Error fetching team members:', teamError)
       throw teamError
     }
 
@@ -722,46 +789,27 @@ export async function getAvailableWorkspaceMembers(workspaceId: string, teamId: 
     // Extract user IDs who are already in the team
     const teamMemberIds = teamMembers?.map(member => member.user_id) || []
     console.log('🚫 Team member IDs to exclude:', teamMemberIds)
+    console.log('🔍 TEAM MEMBER USER IDs:', teamMemberIds)
 
-    // Get all workspace members
-    let query = supabase
-      .from('workspace_members')
-      .select(`
-        user_id,
-        user:profiles!user_id(*)
-      `)
-      .eq('workspace_id', workspaceId)
+    // Filter out team members from workspace members
+    const availableMembers = allWorkspaceMembers.filter(member => 
+      !teamMemberIds.includes(member.user_id)
+    )
 
-    console.log('🏢 Querying workspace_members for workspace:', workspaceId)
-
-    // If there are team members, exclude them
-    if (teamMemberIds.length > 0) {
-      console.log('🔍 BEFORE filtering - teamMemberIds to exclude:', teamMemberIds)
-      query = query.not('user_id', 'in', `(${teamMemberIds.join(',')})`)
-      console.log('🔄 Applied exclusion filter for team members')
-      console.log('🔍 SQL filter applied: NOT user_id IN (' + teamMemberIds.join(',') + ')')
-    }
-
-    const { data, error } = await query
-
-    if (error) {
-      console.error('Error fetching available workspace members:', error)
-      throw error
-    }
-
-    console.log('✅ Available workspace members found:', data)
-    console.log('📊 Total available members count:', data?.length || 0)
+    console.log('✅ Available workspace members after filtering:', availableMembers)
+    console.log('📊 Available members count:', availableMembers?.length || 0)
     
     // Debug: Show what users we're returning
-    if (data && data.length > 0) {
-      console.log('🔍 DETAILED: Available members user IDs:', data.map(m => m.user_id))
-      console.log('🔍 DETAILED: Team member IDs that should be excluded:', teamMemberIds)
-      console.log('🔍 DETAILED: Any overlap?', data.some(m => teamMemberIds.includes(m.user_id)))
+    if (availableMembers && availableMembers.length > 0) {
+      console.log('🔍 DETAILED: Available members user IDs:', availableMembers.map(m => m.user_id))
+      console.log('🔍 DETAILED: Team member IDs that were excluded:', teamMemberIds)
+    } else {
+      console.log('🔍 DETAILED: No available members after filtering (all may be in team already)')
     }
 
-    return data || []
+    return availableMembers || []
   } catch (error) {
-    console.error('getAvailableWorkspaceMembers error:', error)
+    console.error('❌ getAvailableWorkspaceMembers error:', error)
     throw error
   }
 }
@@ -774,14 +822,15 @@ export async function debugWorkspaceMembers(workspaceId: string) {
     const { data, error } = await supabase
       .from('workspace_members')
       .select(`
-        *,
+        user_id,
+        role,
         user:profiles!user_id(*)
       `)
       .eq('workspace_id', workspaceId)
 
     if (error) {
       console.error('❌ DEBUG: Error fetching workspace members:', error)
-      return []
+      throw error
     }
 
     console.log('📋 DEBUG: All workspace members:', data)
@@ -789,8 +838,88 @@ export async function debugWorkspaceMembers(workspaceId: string) {
     
     return data || []
   } catch (error) {
-    console.error('❌ DEBUG: Exception in debugWorkspaceMembers:', error)
-    return []
+    console.error('❌ DEBUG: debugWorkspaceMembers error:', error)
+    throw error
+  }
+}
+
+export async function fixTeamMemberDataConsistency(workspaceId: string, teamId: string) {
+  try {
+    console.log('🔧 FIXING: Checking data consistency for team:', teamId, 'in workspace:', workspaceId)
+    
+    // Get all team members
+    const { data: teamMembers, error: teamError } = await supabase
+      .from('team_members')
+      .select('user_id')
+      .eq('team_id', teamId)
+
+    if (teamError) throw teamError
+
+    // Get all workspace members
+    const { data: workspaceMembers, error: workspaceError } = await supabase
+      .from('workspace_members')
+      .select('user_id')
+      .eq('workspace_id', workspaceId)
+
+    if (workspaceError) throw workspaceError
+
+    const teamMemberIds = teamMembers?.map(m => m.user_id) || []
+    const workspaceMemberIds = workspaceMembers?.map(m => m.user_id) || []
+
+    console.log('🔍 Team member IDs:', teamMemberIds)
+    console.log('🔍 Workspace member IDs:', workspaceMemberIds)
+
+    // Find team members who are NOT workspace members
+    const invalidTeamMembers = teamMemberIds.filter(id => !workspaceMemberIds.includes(id))
+    
+    if (invalidTeamMembers.length > 0) {
+      console.log('⚠️ Found invalid team members (not in workspace):', invalidTeamMembers)
+      
+      // Check if these users exist in profiles
+      for (const userId of invalidTeamMembers) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id, full_name, email')
+          .eq('id', userId)
+          .single()
+
+        if (profile) {
+          console.log(`👤 User ${userId} (${profile.full_name}) exists but is not in workspace`)
+          console.log(`🔧 Adding user ${userId} to workspace as member`)
+          
+          // Add user to workspace
+          await supabase
+            .from('workspace_members')
+            .insert({
+              workspace_id: workspaceId,
+              user_id: userId,
+              role: 'member'
+            })
+          
+          console.log(`✅ Added user ${userId} to workspace`)
+        } else {
+          console.log(`❌ User ${userId} does not exist in profiles - removing from team`)
+          
+          // Remove from team
+          await supabase
+            .from('team_members')
+            .delete()
+            .eq('team_id', teamId)
+            .eq('user_id', userId)
+          
+          console.log(`✅ Removed invalid user ${userId} from team`)
+        }
+      }
+      
+      return { fixed: true, invalidMembers: invalidTeamMembers }
+    } else {
+      console.log('✅ No data consistency issues found')
+      return { fixed: false, invalidMembers: [] }
+    }
+    
+  } catch (error) {
+    console.error('❌ Error fixing data consistency:', error)
+    throw error
   }
 }
 
@@ -895,6 +1024,701 @@ export async function getWorkspaceActivity(workspaceId: string, limit = 20) {
 }
 
 // =====================================================
+// TEAM JOIN REQUEST FUNCTIONS
+// =====================================================
+
+export async function createJoinRequest(
+  teamId: string, 
+  userId: string, 
+  requestedBy: string,
+  requestType: 'self_request' | 'owner_invitation',
+  message?: string
+) {
+  try {
+    // First, get the team's workspace and settings
+    const { data: team } = await supabase
+      .from('teams')
+      .select('workspace_id, name, settings, is_public')
+      .eq('id', teamId)
+      .single()
+
+    if (!team) {
+      throw new Error('Team not found')
+    }
+
+    // Check if the user is a member of the workspace
+    const { data: workspaceMember } = await supabase
+      .from('workspace_members')
+      .select('id')
+      .eq('workspace_id', (team as any).workspace_id)
+      .eq('user_id', userId)
+      .single()
+
+    if (!workspaceMember) {
+      throw new Error('User must be a workspace member before joining a team')
+    }
+
+    // Check if the user is already a member of this team
+    const { data: existingMember } = await supabase
+      .from('team_members')
+      .select('id')
+      .eq('team_id', teamId)
+      .eq('user_id', userId)
+      .single()
+
+    if (existingMember) {
+      throw new Error('User is already a member of this team')
+    }
+
+    // Check if there's already a pending request for this user and team
+    const { data: existingRequest } = await supabase
+      .from('team_join_requests')
+      .select('id, status')
+      .eq('team_id', teamId)
+      .eq('user_id', userId)
+      .eq('status', 'pending')
+      .single()
+
+    if (existingRequest) {
+      throw new Error('A join request for this user and team is already pending')
+    }
+
+    // Check team capacity if max_members is set
+    const teamSettings = (team as any).settings || {}
+    if (teamSettings.max_members) {
+      const { count: currentMemberCount } = await supabase
+        .from('team_members')
+        .select('*', { count: 'exact', head: true })
+        .eq('team_id', teamId)
+
+      if (currentMemberCount && currentMemberCount >= teamSettings.max_members) {
+        throw new Error('Team has reached maximum member capacity')
+      }
+    }
+
+    const { data, error } = await supabase
+      .from('team_join_requests')
+      .insert({
+        team_id: teamId,
+        user_id: userId,
+        requested_by: requestedBy,
+        request_type: requestType,
+        message: message || null
+      })
+      .select(`
+        *,
+        team:teams(name, workspace_id),
+        user:profiles!user_id(full_name, avatar_url),
+        requester:profiles!requested_by(full_name, avatar_url)
+      `)
+      .single()
+
+    if (error) throw error
+
+    // Log the action
+    await logTeamAssignmentAudit(
+      teamId,
+      userId,
+      requestType === 'self_request' ? 'join_request' : 'invitation_sent',
+      requestedBy,
+      { request_id: data.id, message }
+    )
+
+    return data
+  } catch (error: any) {
+    console.error('createJoinRequest error:', error?.message || JSON.stringify(error, null, 2))
+    throw error
+  }
+}
+
+export async function getTeamJoinRequests(teamId: string, status?: string) {
+  try {
+    // First, get the join requests with team data
+    let query = supabase
+      .from('team_join_requests')
+      .select(`
+        *,
+        team:teams(name, workspace_id)
+      `)
+      .eq('team_id', teamId)
+      .order('requested_at', { ascending: false })
+
+    if (status) {
+      query = query.eq('status', status)
+    }
+
+    const { data: joinRequests, error } = await query
+
+    if (error) throw error
+    if (!joinRequests || joinRequests.length === 0) return []
+
+    // Get all unique user IDs involved in these requests
+    const userIds = new Set<string>()
+    joinRequests.forEach(request => {
+      if (request.user_id) userIds.add(request.user_id)
+      if (request.requested_by) userIds.add(request.requested_by)
+      if (request.responded_by) userIds.add(request.responded_by)
+    })
+
+    // Fetch all profiles at once
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, full_name, avatar_url, institution')
+      .in('id', Array.from(userIds))
+
+    if (profilesError) throw profilesError
+
+    // Create a map for quick profile lookup
+    const profileMap = new Map(profiles?.map(p => [p.id, p]) || [])
+
+    // Map the join requests with profile data
+    return joinRequests.map(request => ({
+      ...request,
+      user: request.user_id ? profileMap.get(request.user_id) || null : null,
+      requester: request.requested_by ? profileMap.get(request.requested_by) || null : null,
+      responder: request.responded_by ? profileMap.get(request.responded_by) || null : null
+    }))
+  } catch (error: any) {
+    console.error('getTeamJoinRequests error:', error?.message || JSON.stringify(error, null, 2))
+    return []
+  }
+}
+
+export async function getUserJoinRequests(userId: string, status?: string) {
+  try {
+    // First get the join requests
+    let query = supabase
+      .from('team_join_requests')
+      .select(`
+        *,
+        team:teams(name, workspace_id, avatar_color)
+      `)
+      .eq('user_id', userId)
+      .order('requested_at', { ascending: false })
+
+    if (status) {
+      query = query.eq('status', status)
+    }
+
+    const { data: joinRequests, error } = await query
+
+    if (error) throw error
+    if (!joinRequests || joinRequests.length === 0) return []
+
+    // Get unique user IDs for profile lookups
+    const userIds = new Set<string>()
+    joinRequests.forEach(request => {
+      userIds.add(request.user_id)
+      userIds.add(request.requested_by)
+      if (request.responded_by) userIds.add(request.responded_by)
+    })
+
+    // Get profiles for all users
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, full_name, avatar_url')
+      .in('id', Array.from(userIds))
+
+    if (profilesError) throw profilesError
+
+    // Create a map for quick profile lookups
+    const profileMap = new Map()
+    profiles?.forEach(profile => {
+      profileMap.set(profile.id, profile)
+    })
+
+    // Combine the data
+    const enrichedRequests = joinRequests.map(request => ({
+      ...request,
+      user: profileMap.get(request.user_id) || null,
+      requester: profileMap.get(request.requested_by) || null,
+      responder: request.responded_by ? profileMap.get(request.responded_by) || null : null
+    }))
+
+    return enrichedRequests
+  } catch (error: any) {
+    console.error('getUserJoinRequests error:', error?.message || JSON.stringify(error, null, 2))
+    return []
+  }
+}
+
+export async function getWorkspaceJoinRequests(workspaceId: string, status?: string) {
+  try {
+    // First get the join requests with team info
+    let query = supabase
+      .from('team_join_requests')
+      .select(`
+        *,
+        team:teams!inner(name, workspace_id, avatar_color)
+      `)
+      .eq('team.workspace_id', workspaceId)
+      .order('requested_at', { ascending: false })
+
+    if (status) {
+      query = query.eq('status', status)
+    }
+
+    const { data: joinRequests, error } = await query
+
+    if (error) throw error
+    if (!joinRequests || joinRequests.length === 0) return []
+
+    // Get unique user IDs for profile lookups
+    const userIds = new Set<string>()
+    joinRequests.forEach(request => {
+      userIds.add(request.user_id)
+      userIds.add(request.requested_by)
+      if (request.responded_by) userIds.add(request.responded_by)
+    })
+
+    // Get profiles for all users
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, full_name, avatar_url, institution')
+      .in('id', Array.from(userIds))
+
+    if (profilesError) throw profilesError
+
+    // Create a map for quick profile lookups
+    const profileMap = new Map()
+    profiles?.forEach(profile => {
+      profileMap.set(profile.id, profile)
+    })
+
+    // Combine the data
+    const enrichedRequests = joinRequests.map(request => ({
+      ...request,
+      user: profileMap.get(request.user_id) || null,
+      requester: profileMap.get(request.requested_by) || null,
+      responder: request.responded_by ? profileMap.get(request.responded_by) || null : null
+    }))
+
+    return enrichedRequests
+  } catch (error: any) {
+    console.error('getWorkspaceJoinRequests error:', error?.message || JSON.stringify(error, null, 2))
+    return []
+  }
+}
+
+export async function respondToJoinRequest(
+  requestId: string,
+  status: 'approved' | 'rejected',
+  respondedBy: string,
+  responseMessage?: string
+) {
+  try {
+    const { data, error } = await supabase
+      .from('team_join_requests')
+      .update({
+        status,
+        responded_at: new Date().toISOString(),
+        responded_by: respondedBy,
+        response_message: responseMessage || null
+      })
+      .eq('id', requestId)
+      .select(`
+        *,
+        team:teams(name, workspace_id),
+        user:profiles!user_id(full_name, avatar_url)
+      `)
+      .single()
+
+    if (error) throw error
+
+    // Log the action and create notification
+    await Promise.all([
+      // Log audit event
+      logTeamAssignmentAudit(
+        data.team_id,
+        data.user_id,
+        status,
+        respondedBy,
+        { request_id: requestId, response_message: responseMessage }
+      ),
+      // Create notification for the user
+      createJoinRequestNotification(
+        data.user_id,
+        (data as any).team?.name || 'Unknown Team',
+        respondedBy,
+        status
+      )
+    ])
+
+    return data
+  } catch (error: any) {
+    console.error('respondToJoinRequest error:', error?.message || JSON.stringify(error, null, 2))
+    throw error
+  }
+}
+
+export async function cancelJoinRequest(requestId: string, userId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('team_join_requests')
+      .update({
+        status: 'cancelled',
+        responded_at: new Date().toISOString(),
+        responded_by: userId,
+        response_message: 'Cancelled by user'
+      })
+      .eq('id', requestId)
+      .eq('user_id', userId)
+      .eq('status', 'pending')
+      .select(`
+        *,
+        team:teams(name, workspace_id)
+      `)
+      .single()
+
+    if (error) throw error
+
+    // Log the action
+    await logTeamAssignmentAudit(
+      data.team_id,
+      data.user_id,
+      'cancelled',
+      userId,
+      { request_id: requestId }
+    )
+
+    return data
+  } catch (error: any) {
+    console.error('cancelJoinRequest error:', error?.message || JSON.stringify(error, null, 2))
+    throw error
+  }
+}
+
+export async function getDiscoverableTeams(workspaceId: string, userId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('teams')
+      .select(`
+        *,
+        team_members(
+          id,
+          user_id,
+          role,
+          profile:profiles(full_name, avatar_url)
+        )
+      `)
+      .eq('workspace_id', workspaceId)
+      .eq('is_public', true)
+
+    if (error) throw error
+
+    // Filter out teams the user is already a member of
+    const availableTeams = (data || []).filter(team => 
+      !team.team_members.some((member: any) => member.user_id === userId)
+    )
+
+    // Add additional info for each team
+    const teamsWithInfo = await Promise.all(
+      availableTeams.map(async (team) => {
+        // Check if user has pending request
+        const { data: pendingRequest } = await supabase
+          .from('team_join_requests')
+          .select('id, status, request_type')
+          .eq('team_id', team.id)
+          .eq('user_id', userId)
+          .eq('status', 'pending')
+          .single()
+
+        return {
+          ...team,
+          member_count: team.team_members.length,
+          has_pending_request: !!pendingRequest,
+          pending_request: pendingRequest,
+          settings: team.settings || { allow_self_join: true, require_approval: true }
+        }
+      })
+    )
+
+    return teamsWithInfo
+  } catch (error: any) {
+    console.error('getDiscoverableTeams error:', error?.message || JSON.stringify(error, null, 2))
+    return []
+  }
+}
+
+export async function bulkInviteToTeam(
+  teamId: string,
+  userIds: string[],
+  invitedBy: string,
+  message?: string
+) {
+  try {
+    // Get team information and settings
+    const { data: team } = await supabase
+      .from('teams')
+      .select('workspace_id, name, settings, is_public')
+      .eq('id', teamId)
+      .single()
+
+    if (!team) {
+      throw new Error('Team not found')
+    }
+
+    // Get current team members to check for duplicates
+    const { data: currentMembers } = await supabase
+      .from('team_members')
+      .select('user_id')
+      .eq('team_id', teamId)
+
+    const currentMemberIds = new Set(currentMembers?.map(m => m.user_id) || [])
+
+    // Get pending requests to check for duplicates
+    const { data: pendingRequests } = await supabase
+      .from('team_join_requests')
+      .select('user_id')
+      .eq('team_id', teamId)
+      .eq('status', 'pending')
+
+    const pendingRequestIds = new Set(pendingRequests?.map(r => r.user_id) || [])
+
+    // Filter out users who are already members or have pending requests
+    const validUserIds = userIds.filter(userId => {
+      if (currentMemberIds.has(userId)) {
+        console.warn(`User ${userId} is already a member of team ${teamId}`)
+        return false
+      }
+      if (pendingRequestIds.has(userId)) {
+        console.warn(`User ${userId} already has a pending request for team ${teamId}`)
+        return false
+      }
+      return true
+    })
+
+    if (validUserIds.length === 0) {
+      throw new Error('No valid users to invite - all users are already members or have pending requests')
+    }
+
+    // Check team capacity if max_members is set
+    const teamSettings = (team as any).settings || {}
+    if (teamSettings.max_members) {
+      const currentMemberCount = currentMembers?.length || 0
+      const totalAfterInvites = currentMemberCount + validUserIds.length
+
+      if (totalAfterInvites > teamSettings.max_members) {
+        throw new Error(`Team capacity exceeded. Current: ${currentMemberCount}, Max: ${teamSettings.max_members}, Trying to add: ${validUserIds.length}`)
+      }
+    }
+
+    // Verify all users are workspace members
+    const { data: workspaceMembers } = await supabase
+      .from('workspace_members')
+      .select('user_id')
+      .eq('workspace_id', (team as any).workspace_id)
+      .in('user_id', validUserIds)
+
+    const workspaceMemberIds = new Set(workspaceMembers?.map(m => m.user_id) || [])
+    const finalValidUserIds = validUserIds.filter(userId => {
+      if (!workspaceMemberIds.has(userId)) {
+        console.warn(`User ${userId} is not a member of workspace ${(team as any).workspace_id}`)
+        return false
+      }
+      return true
+    })
+
+    if (finalValidUserIds.length === 0) {
+      throw new Error('No valid users to invite - users must be workspace members')
+    }
+
+    const invitations = finalValidUserIds.map(userId => ({
+      team_id: teamId,
+      user_id: userId,
+      requested_by: invitedBy,
+      request_type: 'owner_invitation' as const,
+      message: message || null
+    }))
+
+    const { data, error } = await supabase
+      .from('team_join_requests')
+      .insert(invitations)
+      .select(`
+        *,
+        team:teams(name, workspace_id),
+        user:profiles!user_id(full_name, avatar_url)
+      `)
+
+    if (error) throw error
+
+    // Log all invitations and create notifications
+    await Promise.all([
+      // Log audit events
+      ...(data || []).map(invitation =>
+        logTeamAssignmentAudit(
+          invitation.team_id,
+          invitation.user_id,
+          'invitation_sent',
+          invitedBy,
+          { request_id: invitation.id, message, bulk_invite: true }
+        )
+      ),
+      // Create notifications for invited users
+      ...(data || []).map(invitation => {
+        const teamName = (invitation as any).team?.name || 'Unknown Team'
+        return createTeamInvitationNotification(
+          invitation.user_id,
+          teamName,
+          invitedBy
+        )
+      })
+    ])
+
+    return {
+      successful: data || [],
+      skipped: userIds.length - finalValidUserIds.length,
+      total: userIds.length
+    }
+  } catch (error: any) {
+    console.error('bulkInviteToTeam error:', error?.message || JSON.stringify(error, null, 2))
+    throw error
+  }
+}
+
+// =====================================================
+// TEAM ASSIGNMENT AUDIT FUNCTIONS
+// =====================================================
+
+export async function logTeamAssignmentAudit(
+  teamId: string,
+  userId: string,
+  action: string,
+  performedBy: string,
+  details: Record<string, any> = {}
+) {
+  try {
+    const { error } = await supabase
+      .from('team_assignment_audit')
+      .insert({
+        team_id: teamId,
+        user_id: userId,
+        action,
+        performed_by: performedBy,
+        details
+      })
+
+    if (error) throw error
+  } catch (error: any) {
+    console.error('logTeamAssignmentAudit error:', error?.message || JSON.stringify(error, null, 2))
+    // Don't throw - audit logging shouldn't break main functionality
+  }
+}
+
+export async function getTeamAssignmentAudit(teamId: string, limit = 50) {
+  try {
+    const { data, error } = await supabase
+      .from('team_assignment_audit')
+      .select(`
+        *,
+        user:profiles!user_id(full_name, avatar_url),
+        performer:profiles!performed_by(full_name, avatar_url),
+        team:teams(name)
+      `)
+      .eq('team_id', teamId)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (error) throw error
+    return data || []
+  } catch (error: any) {
+    console.error('getTeamAssignmentAudit error:', error?.message || JSON.stringify(error, null, 2))
+    return []
+  }
+}
+
+export async function getWorkspaceAssignmentAudit(workspaceId: string, limit = 100) {
+  try {
+    const { data, error } = await supabase
+      .from('team_assignment_audit')
+      .select(`
+        *,
+        user:profiles!user_id(full_name, avatar_url),
+        performer:profiles!performed_by(full_name, avatar_url),
+        team:teams!inner(name, workspace_id)
+      `)
+      .eq('team.workspace_id', workspaceId)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (error) throw error
+    return data || []
+  } catch (error: any) {
+    console.error('getWorkspaceAssignmentAudit error:', error?.message || JSON.stringify(error, null, 2))
+    return []
+  }
+}
+
+// =====================================================
+// ENHANCED TEAM MANAGEMENT FUNCTIONS
+// =====================================================
+
+export async function updateTeamSettings(
+  teamId: string,
+  settings: {
+    allow_self_join?: boolean
+    require_approval?: boolean
+    max_members?: number | null
+  },
+  isPublic?: boolean
+) {
+  try {
+    const updates: any = {}
+    
+    if (settings) {
+      updates.settings = settings
+    }
+    
+    if (typeof isPublic === 'boolean') {
+      updates.is_public = isPublic
+    }
+
+    const { data, error } = await supabase
+      .from('teams')
+      .update(updates)
+      .eq('id', teamId)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  } catch (error: any) {
+    console.error('updateTeamSettings error:', error?.message || JSON.stringify(error, null, 2))
+    throw error
+  }
+}
+
+export async function getTeamWithSettings(teamId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('teams')
+      .select(`
+        *,
+        team_members(
+          id,
+          user_id,
+          role,
+          joined_at,
+          profile:profiles(full_name, avatar_url, institution)
+        )
+      `)
+      .eq('id', teamId)
+      .single()
+
+    if (error) throw error
+
+    return {
+      ...data,
+      member_count: data.team_members.length,
+      settings: data.settings || { allow_self_join: true, require_approval: true, max_members: null }
+    }
+  } catch (error: any) {
+    console.error('getTeamWithSettings error:', error?.message || JSON.stringify(error, null, 2))
+    throw error
+  }
+}
+
+// =====================================================
 // ANALYTICS FUNCTIONS
 // =====================================================
 
@@ -935,4 +1759,240 @@ export async function getWorkspaceStats(workspaceId: string) {
       avgParticipation: 0,
     }
   }
+}
+
+// =====================================================
+// NOTIFICATION FUNCTIONS
+// =====================================================
+
+export interface Notification {
+  id: string
+  user_id: string
+  type: 'team_assignment' | 'team_invitation' | 'join_request' | 'role_change' | 'team_update'
+  title: string
+  message: string
+  data?: Record<string, any>
+  read: boolean
+  created_at: string
+  updated_at: string
+}
+
+/**
+ * Create a new notification
+ */
+export async function createNotification(notification: {
+  user_id: string
+  type: Notification['type']
+  title: string
+  message: string
+  data?: Record<string, any>
+}) {
+  try {
+    const { data, error } = await supabase
+      .from('notifications')
+      .insert({
+        user_id: notification.user_id,
+        type: notification.type,
+        title: notification.title,
+        message: notification.message,
+        data: notification.data || {},
+        read: false
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  } catch (error: any) {
+    console.error('createNotification error:', error?.message || JSON.stringify(error, null, 2))
+    throw error
+  }
+}
+
+/**
+ * Get user notifications with pagination and filtering
+ */
+export async function getUserNotifications(
+  userId: string,
+  options: {
+    limit?: number
+    offset?: number
+    unreadOnly?: boolean
+    type?: Notification['type']
+  } = {}
+) {
+  try {
+    const { limit = 20, offset = 0, unreadOnly = false, type } = options
+
+    let query = supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1)
+
+    if (unreadOnly) {
+      query = query.eq('read', false)
+    }
+
+    if (type) {
+      query = query.eq('type', type)
+    }
+
+    const { data, error } = await query
+
+    if (error) throw error
+    return data || []
+  } catch (error: any) {
+    console.error('getUserNotifications error:', error?.message || JSON.stringify(error, null, 2))
+    return []
+  }
+}
+
+/**
+ * Mark a notification as read
+ */
+export async function markNotificationAsRead(notificationId: string, userId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('notifications')
+      .update({ read: true, updated_at: new Date().toISOString() })
+      .eq('id', notificationId)
+      .eq('user_id', userId)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  } catch (error: any) {
+    console.error('markNotificationAsRead error:', error?.message || JSON.stringify(error, null, 2))
+    throw error
+  }
+}
+
+/**
+ * Mark all notifications as read for a user
+ */
+export async function markAllNotificationsAsRead(userId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('notifications')
+      .update({ read: true, updated_at: new Date().toISOString() })
+      .eq('user_id', userId)
+      .eq('read', false)
+
+    if (error) throw error
+    return data
+  } catch (error: any) {
+    console.error('markAllNotificationsAsRead error:', error?.message || JSON.stringify(error, null, 2))
+    throw error
+  }
+}
+
+/**
+ * Delete a notification
+ */
+export async function deleteNotification(notificationId: string, userId: string) {
+  try {
+    const { error } = await supabase
+      .from('notifications')
+      .delete()
+      .eq('id', notificationId)
+      .eq('user_id', userId)
+
+    if (error) throw error
+    return true
+  } catch (error: any) {
+    console.error('deleteNotification error:', error?.message || JSON.stringify(error, null, 2))
+    throw error
+  }
+}
+
+/**
+ * Get unread notification count for a user
+ */
+export async function getUnreadNotificationCount(userId: string) {
+  try {
+    const { count, error } = await supabase
+      .from('notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('read', false)
+
+    if (error) throw error
+    return count || 0
+  } catch (error: any) {
+    console.error('getUnreadNotificationCount error:', error?.message || JSON.stringify(error, null, 2))
+    return 0
+  }
+}
+
+/**
+ * Create team assignment notification
+ */
+export async function createTeamAssignmentNotification(
+  userId: string,
+  teamName: string,
+  assignedBy: string,
+  role: string = 'member'
+) {
+  return createNotification({
+    user_id: userId,
+    type: 'team_assignment',
+    title: 'Team Assignment',
+    message: `You have been assigned to team "${teamName}" as a ${role} by ${assignedBy}`,
+    data: {
+      team_name: teamName,
+      assigned_by: assignedBy,
+      role: role
+    }
+  })
+}
+
+/**
+ * Create team invitation notification
+ */
+export async function createTeamInvitationNotification(
+  userId: string,
+  teamName: string,
+  invitedBy: string
+) {
+  return createNotification({
+    user_id: userId,
+    type: 'team_invitation',
+    title: 'Team Invitation',
+    message: `You have been invited to join team "${teamName}" by ${invitedBy}`,
+    data: {
+      team_name: teamName,
+      invited_by: invitedBy
+    }
+  })
+}
+
+/**
+ * Create join request notification
+ */
+export async function createJoinRequestNotification(
+  userId: string,
+  teamName: string,
+  requesterName: string,
+  status: 'pending' | 'approved' | 'rejected'
+) {
+  const messages = {
+    pending: `${requesterName} has requested to join team "${teamName}"`,
+    approved: `Your request to join team "${teamName}" has been approved`,
+    rejected: `Your request to join team "${teamName}" has been rejected`
+  }
+
+  return createNotification({
+    user_id: userId,
+    type: 'join_request',
+    title: 'Join Request Update',
+    message: messages[status],
+    data: {
+      team_name: teamName,
+      requester_name: requesterName,
+      status: status
+    }
+  })
 }

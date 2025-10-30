@@ -13,6 +13,10 @@ import {
   Search,
   Filter,
   AlertCircle,
+  Compass,
+  Bell,
+  UserCog,
+  History,
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/Button';
@@ -22,6 +26,11 @@ import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
 import { createTeam, getWorkspaceTeams } from '@/lib/db/queries';
 import AddMemberModal from '@/components/teams/AddMemberModal';
 import TeamDetailsModal from '@/components/teams/TeamDetailsModal';
+import TeamDiscovery from '@/components/teams/TeamDiscovery';
+import JoinRequestManager from '@/components/teams/JoinRequestManager';
+import BulkTeamAssignment from '@/components/teams/BulkTeamAssignment';
+import TeamAuditLog from '@/components/teams/TeamAuditLog';
+import TeamNotifications from '@/components/teams/TeamNotifications';
 
 export default function TeamsPage() {
   const { user } = useAuth();
@@ -38,6 +47,7 @@ export default function TeamsPage() {
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [showTeamDetailsModal, setShowTeamDetailsModal] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<'my-teams' | 'discover' | 'requests' | 'bulk-assign' | 'audit-log' | 'notifications'>('my-teams');
 
   const colors = [
     { name: 'Navy', value: '#334e68' },
@@ -80,6 +90,12 @@ export default function TeamsPage() {
         name: teamName,
         description: teamDescription || null,
         avatar_color: teamColor,
+        settings: {
+          allow_self_join: false,
+          require_approval: true,
+          max_members: null
+        },
+        is_public: false,
       }, user.id);
 
       await loadTeams();
@@ -139,31 +155,114 @@ export default function TeamsPage() {
               Manage teams in {currentWorkspace.name}
             </p>
           </div>
-          <Button
-            variant="primary"
-            onClick={() => setShowCreateModal(true)}
-            className="flex items-center space-x-2"
-          >
-            <Plus size={20} />
-            <span>New Team</span>
-          </Button>
+          {activeTab === 'my-teams' && (
+            <Button
+              variant="primary"
+              onClick={() => setShowCreateModal(true)}
+              className="flex items-center space-x-2"
+            >
+              <Plus size={20} />
+              <span>New Team</span>
+            </Button>
+          )}
         </div>
 
-        {/* Search Bar */}
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Search teams..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
-            />
+        {/* Tab Navigation */}
+        <div className="bg-white rounded-xl border border-gray-200 p-1 overflow-hidden">
+          <div className="flex space-x-1 overflow-x-auto scrollbar-hide">
+            <button
+              onClick={() => setActiveTab('my-teams')}
+              className={`flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-200 whitespace-nowrap ${
+                activeTab === 'my-teams'
+                  ? 'bg-qolabb-navy-500 text-white shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <Users size={18} />
+              <span className="hidden sm:inline">My Teams</span>
+              <span className="sm:hidden">Teams</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('discover')}
+              className={`flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-200 whitespace-nowrap ${
+                activeTab === 'discover'
+                  ? 'bg-qolabb-navy-500 text-white shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <Compass size={18} />
+              <span className="hidden sm:inline">Discover Teams</span>
+              <span className="sm:hidden">Discover</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('requests')}
+              className={`flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-200 whitespace-nowrap ${
+                activeTab === 'requests'
+                  ? 'bg-qolabb-navy-500 text-white shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <Bell size={18} />
+              <span className="hidden sm:inline">Join Requests</span>
+              <span className="sm:hidden">Requests</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('bulk-assign')}
+              className={`flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-200 whitespace-nowrap ${
+                activeTab === 'bulk-assign'
+                  ? 'bg-qolabb-navy-500 text-white shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <UserCog size={18} />
+              <span className="hidden sm:inline">Bulk Assignment</span>
+              <span className="sm:hidden">Bulk</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('audit-log')}
+              className={`flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-200 whitespace-nowrap ${
+                activeTab === 'audit-log'
+                  ? 'bg-qolabb-navy-500 text-white shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <History size={18} />
+              <span className="hidden sm:inline">Audit Log</span>
+              <span className="sm:hidden">Audit</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('notifications')}
+              className={`flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-200 whitespace-nowrap ${
+                activeTab === 'notifications'
+                  ? 'bg-qolabb-navy-500 text-white shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <Bell size={18} />
+              <span className="hidden sm:inline">Notifications</span>
+              <span className="sm:hidden">Notify</span>
+            </button>
           </div>
         </div>
 
-        {/* Teams Grid */}
+        {/* Tab Content */}
+        {activeTab === 'my-teams' && (
+          <>
+            {/* Search Bar */}
+            <div className="bg-white rounded-xl border border-gray-200 p-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <input
+                  type="text"
+                  placeholder="Search teams..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            {/* Teams Grid */}
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
@@ -296,6 +395,28 @@ export default function TeamsPage() {
               </motion.div>
             ))}
           </div>
+        )}
+          </>
+        )}
+
+        {activeTab === 'discover' && (
+          <TeamDiscovery onTeamJoined={loadTeams} />
+        )}
+
+        {activeTab === 'requests' && (
+          <JoinRequestManager onRequestProcessed={loadTeams} />
+        )}
+
+        {activeTab === 'bulk-assign' && (
+          <BulkTeamAssignment onAssignmentComplete={loadTeams} />
+        )}
+
+        {activeTab === 'audit-log' && (
+          <TeamAuditLog />
+        )}
+
+        {activeTab === 'notifications' && (
+          <TeamNotifications />
         )}
       </div>
 

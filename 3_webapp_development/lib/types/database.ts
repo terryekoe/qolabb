@@ -43,6 +43,16 @@ export interface Database {
         Insert: TeamMemberInsert
         Update: Partial<TeamMember>
       }
+      team_join_requests: {
+        Row: TeamJoinRequest
+        Insert: TeamJoinRequestInsert
+        Update: TeamJoinRequestUpdate
+      }
+      team_assignment_audit: {
+        Row: TeamAssignmentAudit
+        Insert: TeamAssignmentAuditInsert
+        Update: never
+      }
       projects: {
         Row: Project
         Insert: ProjectInsert
@@ -78,6 +88,9 @@ export type ProjectStatus = 'pending' | 'active' | 'completed' | 'archived'
 export type TaskStatus = 'todo' | 'in_progress' | 'completed'
 export type TaskPriority = 'low' | 'medium' | 'high'
 export type ContributionType = 'code' | 'documentation' | 'research' | 'design' | 'meeting' | 'other'
+export type JoinRequestType = 'self_request' | 'owner_invitation'
+export type JoinRequestStatus = 'pending' | 'approved' | 'rejected' | 'cancelled'
+export type TeamAssignmentAction = 'join_request' | 'invitation_sent' | 'approved' | 'rejected' | 'cancelled' | 'member_added' | 'member_removed' | 'role_changed'
 
 // =====================================================
 // TABLE TYPES
@@ -89,6 +102,7 @@ export interface Profile {
   avatar_url: string | null
   role: UserRole
   institution: string | null
+  email: string | null
   goals: string[] | null
   created_at: string
   updated_at: string
@@ -120,6 +134,8 @@ export interface Team {
   description: string | null
   avatar_color: string
   created_by: string | null
+  settings: Json | null
+  is_public: boolean
   created_at: string
   updated_at: string
 }
@@ -130,6 +146,28 @@ export interface TeamMember {
   user_id: string
   role: TeamMemberRole
   joined_at: string
+}
+
+export interface TeamJoinRequest {
+  id: string
+  team_id: string
+  user_id: string
+  requested_by: string
+  request_type: JoinRequestType
+  status: JoinRequestStatus
+  message: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface TeamAssignmentAudit {
+  id: string
+  team_id: string
+  user_id: string
+  action: TeamAssignmentAction
+  performed_by: string
+  details: Json | null
+  created_at: string
 }
 
 export interface Project {
@@ -192,6 +230,8 @@ export type WorkspaceInsert = Omit<Workspace, 'id' | 'invite_code' | 'created_at
 export type WorkspaceMemberInsert = Omit<WorkspaceMember, 'id' | 'joined_at'>
 export type TeamInsert = Omit<Team, 'id' | 'created_by' | 'created_at' | 'updated_at'>
 export type TeamMemberInsert = Omit<TeamMember, 'id' | 'joined_at'>
+export type TeamJoinRequestInsert = Omit<TeamJoinRequest, 'id' | 'created_at' | 'updated_at'>
+export type TeamAssignmentAuditInsert = Omit<TeamAssignmentAudit, 'id' | 'created_at'>
 export type ProjectInsert = Omit<Project, 'id' | 'created_at' | 'updated_at'>
 export type TaskInsert = Omit<Task, 'id' | 'created_by' | 'created_at' | 'updated_at'>
 export type ContributionInsert = Omit<Contribution, 'id' | 'created_at' | 'updated_at'>
@@ -204,6 +244,7 @@ export type ActivityLogInsert = Omit<ActivityLog, 'id' | 'created_at'>
 export type ProfileUpdate = Partial<Omit<Profile, 'id' | 'created_at' | 'updated_at'>>
 export type WorkspaceUpdate = Partial<Omit<Workspace, 'id' | 'owner_id' | 'created_at' | 'updated_at'>>
 export type TeamUpdate = Partial<Omit<Team, 'id' | 'workspace_id' | 'created_at' | 'updated_at'>>
+export type TeamJoinRequestUpdate = Partial<Omit<TeamJoinRequest, 'id' | 'team_id' | 'user_id' | 'requested_by' | 'request_type' | 'created_at' | 'updated_at'>>
 export type ProjectUpdate = Partial<Omit<Project, 'id' | 'workspace_id' | 'team_id' | 'created_at' | 'updated_at'>>
 export type TaskUpdate = Partial<Omit<Task, 'id' | 'project_id' | 'created_at' | 'updated_at'>>
 export type ContributionUpdate = Partial<Omit<Contribution, 'id' | 'project_id' | 'user_id' | 'created_at' | 'updated_at'>>
@@ -231,6 +272,26 @@ export interface ProjectWithDetails extends Project {
 
 export interface ActivityWithUser extends ActivityLog {
   user: Profile
+}
+
+export interface TeamJoinRequestWithDetails extends TeamJoinRequest {
+  user: Profile
+  team: Team
+  requested_by_user: Profile
+}
+
+export interface TeamWithSettings extends Team {
+  settings: {
+    allow_self_join?: boolean
+    require_approval?: boolean
+    max_members?: number
+  } | null
+}
+
+export interface DiscoverableTeam extends TeamWithSettings {
+  member_count: number
+  can_join: boolean
+  join_status?: 'not_member' | 'pending' | 'member'
 }
 
 // =====================================================

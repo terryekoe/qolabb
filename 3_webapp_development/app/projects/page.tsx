@@ -24,6 +24,7 @@ import Avatar, { AvatarGroup } from '@/components/ui/Avatar';
 import { ProjectDetailModal } from '@/components/projects/ProjectDetailModal';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
+import { useSearchParams } from 'next/navigation';
 import { 
   getWorkspaceProjects, 
   getWorkspaceTeams, 
@@ -39,6 +40,7 @@ type FilterType = 'all' | ProjectStatus;
 export default function ProjectsPage() {
   const { user } = useAuth();
   const { currentWorkspace } = useWorkspace();
+  const searchParams = useSearchParams();
   
   const [projects, setProjects] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
@@ -57,6 +59,14 @@ export default function ProjectsPage() {
   const [dueDate, setDueDate] = useState('');
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
+
+  // Check for create parameter and open modal
+  useEffect(() => {
+    const shouldCreate = searchParams.get('create');
+    if (shouldCreate === 'true') {
+      setShowCreateModal(true);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (currentWorkspace) {

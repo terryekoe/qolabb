@@ -40,12 +40,14 @@ import {
   HelpCircle,
   Upload,
   X,
+  Menu,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/Button";
 import Avatar from "@/components/ui/Avatar";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { useWorkspace } from "@/lib/workspace/WorkspaceContext";
+import { useSearchParams } from "next/navigation";
 import {
   getWorkspaceMembers,
   getProfile,
@@ -133,13 +135,25 @@ const settingsSections: SettingsSection[] = [
 export default function SettingsPage() {
   const { user } = useAuth();
   const { currentWorkspace, refreshWorkspaces } = useWorkspace();
+  const searchParams = useSearchParams();
   const [activeSection, setActiveSection] =
     useState<SettingsCategory>("profile");
   const [members, setMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Check for tab and section parameters and navigate accordingly
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    const section = searchParams.get('section');
+    
+    if (tab === 'workspace' && section === 'invite') {
+      setActiveSection('workspace');
+    }
+  }, [searchParams]);
 
   // Profile settings state
   const [profileData, setProfileData] = useState({
@@ -492,9 +506,9 @@ export default function SettingsPage() {
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
           Profile Picture
         </h3>
-        <div className="flex items-center space-x-6">
+        <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-6">
           {/* Avatar Display */}
-          <div className="relative">
+          <div className="relative flex justify-center sm:justify-start">
             <Avatar
               userId={user?.id || 'default'}
               name={profileData.fullName}
@@ -511,10 +525,10 @@ export default function SettingsPage() {
 
           {/* Upload Controls */}
           <div className="flex-1">
-            <div className="flex items-center space-x-3">
+            <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-3">
               <Button 
                 variant="ghost" 
-                className="flex items-center space-x-2"
+                className="flex items-center space-x-2 w-full sm:w-auto justify-center"
                 onClick={handleFileSelect}
                 disabled={uploading}
               >
@@ -525,7 +539,7 @@ export default function SettingsPage() {
               {profileData.avatar && (
                 <Button 
                   variant="ghost" 
-                  className="flex items-center space-x-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                  className="flex items-center space-x-2 text-red-600 hover:text-red-700 hover:bg-red-50 w-full sm:w-auto justify-center"
                   onClick={handleRemoveAvatar}
                   disabled={uploading}
                 >
@@ -669,7 +683,7 @@ export default function SettingsPage() {
           <p className="text-sm text-gray-500 mb-3">
             Select your learning and research goals
           </p>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {AVAILABLE_GOALS.map((goal) => (
               <button
                 key={goal}
@@ -680,7 +694,7 @@ export default function SettingsPage() {
                     : [...profileData.goals, goal];
                   setProfileData({ ...profileData, goals: newGoals });
                 }}
-                className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
+                className={`px-4 py-3 rounded-lg border text-sm font-medium transition-colors text-center ${
                   profileData.goals.includes(goal)
                     ? "bg-qolabb-navy-500 text-white border-qolabb-navy-500"
                     : "bg-white text-gray-700 border-gray-300 hover:border-qolabb-navy-300"
@@ -980,7 +994,7 @@ export default function SettingsPage() {
             {members.map((member) => (
               <div
                 key={member.id}
-                className="p-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0 hover:bg-gray-50 transition-colors"
               >
                 <div className="flex items-center space-x-4">
                   <Avatar
@@ -989,24 +1003,24 @@ export default function SettingsPage() {
                     src={member.user?.avatar_url}
                     size="lg"
                   />
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <p className="font-semibold text-gray-900">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-2">
+                      <p className="font-semibold text-gray-900 truncate">
                         {member.user?.full_name || "Unknown User"}
                       </p>
                       {member.user_id === user?.id && (
-                        <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-0.5 rounded-full">
+                        <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-0.5 rounded-full self-start">
                           You
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 truncate">
                       {member.user?.institution || "No institution"}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center justify-between sm:justify-end space-x-3">
                   <div className="flex items-center space-x-2">
                     {member.role === "owner" && (
                       <div className="flex items-center space-x-1 bg-qolabb-navy-100 text-qolabb-navy-700 px-3 py-1 rounded-full">
@@ -1028,7 +1042,7 @@ export default function SettingsPage() {
                   {isOwnerOrAdmin &&
                     member.user_id !== user?.id &&
                     member.role !== "owner" && (
-                      <button className="p-2 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-600 transition-colors">
+                      <button className="p-2 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-600 transition-colors flex-shrink-0">
                         <UserMinus size={18} />
                       </button>
                     )}
@@ -1510,42 +1524,113 @@ export default function SettingsPage() {
 
   return (
     <DashboardLayout>
-      <div className="flex h-full">
-        {/* Sidebar */}
-        <div className="w-80 bg-white border-r border-gray-200 flex-shrink-0">
-          <div className="p-6 border-b border-gray-200">
-            <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-            <p className="text-gray-600 text-sm mt-1">
-              Manage your account and preferences
-            </p>
-          </div>
-
-          <nav className="p-4 space-y-1">
-            {settingsSections.map((section) => (
-              <button
-                key={section.id}
-                onClick={() => setActiveSection(section.id)}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${
-                  activeSection === section.id
-                    ? "bg-qolabb-navy-50 text-qolabb-navy-700 border border-qolabb-navy-200"
-                    : "text-gray-700 hover:bg-gray-50"
-                }`}
-              >
-                <section.icon size={20} />
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{section.label}</p>
-                  <p className="text-xs text-gray-500 truncate">
-                    {section.description}
+      <div className="min-h-screen bg-gray-50">
+        {/* Settings Header */}
+        <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
+          <div className="px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-qolabb-navy-100 rounded-lg">
+                  <SettingsIcon size={24} className="text-qolabb-navy-600" />
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-gray-900">Settings</h1>
+                  <p className="text-sm text-gray-500 hidden sm:block">
+                    Manage your account and preferences
                   </p>
                 </div>
+              </div>
+              
+              {/* Mobile Settings Menu Button */}
+              <button
+                onClick={() => setIsMobileSidebarOpen(true)}
+                className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <Menu size={24} className="text-gray-600" />
               </button>
-            ))}
-          </nav>
+            </div>
+
+            {/* Desktop Horizontal Navigation */}
+            <div className="hidden md:block">
+              <nav className="flex space-x-1 overflow-x-auto pb-4">
+                {settingsSections.map((section) => (
+                  <button
+                    key={section.id}
+                    onClick={() => setActiveSection(section.id)}
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+                      activeSection === section.id
+                        ? "bg-qolabb-navy-100 text-qolabb-navy-700"
+                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                    }`}
+                  >
+                    <section.icon size={16} />
+                    <span>{section.label}</span>
+                  </button>
+                ))}
+              </nav>
+            </div>
+          </div>
         </div>
 
+        {/* Mobile Settings Navigation Overlay */}
+        <AnimatePresence>
+          {isMobileSidebarOpen && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black bg-opacity-50 z-50 md:hidden"
+                onClick={() => setIsMobileSidebarOpen(false)}
+              />
+              <motion.div
+                initial={{ x: "100%" }}
+                animate={{ x: 0 }}
+                exit={{ x: "100%" }}
+                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                className="fixed top-0 right-0 bottom-0 w-80 bg-white shadow-xl z-50 md:hidden"
+              >
+                <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                  <h2 className="text-lg font-semibold text-gray-900">Settings</h2>
+                  <button
+                    onClick={() => setIsMobileSidebarOpen(false)}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+                <nav className="p-4 space-y-1">
+                  {settingsSections.map((section) => (
+                    <button
+                      key={section.id}
+                      onClick={() => {
+                        setActiveSection(section.id);
+                        setIsMobileSidebarOpen(false);
+                      }}
+                      className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${
+                        activeSection === section.id
+                          ? "bg-qolabb-navy-50 text-qolabb-navy-700 border border-qolabb-navy-200"
+                          : "text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      <section.icon size={20} />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{section.label}</p>
+                        <p className="text-xs text-gray-500 truncate">
+                          {section.description}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                </nav>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+
         {/* Main Content */}
-        <div className="flex-1 overflow-auto">
-          <div className="p-8 max-w-4xl">
+        <div className="px-4 sm:px-6 lg:px-8 py-8">
+          <div className="max-w-4xl mx-auto">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeSection}
