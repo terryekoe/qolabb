@@ -141,6 +141,9 @@ BEGIN
 END;
 $$;
 
+-- Drop existing function first (needed when changing return type)
+DROP FUNCTION IF EXISTS get_workspace_rpc(UUID, UUID);
+
 -- Create RPC function to get a single workspace (bypasses RLS)
 CREATE OR REPLACE FUNCTION get_workspace_rpc(workspace_id_param UUID, user_id_param UUID)
 RETURNS TABLE (
@@ -181,8 +184,8 @@ BEGIN
   -- If not owner, check if user is a member
   IF NOT has_access THEN
     SELECT EXISTS(
-      SELECT 1 FROM workspace_members 
-      WHERE workspace_id = workspace_id_param AND user_id = user_id_param
+      SELECT 1 FROM workspace_members wm
+      WHERE wm.workspace_id = workspace_id_param AND wm.user_id = user_id_param
     ) INTO has_access;
   END IF;
   
@@ -226,9 +229,9 @@ BEGIN
   SELECT 
     EXISTS(SELECT 1 FROM workspaces WHERE id = workspace_id_param) as workspace_exists,
     EXISTS(SELECT 1 FROM workspaces WHERE id = workspace_id_param AND owner_id = user_id_param) as is_owner,
-    EXISTS(SELECT 1 FROM workspace_members WHERE workspace_id = workspace_id_param AND user_id = user_id_param) as is_member,
+    EXISTS(SELECT 1 FROM workspace_members wm WHERE wm.workspace_id = workspace_id_param AND wm.user_id = user_id_param) as is_member,
     (SELECT owner_id FROM workspaces WHERE id = workspace_id_param) as workspace_owner_id,
-    (SELECT COUNT(*) FROM workspace_members WHERE workspace_id = workspace_id_param) as member_count;
+    (SELECT COUNT(*) FROM workspace_members wm WHERE wm.workspace_id = workspace_id_param) as member_count;
 END;
 $$;
 

@@ -222,20 +222,35 @@ export async function createWorkspace(workspace: WorkspaceInsert, userId: string
   return newWorkspace[0] as Workspace
 }
 
+// Add type definition for RPC response
+interface WorkspaceRPCResponse {
+  workspace_id: string;
+  workspace_name: string;
+  workspace_description: string | null;
+  workspace_invite_code: string;
+  workspace_owner_id: string;
+  workspace_settings: any;
+  workspace_created_at: string;
+  workspace_updated_at: string;
+}
+
 export async function getWorkspace(workspaceId: string) {
-  // Get current user
+  console.log('🔍 getWorkspace called with workspaceId:', workspaceId);
+  
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('User not authenticated');
+  if (!user) {
+    throw new Error('User not authenticated');
+  }
 
-  console.log('🔍 Getting workspace:', { workspaceId, userId: user.id });
+  console.log('👤 User ID:', user.id);
+  console.log('🏢 Workspace ID:', workspaceId);
 
-  // First, let's debug the workspace access
+  // First call debug function to check access
   const { data: debugData, error: debugError } = await supabase
     .rpc('debug_workspace_access', {
       workspace_id_param: workspaceId,
       user_id_param: user.id
-    })
-    .single();
+    });
 
   if (debugError) {
     console.error('❌ Debug RPC error:', {
@@ -245,8 +260,8 @@ export async function getWorkspace(workspaceId: string) {
       code: debugError.code,
       fullError: debugError
     });
-  } else if (debugData) {
-    console.log('🔍 Debug workspace access:', debugData);
+  } else {
+    console.log('🔍 Debug workspace access result:', debugData);
   }
 
   // Use RPC function to bypass RLS issues
@@ -296,15 +311,18 @@ export async function getWorkspace(workspaceId: string) {
   
   // Transform RPC result back to standard workspace format
   if (data) {
+    // Type assertion for the RPC response
+    const rpcData = data as WorkspaceRPCResponse;
+    
     const workspace = {
-      id: data.workspace_id,
-      name: data.workspace_name,
-      description: data.workspace_description,
-      invite_code: data.workspace_invite_code,
-      owner_id: data.workspace_owner_id,
-      settings: data.workspace_settings,
-      created_at: data.workspace_created_at,
-      updated_at: data.workspace_updated_at
+      id: rpcData.workspace_id,
+      name: rpcData.workspace_name,
+      description: rpcData.workspace_description,
+      invite_code: rpcData.workspace_invite_code,
+      owner_id: rpcData.workspace_owner_id,
+      settings: rpcData.workspace_settings,
+      created_at: rpcData.workspace_created_at,
+      updated_at: rpcData.workspace_updated_at
     };
     console.log('✅ Transformed workspace data:', workspace);
     return workspace as Workspace;
