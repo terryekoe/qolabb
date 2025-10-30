@@ -1,16 +1,21 @@
-import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 import { Database } from '@/lib/types/database'
 
-export function createClient(useServiceRole = false) {
+export async function createClient(useServiceRole = false) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const supabaseKey = useServiceRole 
+    ? process.env.SUPABASE_SERVICE_ROLE_KEY!
+    : process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Missing Supabase environment variables')
+  }
+
   if (useServiceRole) {
-    // Use service role key for admin operations (bypassing RLS)
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-    if (!serviceKey) {
-      throw new Error('SUPABASE_SERVICE_ROLE_KEY is required for service role operations')
-    }
-    return createSupabaseClient(supabaseUrl, serviceKey, {
+    // Service role client for admin operations
+    const { createClient: createSupabaseClient } = await import('@supabase/supabase-js')
+    return createSupabaseClient<Database>(supabaseUrl, supabaseKey, {
       auth: {
         autoRefreshToken: false,
         persistSession: false
@@ -18,13 +23,25 @@ export function createClient(useServiceRole = false) {
     })
   }
 
-  // Regular client - for now, just use the anon key
-  // In production, you'd want to handle user sessions properly
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  // Use Supabase SSR client for proper session handling
+  const cookieStore = await cookies()
   
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Missing Supabase environment variables')
-  }
-
-  return createSupabaseClient(supabaseUrl, supabaseAnonKey)
+  return createServerClient<Database>(supabaseUrl, supabaseKey, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll()
+      },
+      setAll(cookiesToSet: Array<{ name: string; value: string; options?: any }>) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options)
+          })
+        } catch (error) {
+          // The `setAll` method was called from a Server Component.
+          // This can be ignored if you have middleware refreshing
+          // user sessions.
+        }
+      },
+    },
+  })
 }

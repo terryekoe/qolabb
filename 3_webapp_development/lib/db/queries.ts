@@ -178,52 +178,25 @@ export async function updateProfile(userId: string, updates: Partial<Profile>) {
 // =====================================================
 
 export async function createWorkspace(workspace: WorkspaceInsert, userId: string) {
-  // Generate unique invite code
-  const generateInviteCode = () => {
-    return Math.random().toString(36).substring(2, 8).toUpperCase();
-  };
+  // Use RPC function to bypass RLS restrictions
+  const { data: newWorkspace, error: workspaceError } = await supabase
+    .rpc('create_workspace_with_owner', {
+      workspace_name: workspace.name,
+      owner_user_id: userId,
+      workspace_description: workspace.description || null,
+      workspace_settings: workspace.settings || {}
+    })
 
-  let inviteCode = generateInviteCode();
-  let attempts = 0;
-  
-  // Ensure invite code is unique
-  while (attempts < 5) {
-    const { data: existing } = await supabase
-      .from('workspaces')
-      .select('id')
-      .eq('invite_code', inviteCode)
-      .single();
-    
-    if (!existing) break;
-    inviteCode = generateInviteCode();
-    attempts++;
+  if (workspaceError) {
+    console.error('Error creating workspace:', workspaceError)
+    throw workspaceError
   }
 
-  // Create workspace
-  const { data: newWorkspace, error: workspaceError } = await supabase
-    .from('workspaces')
-    .insert({ 
-      ...workspace, 
-      owner_id: userId,
-      invite_code: inviteCode 
-    } as any)
-    .select()
-    .single()
+  if (!newWorkspace || newWorkspace.length === 0) {
+    throw new Error('Failed to create workspace')
+  }
 
-  if (workspaceError) throw workspaceError
-
-  // Add creator as owner member
-  const { error: memberError } = await supabase
-    .from('workspace_members')
-    .insert({
-      workspace_id: (newWorkspace as any).id,
-      user_id: userId,
-      role: 'owner',
-    } as any)
-
-  if (memberError) throw memberError
-
-  return newWorkspace as Workspace
+  return newWorkspace[0] as Workspace
 }
 
 export async function getWorkspace(workspaceId: string) {
@@ -238,74 +211,89 @@ export async function getWorkspace(workspaceId: string) {
 }
 
 export async function getUserWorkspaces(userId: string) {
-  const { data, error } = await supabase
-    .from('workspace_members')
-    .select(`
-      *,
-      workspace:workspaces(*)
-    `)
-    .eq('user_id', userId)
+  console.log('🔍 getUserWorkspaces called with userId:', userId);
+  
+  try {
+    const { data, error } = await supabase
+      .from('workspace_members')
+      .select(`
+        *,
+        workspace:workspaces(*)
+      `)
+      .eq('user_id', userId)
 
-  if (error) throw error
-  return data
+    console.log('📊 getUserWorkspaces query result:', { data, error });
+
+    if (error) {
+      console.error('❌ getUserWorkspaces error details:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
+      throw error;
+    }
+
+    console.log('✅ getUserWorkspaces success, found', data?.length || 0, 'workspace memberships');
+    return data;
+  } catch (err) {
+    console.error('💥 getUserWorkspaces caught exception:', err);
+    throw err;
+  }
+}
+
+// Alternative RPC-based function to get user workspaces (bypasses RLS)
+export async function getUserWorkspacesRPC(userId: string) {
+  console.log('🔍 getUserWorkspacesRPC called with userId:', userId);
+  
+  try {
+    const { data, error } = await supabase
+      .rpc('get_user_workspaces', {
+        user_id_param: userId
+      });
+
+    console.log('📊 getUserWorkspacesRPC result:', { data, error });
+
+    if (error) {
+      console.error('❌ getUserWorkspacesRPC error:', error);
+      throw error;
+    }
+
+    console.log('✅ getUserWorkspacesRPC success, found', data?.length || 0, 'workspace memberships');
+    return data;
+  } catch (err) {
+    console.error('💥 getUserWorkspacesRPC exception:', err);
+    throw err;
+  }
 }
 
 export async function joinWorkspaceByCode(inviteCode: string, userId: string) {
-  // First, try to find workspace by invite code
-  // This might fail due to RLS, but we'll handle it
-  const { data: workspace, error: findError } = await supabase
-    .from('workspaces')
-    .select('id, name, description, invite_code, owner_id, created_at, updated_at, settings')
-    .eq('invite_code', inviteCode.toUpperCase())
-    .single()
-
-  if (findError) {
-    console.error('Error finding workspace:', findError)
-    
-    // If it's an RLS error, provide a more helpful message
-    if (findError.code === 'PGRST116' || findError.message?.includes('row-level security')) {
-      throw new Error('Cannot find workspace with this invite code. The workspace may not exist or you may not have permission to view it.')
-    }
-    
-    throw new Error('Invalid invite code. Please check and try again.')
-  }
-
-  if (!workspace) {
-    throw new Error('Invalid invite code. Please check and try again.')
-  }
-
-  // Check if already a member
-  const { data: existing, error: memberCheckError } = await supabase
-    .from('workspace_members')
-    .select('*')
-    .eq('workspace_id', workspace.id)
-    .eq('user_id', userId)
-    .maybeSingle()
-
-  if (memberCheckError) {
-    console.error('Error checking membership:', memberCheckError)
-    throw new Error('Failed to check workspace membership.')
-  }
-
-  if (existing) {
-    throw new Error('You are already a member of this workspace.')
-  }
-
-  // Add as member
-  const { error: joinError } = await supabase
-    .from('workspace_members')
-    .insert({
-      workspace_id: workspace.id,
-      user_id: userId,
-      role: 'member',
+  // Use RPC function to bypass RLS restrictions for joining
+  const { data: workspace, error: joinError } = await supabase
+    .rpc('join_workspace_by_invite_code', {
+      invite_code_param: inviteCode.toUpperCase(),
+      user_id_param: userId
     })
 
   if (joinError) {
     console.error('Error joining workspace:', joinError)
+    
+    // Handle specific error messages from the RPC function
+    if (joinError.message.includes('Invalid invite code')) {
+      throw new Error('Invalid invite code. Please check and try again.')
+    }
+    if (joinError.message.includes('already a member')) {
+      throw new Error('You are already a member of this workspace.')
+    }
+    
     throw new Error('Failed to join workspace. Please try again.')
   }
 
-  return workspace as Workspace
+  if (!workspace || workspace.length === 0) {
+    throw new Error('Failed to join workspace. Please try again.')
+  }
+
+  return workspace[0] as Workspace
 }
 
 export async function getWorkspaceMembers(workspaceId: string) {

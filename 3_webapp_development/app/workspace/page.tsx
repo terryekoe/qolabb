@@ -8,12 +8,12 @@ import { Button } from '@/components/Button';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
 import { createWorkspace } from '@/lib/db/queries';
-import { joinWorkspaceByInviteCode } from '@/app/actions/workspace';
+import { joinWorkspaceByInviteCode, createTestWorkspace } from '@/app/actions/workspace';
 
 export default function WorkspacePage() {
   const router = useRouter();
   const { user } = useAuth();
-  const { refreshWorkspaces } = useWorkspace();
+  const { refreshWorkspaces, switchWorkspace } = useWorkspace();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [workspaceName, setWorkspaceName] = useState('');
@@ -29,7 +29,7 @@ export default function WorkspacePage() {
     setError('');
 
     try {
-      await createWorkspace({
+      const newWorkspace = await createWorkspace({
         name: workspaceName,
         description: workspaceDescription || null,
         owner_id: user.id,
@@ -37,6 +37,12 @@ export default function WorkspacePage() {
       }, user.id);
 
       await refreshWorkspaces();
+      
+      // Automatically switch to the newly created workspace
+      if (newWorkspace?.id) {
+        switchWorkspace(newWorkspace.id);
+      }
+      
       router.push('/dashboard');
     } catch (error: any) {
       console.error('Error creating workspace:', error);
@@ -57,6 +63,12 @@ export default function WorkspacePage() {
       
       if (result.success) {
         await refreshWorkspaces();
+        
+        // Automatically switch to the newly joined workspace
+        if (result.workspaceId) {
+          switchWorkspace(result.workspaceId);
+        }
+        
         router.push('/dashboard');
       } else {
         setError(result.error || 'Failed to join workspace. Check your invite code.');
@@ -65,6 +77,62 @@ export default function WorkspacePage() {
       setError('Failed to join workspace. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCreateTestWorkspace = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      const result = await createTestWorkspace();
+      
+      if (result.success) {
+        console.log('✅ Test workspace created:', result);
+        alert(`Test workspace created! Invite code: ${result.inviteCode}`);
+        await refreshWorkspaces();
+      } else {
+        setError(result.error || 'Failed to create test workspace');
+        
+        // If authentication error, suggest clearing cookies and re-login
+        if (result.error?.includes('logged in') || result.error?.includes('authentication')) {
+          setError(result.error + ' Please try clearing your browser cookies and logging in again.');
+        }
+      }
+    } catch (error: any) {
+      console.error('Error creating test workspace:', error);
+      const errorMessage = error.message || 'Failed to create test workspace. Please try again.';
+      
+      // If authentication error, suggest clearing cookies and re-login
+      if (errorMessage.includes('logged in') || errorMessage.includes('authentication')) {
+        setError(errorMessage + ' Please try clearing your browser cookies and logging in again.');
+      } else {
+        setError(errorMessage);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Function to clear expired auth cookies
+  const clearExpiredCookies = () => {
+    if (typeof document !== 'undefined') {
+      // Get all cookies
+      const cookies = document.cookie.split(';');
+      
+      // Find and clear Supabase auth token cookies
+      cookies.forEach(cookie => {
+        const [name] = cookie.trim().split('=');
+        if (name.includes('sb-') && name.includes('auth-token') && !name.includes('code-verifier')) {
+          console.log('🧹 Clearing expired auth cookie:', name);
+          // Set cookie to expire in the past
+          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname}`;
+          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+        }
+      });
+      
+      // Refresh the page to reload with clean cookies
+      window.location.reload();
     }
   };
 
@@ -134,6 +202,25 @@ export default function WorkspacePage() {
           </motion.div>
         </div>
 
+        {/* Debug Test Button */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="text-center mb-8"
+        >
+          <Button
+            onClick={handleCreateTestWorkspace}
+            disabled={loading}
+            className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold"
+          >
+            {loading ? 'Creating...' : 'Create Test Workspace (Debug)'}
+          </Button>
+          <p className="text-sm text-gray-500 mt-2">
+            Creates a test workspace with invite code: 3QDE-OJQ-3MX
+          </p>
+        </motion.div>
+
         {/* Create Workspace Modal */}
         <AnimatePresence>
           {showCreateModal && (
@@ -161,7 +248,17 @@ export default function WorkspacePage() {
                 <div className="space-y-4 mb-6">
                   {error && (
                     <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-800">
-                      {error}
+                      <div className="flex items-start justify-between">
+                        <span className="flex-1">{error}</span>
+                        {(error.includes('logged in') || error.includes('authentication') || error.includes('cookies')) && (
+                          <button
+                            onClick={clearExpiredCookies}
+                            className="ml-3 px-3 py-1 bg-red-100 hover:bg-red-200 text-red-800 rounded text-xs font-medium transition-colors"
+                          >
+                            Clear Cookies
+                          </button>
+                        )}
+                      </div>
                     </div>
                   )}
 
@@ -241,7 +338,17 @@ export default function WorkspacePage() {
                 <div className="space-y-4 mb-6">
                   {error && (
                     <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-800">
-                      {error}
+                      <div className="flex items-start justify-between">
+                        <span className="flex-1">{error}</span>
+                        {(error.includes('logged in') || error.includes('authentication') || error.includes('cookies')) && (
+                          <button
+                            onClick={clearExpiredCookies}
+                            className="ml-3 px-3 py-1 bg-red-100 hover:bg-red-200 text-red-800 rounded text-xs font-medium transition-colors"
+                          >
+                            Clear Cookies
+                          </button>
+                        )}
+                      </div>
                     </div>
                   )}
 

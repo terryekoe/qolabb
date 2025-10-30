@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { Workspace } from '../types/database';
-import { getUserWorkspaces, getWorkspace } from '../db/queries';
+import { getUserWorkspaces, getUserWorkspacesRPC, getWorkspace } from '../db/queries';
 
 interface WorkspaceContextType {
   currentWorkspace: Workspace | null;
@@ -36,21 +36,32 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
 
     try {
       setLoading(true);
-      const userWorkspaces = await getUserWorkspaces(user.id);
-      setWorkspaces(userWorkspaces);
+      console.log('🚀 Starting workspace loading for user:', user.id);
+      
+      // Try RPC approach first (bypasses RLS), fallback to regular query
+      const userWorkspaces = await getUserWorkspacesRPC(user.id);
+      console.log('📋 Loaded workspaces:', userWorkspaces);
+      
+      setWorkspaces(userWorkspaces || []);
 
       // Set current workspace from localStorage or first workspace
       const savedWorkspaceId = localStorage.getItem('currentWorkspaceId');
-      if (savedWorkspaceId && userWorkspaces.some((w: any) => w.workspace.id === savedWorkspaceId)) {
+      if (savedWorkspaceId && userWorkspaces?.some((w: any) => w.workspace.id === savedWorkspaceId)) {
         const workspace = await getWorkspace(savedWorkspaceId);
         setCurrentWorkspace(workspace);
-      } else if (userWorkspaces.length > 0) {
+      } else if (userWorkspaces && userWorkspaces.length > 0) {
         const firstWorkspace = userWorkspaces[0] as any;
         setCurrentWorkspace(firstWorkspace.workspace);
         localStorage.setItem('currentWorkspaceId', firstWorkspace.workspace.id);
       }
     } catch (error) {
       console.error('Error loading workspaces:', error);
+      // Set empty state on error to prevent undefined issues
+      setWorkspaces([]);
+      setCurrentWorkspace(null);
+      
+      // Clear any stale workspace ID from localStorage
+      localStorage.removeItem('currentWorkspaceId');
     } finally {
       setLoading(false);
     }

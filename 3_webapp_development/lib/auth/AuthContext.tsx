@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -48,6 +48,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         setProfile(null);
         setLoading(false);
+        
+        // Clear expired cookies when user is signed out or session is invalid
+        if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+          clearExpiredAuthCookies();
+        }
       }
     });
 
@@ -145,6 +150,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
     setProfile(null);
+    
+    // Clear any expired auth cookies
+    clearExpiredAuthCookies();
+  }
+
+  // Utility function to clear expired auth cookies
+  function clearExpiredAuthCookies() {
+    if (typeof document !== 'undefined') {
+      // Get all cookies
+      const cookies = document.cookie.split(';');
+      
+      // Find and clear Supabase auth token cookies
+      cookies.forEach(cookie => {
+        const [name] = cookie.trim().split('=');
+        if (name.includes('sb-') && name.includes('auth-token') && !name.includes('code-verifier')) {
+          console.log('🧹 Clearing expired auth cookie:', name);
+          // Set cookie to expire in the past
+          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname}`;
+          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+        }
+      });
+    }
   }
 
   async function refreshProfile() {
