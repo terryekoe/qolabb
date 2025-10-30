@@ -16,9 +16,12 @@ import {
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/Button';
+import { AvatarGroup } from '@/components/ui/Avatar';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
 import { createTeam, getWorkspaceTeams } from '@/lib/db/queries';
+import AddMemberModal from '@/components/teams/AddMemberModal';
+import TeamDetailsModal from '@/components/teams/TeamDetailsModal';
 
 export default function TeamsPage() {
   const { user } = useAuth();
@@ -32,6 +35,9 @@ export default function TeamsPage() {
   const [teamColor, setTeamColor] = useState('#334e68');
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
+  const [showAddMemberModal, setShowAddMemberModal] = useState(false);
+  const [showTeamDetailsModal, setShowTeamDetailsModal] = useState(false);
+  const [selectedTeam, setSelectedTeam] = useState<any>(null);
 
   const colors = [
     { name: 'Navy', value: '#334e68' },
@@ -86,6 +92,20 @@ export default function TeamsPage() {
     } finally {
       setCreating(false);
     }
+  }
+
+  function handleAddMember(team: any) {
+    setSelectedTeam(team);
+    setShowAddMemberModal(true);
+  }
+
+  function handleViewDetails(team: any) {
+    setSelectedTeam(team);
+    setShowTeamDetailsModal(true);
+  }
+
+  function handleTeamUpdated() {
+    loadTeams();
   }
 
   if (!currentWorkspace) {
@@ -188,76 +208,85 @@ export default function TeamsPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
-                whileHover={{ y: -4 }}
-                className="bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-lg transition-all group"
+                whileHover={{ y: -6, scale: 1.02 }}
+                className="bg-white rounded-2xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-xl hover:border-qolabb-navy-300 transition-all duration-300 group"
               >
                 {/* Team Header */}
                 <div
-                  className="h-24 flex items-center justify-center relative"
-                  style={{ backgroundColor: team.avatar_color }}
+                  className="h-28 flex items-center justify-center relative bg-gradient-to-br"
+                  style={{ 
+                    background: `linear-gradient(135deg, ${team.avatar_color}, ${team.avatar_color}dd)` 
+                  }}
                 >
-                  <Users size={32} className="text-white" />
-                  <button className="absolute top-3 right-3 p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors opacity-0 group-hover:opacity-100">
-                    <MoreVertical size={18} className="text-white" />
+                  <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
+                    <Users size={28} className="text-white drop-shadow-sm" />
+                  </div>
+                  <button className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/30 rounded-full transition-all duration-200 opacity-0 group-hover:opacity-100 backdrop-blur-sm">
+                    <MoreVertical size={16} className="text-white" />
                   </button>
                 </div>
 
                 {/* Team Info */}
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">
-                    {team.name}
-                  </h3>
-                  {team.description && (
-                    <p className="text-gray-600 text-sm mb-4">{team.description}</p>
-                  )}
-
-                  {/* Members Count */}
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-2 text-gray-600">
-                      <Users size={16} />
-                      <span className="text-sm">
-                        {team.members?.length || 0} member{team.members?.length !== 1 ? 's' : ''}
-                      </span>
-                    </div>
+                <div className="p-6 space-y-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <h3 className="text-xl font-bold text-gray-900 flex-1">
+                      {team.name}
+                    </h3>
                     {team.members?.some((m: any) => m.role === 'leader' && m.user_id === user?.id) && (
-                      <div className="flex items-center space-x-1 text-qolabb-navy-600">
-                        <Crown size={14} />
+                      <div className="flex items-center space-x-1 bg-qolabb-navy-50 text-qolabb-navy-600 px-2 py-1 rounded-full ml-2">
+                        <Crown size={12} />
                         <span className="text-xs font-semibold">Leader</span>
                       </div>
                     )}
                   </div>
+                  
+                  {team.description && (
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">{team.description}</p>
+                  )}
+
+                  {/* Members Count */}
+                  <div className="flex items-center space-x-2 text-gray-600">
+                    <div className="flex items-center space-x-2 bg-gray-50 rounded-full px-3 py-1">
+                      <Users size={14} />
+                      <span className="text-sm font-medium">
+                        {team.members?.length || 0} member{team.members?.length !== 1 ? 's' : ''}
+                      </span>
+                    </div>
+                  </div>
 
                   {/* Members Avatars */}
                   {team.members && team.members.length > 0 && (
-                    <div className="flex items-center space-x-2 mb-4">
-                      <div className="flex -space-x-2">
-                        {team.members.slice(0, 4).map((member: any, i: number) => (
-                          <div
-                            key={i}
-                            className="w-8 h-8 rounded-full bg-gradient-to-br from-qolabb-navy-400 to-qolabb-beige-400 border-2 border-white flex items-center justify-center text-white text-xs font-bold"
-                            title={member.user?.full_name || 'User'}
-                          >
-                            {member.user?.full_name?.charAt(0) || 'U'}
-                          </div>
-                        ))}
-                        {team.members.length > 4 && (
-                          <div className="w-8 h-8 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-gray-600 text-xs font-semibold">
-                            +{team.members.length - 4}
-                          </div>
-                        )}
-                      </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-700">Team Members</span>
+                      <AvatarGroup
+                        users={team.members.map((member: any) => ({
+                          userId: member.user?.id || member.user_id || `member-${member.id}`,
+                          name: member.user?.full_name || 'User',
+                          src: member.user?.avatar_url
+                        }))}
+                        max={4}
+                        size="sm"
+                        className="hover:scale-105 transition-transform duration-200"
+                      />
                     </div>
                   )}
 
                   {/* Actions */}
-                  <div className="flex space-x-2">
-                    <Button variant="ghost" size="sm" className="flex-1">
-                      View Details
+                  <div className="flex space-x-2 pt-4 border-t border-gray-100">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1 flex items-center justify-center space-x-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 transition-all duration-200 font-medium shadow-sm"
+                      onClick={() => handleViewDetails(team)}
+                    >
+                      <Users size={16} />
+                      <span>View Details</span>
                     </Button>
                     <Button
-                      variant="ghost"
+                      variant="primary"
                       size="sm"
-                      className="flex items-center space-x-1"
+                      className="flex items-center justify-center space-x-2 bg-gradient-to-r from-qolabb-navy-600 to-qolabb-navy-700 hover:from-qolabb-navy-700 hover:to-qolabb-navy-800 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 border-0"
+                      onClick={() => handleAddMember(team)}
                     >
                       <UserPlus size={16} />
                       <span>Add</span>
@@ -398,6 +427,33 @@ export default function TeamsPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Add Member Modal */}
+      {selectedTeam && (
+        <AddMemberModal
+          isOpen={showAddMemberModal}
+          onClose={() => {
+            setShowAddMemberModal(false);
+            setSelectedTeam(null);
+          }}
+          teamId={selectedTeam.id}
+          workspaceId={currentWorkspace.id}
+          onMemberAdded={handleTeamUpdated}
+        />
+      )}
+
+      {/* Team Details Modal */}
+      {selectedTeam && (
+        <TeamDetailsModal
+          isOpen={showTeamDetailsModal}
+          onClose={() => {
+            setShowTeamDetailsModal(false);
+            setSelectedTeam(null);
+          }}
+          team={selectedTeam}
+          onTeamUpdated={handleTeamUpdated}
+        />
+      )}
     </DashboardLayout>
   );
 }

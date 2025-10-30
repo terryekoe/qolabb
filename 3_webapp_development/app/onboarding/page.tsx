@@ -1,23 +1,43 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, ArrowLeft, Check, Users, Briefcase, GraduationCap } from 'lucide-react';
 import { Button } from '@/components/Button';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { updateProfile } from '@/lib/db/queries';
+import { AVAILABLE_GOALS } from '@/lib/constants/goals';
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
+    fullName: '',
     role: '',
     institution: '',
     goals: [] as string[],
   });
+
+  // Pre-populate form data from user auth or profile
+  useEffect(() => {
+    if (user || profile) {
+      const existingFullName = 
+        profile?.full_name || 
+        user?.user_metadata?.full_name || 
+        user?.user_metadata?.name || 
+        '';
+      
+      if (existingFullName && !formData.fullName) {
+        setFormData(prev => ({
+          ...prev,
+          fullName: existingFullName
+        }));
+      }
+    }
+  }, [user, profile, formData.fullName]);
 
   const steps = [
     {
@@ -44,14 +64,7 @@ export default function OnboardingPage() {
     { id: 'both', label: 'Both', icon: Users, description: 'I do both' },
   ];
 
-  const goals = [
-    'Track team contributions',
-    'Improve collaboration',
-    'Fair assessment',
-    'Monitor engagement',
-    'Data-driven insights',
-    'Better teamwork',
-  ];
+  const goals = AVAILABLE_GOALS;
 
   const handleNext = async () => {
     if (currentStep < steps.length - 1) {
@@ -61,7 +74,14 @@ export default function OnboardingPage() {
       if (user) {
         setSaving(true);
         try {
+          const finalFullName = formData.fullName || 
+                                profile?.full_name || 
+                                user?.user_metadata?.full_name || 
+                                user?.user_metadata?.name || 
+                                undefined;
+
           await updateProfile(user.id, {
+            full_name: finalFullName,
             role: formData.role as 'student' | 'instructor' | 'both',
             institution: formData.institution || null,
             goals: formData.goals.length > 0 ? formData.goals : null,
@@ -97,7 +117,13 @@ export default function OnboardingPage() {
 
   const canProceed = () => {
     if (currentStep === 1) return formData.role !== '';
-    if (currentStep === 2) return formData.institution !== '';
+    if (currentStep === 2) {
+      const hasFullName = formData.fullName !== '' || 
+                          profile?.full_name || 
+                          user?.user_metadata?.full_name || 
+                          user?.user_metadata?.name;
+      return hasFullName && formData.institution !== '';
+    }
     if (currentStep === 3) return formData.goals.length > 0;
     return true;
   };
@@ -202,18 +228,42 @@ export default function OnboardingPage() {
                 )}
 
                 {currentStep === 2 && (
-                  <div>
-                    <label htmlFor="institution" className="block text-sm font-medium text-gray-700 mb-2">
-                      School/University/Institution
-                    </label>
-                    <input
-                      id="institution"
-                      type="text"
-                      value={formData.institution}
-                      onChange={(e) => setFormData({ ...formData, institution: e.target.value })}
-                      placeholder="e.g., MIT, Harvard University"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
-                    />
+                  <div className="space-y-4">
+                    <div>
+                      <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-2">
+                        Full Name {(profile?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name) && '(optional - you can update this)'}
+                      </label>
+                      <input
+                        id="fullName"
+                        type="text"
+                        value={formData.fullName}
+                        onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                        placeholder={
+                          (profile?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name) 
+                            ? `Currently: ${profile?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name}` 
+                            : "e.g., John Doe"
+                        }
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                      />
+                      {(profile?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name) && (
+                        <p className="text-sm text-gray-500 mt-1">
+                          We found your name from your account. You can leave this blank to keep it, or enter a new name.
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label htmlFor="institution" className="block text-sm font-medium text-gray-700 mb-2">
+                        School/University/Institution
+                      </label>
+                      <input
+                        id="institution"
+                        type="text"
+                        value={formData.institution}
+                        onChange={(e) => setFormData({ ...formData, institution: e.target.value })}
+                        placeholder="e.g., MIT, Harvard University"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                      />
+                    </div>
                   </div>
                 )}
 

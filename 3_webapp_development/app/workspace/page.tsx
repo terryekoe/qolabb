@@ -8,7 +8,7 @@ import { Button } from '@/components/Button';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
 import { createWorkspace } from '@/lib/db/queries';
-import { joinWorkspaceByInviteCode, createTestWorkspace } from '@/app/actions/workspace';
+import { joinWorkspaceByInviteCode } from '@/app/actions/workspace';
 
 export default function WorkspacePage() {
   const router = useRouter();
@@ -80,39 +80,7 @@ export default function WorkspacePage() {
     }
   };
 
-  const handleCreateTestWorkspace = async () => {
-    setLoading(true);
-    setError('');
 
-    try {
-      const result = await createTestWorkspace();
-      
-      if (result.success) {
-        console.log('✅ Test workspace created:', result);
-        alert(`Test workspace created! Invite code: ${result.inviteCode}`);
-        await refreshWorkspaces();
-      } else {
-        setError(result.error || 'Failed to create test workspace');
-        
-        // If authentication error, suggest clearing cookies and re-login
-        if (result.error?.includes('logged in') || result.error?.includes('authentication')) {
-          setError(result.error + ' Please try clearing your browser cookies and logging in again.');
-        }
-      }
-    } catch (error: any) {
-      console.error('Error creating test workspace:', error);
-      const errorMessage = error.message || 'Failed to create test workspace. Please try again.';
-      
-      // If authentication error, suggest clearing cookies and re-login
-      if (errorMessage.includes('logged in') || errorMessage.includes('authentication')) {
-        setError(errorMessage + ' Please try clearing your browser cookies and logging in again.');
-      } else {
-        setError(errorMessage);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Function to clear expired auth cookies
   const clearExpiredCookies = () => {
@@ -202,24 +170,7 @@ export default function WorkspacePage() {
           </motion.div>
         </div>
 
-        {/* Debug Test Button */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="text-center mb-8"
-        >
-          <Button
-            onClick={handleCreateTestWorkspace}
-            disabled={loading}
-            className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold"
-          >
-            {loading ? 'Creating...' : 'Create Test Workspace (Debug)'}
-          </Button>
-          <p className="text-sm text-gray-500 mt-2">
-            Creates a test workspace with invite code: 3QDE-OJQ-3MX
-          </p>
-        </motion.div>
+
 
         {/* Create Workspace Modal */}
         <AnimatePresence>

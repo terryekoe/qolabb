@@ -108,6 +108,12 @@ export async function getOrCreateProfile(
     // Try to get existing profile
     const existingProfile = await getProfile(userId);
     if (existingProfile) {
+      // Check if the profile has a generic name and we have a better name available
+      if (existingProfile.full_name === 'User' && defaultData?.full_name && defaultData.full_name !== 'User') {
+        console.log('Updating profile with correct full name:', defaultData.full_name);
+        const updatedProfile = await updateProfile(userId, { full_name: defaultData.full_name });
+        return updatedProfile;
+      }
       return existingProfile;
     }
 
@@ -116,11 +122,25 @@ export async function getOrCreateProfile(
     
     const fullName = defaultData?.full_name || defaultData?.email?.split('@')[0] || 'User';
     
-    return await createProfile({
-      id: userId,
-      full_name: fullName,
-      role: 'student',
-    });
+    try {
+      return await createProfile({
+        id: userId,
+        full_name: fullName,
+        role: 'student',
+      });
+    } catch (createError: any) {
+      // If we get a duplicate key error, it means the profile was created by another process
+      // (e.g., during signup). Try to get the existing profile.
+      if (createError.message?.includes('duplicate key value violates unique constraint')) {
+        console.log('Profile already exists (created by another process), fetching existing profile');
+        const existingProfile = await getProfile(userId);
+        if (existingProfile) {
+          return existingProfile;
+        }
+      }
+      // Re-throw other errors
+      throw createError;
+    }
   } catch (error: any) {
     console.error('getOrCreateProfile error:', error?.message || error);
     throw error;
@@ -599,6 +619,179 @@ export async function isTeamLeaderOrInstructor(userId: string, teamId: string, w
     .single()
 
   return teamMember?.role === 'leader'
+}
+
+export async function addTeamMember(teamId: string, userId: string, role: 'leader' | 'member' = 'member') {
+  // First, check if the user is already a member of this team
+  const { data: existingMember } = await supabase
+    .from('team_members')
+    .select('id')
+    .eq('team_id', teamId)
+    .eq('user_id', userId)
+    .single()
+
+  if (existingMember) {
+    throw new Error('User is already a member of this team')
+  }
+
+  const { data, error } = await supabase
+    .from('team_members')
+    .insert({
+      team_id: teamId,
+      user_id: userId,
+      role
+    } as any)
+    .select(`
+      *,
+      user:profiles!user_id(*)
+    `)
+    .single()
+
+  if (error) throw error
+
+  // Log activity
+  const { data: team } = await supabase
+    .from('teams')
+    .select('workspace_id, name')
+    .eq('id', teamId)
+    .single()
+
+  if (team) {
+    await logActivity({
+      workspace_id: (team as any).workspace_id,
+      user_id: userId,
+      action_type: 'joined_team',
+      entity_type: 'team',
+      entity_id: teamId,
+      metadata: { team_name: (team as any).name, role },
+    })
+  }
+
+  return data
+}
+
+export async function removeTeamMember(teamId: string, userId: string) {
+  const { data, error } = await supabase
+    .from('team_members')
+    .delete()
+    .eq('team_id', teamId)
+    .eq('user_id', userId)
+    .select()
+    .single()
+
+  if (error) throw error
+
+  // Log activity
+  const { data: team } = await supabase
+    .from('teams')
+    .select('workspace_id, name')
+    .eq('id', teamId)
+    .single()
+
+  if (team) {
+    await logActivity({
+      workspace_id: (team as any).workspace_id,
+      user_id: userId,
+      action_type: 'left_team',
+      entity_type: 'team',
+      entity_id: teamId,
+      metadata: { team_name: (team as any).name },
+    })
+  }
+
+  return data
+}
+
+export async function getAvailableWorkspaceMembers(workspaceId: string, teamId: string) {
+  try {
+    console.log('🔍 getAvailableWorkspaceMembers called with:', { workspaceId, teamId })
+    
+    // First, get all team members for this team
+    const { data: teamMembers, error: teamError } = await supabase
+      .from('team_members')
+      .select('user_id')
+      .eq('team_id', teamId)
+
+    if (teamError) {
+      console.error('Error fetching team members:', teamError)
+      throw teamError
+    }
+
+    console.log('👥 Current team members:', teamMembers)
+
+    // Extract user IDs who are already in the team
+    const teamMemberIds = teamMembers?.map(member => member.user_id) || []
+    console.log('🚫 Team member IDs to exclude:', teamMemberIds)
+
+    // Get all workspace members
+    let query = supabase
+      .from('workspace_members')
+      .select(`
+        user_id,
+        user:profiles!user_id(*)
+      `)
+      .eq('workspace_id', workspaceId)
+
+    console.log('🏢 Querying workspace_members for workspace:', workspaceId)
+
+    // If there are team members, exclude them
+    if (teamMemberIds.length > 0) {
+      console.log('🔍 BEFORE filtering - teamMemberIds to exclude:', teamMemberIds)
+      query = query.not('user_id', 'in', `(${teamMemberIds.join(',')})`)
+      console.log('🔄 Applied exclusion filter for team members')
+      console.log('🔍 SQL filter applied: NOT user_id IN (' + teamMemberIds.join(',') + ')')
+    }
+
+    const { data, error } = await query
+
+    if (error) {
+      console.error('Error fetching available workspace members:', error)
+      throw error
+    }
+
+    console.log('✅ Available workspace members found:', data)
+    console.log('📊 Total available members count:', data?.length || 0)
+    
+    // Debug: Show what users we're returning
+    if (data && data.length > 0) {
+      console.log('🔍 DETAILED: Available members user IDs:', data.map(m => m.user_id))
+      console.log('🔍 DETAILED: Team member IDs that should be excluded:', teamMemberIds)
+      console.log('🔍 DETAILED: Any overlap?', data.some(m => teamMemberIds.includes(m.user_id)))
+    }
+
+    return data || []
+  } catch (error) {
+    console.error('getAvailableWorkspaceMembers error:', error)
+    throw error
+  }
+}
+
+// Debug function to check all workspace members
+export async function debugWorkspaceMembers(workspaceId: string) {
+  try {
+    console.log('🔍 DEBUG: Checking all workspace members for workspace:', workspaceId)
+    
+    const { data, error } = await supabase
+      .from('workspace_members')
+      .select(`
+        *,
+        user:profiles!user_id(*)
+      `)
+      .eq('workspace_id', workspaceId)
+
+    if (error) {
+      console.error('❌ DEBUG: Error fetching workspace members:', error)
+      return []
+    }
+
+    console.log('📋 DEBUG: All workspace members:', data)
+    console.log('📊 DEBUG: Total workspace members count:', data?.length || 0)
+    
+    return data || []
+  } catch (error) {
+    console.error('❌ DEBUG: Exception in debugWorkspaceMembers:', error)
+    return []
+  }
 }
 
 // =====================================================

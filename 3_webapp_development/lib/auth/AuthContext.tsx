@@ -116,19 +116,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error('Failed to create user account');
       }
 
-      // Create profile in database
+      // Create or get profile in database
       try {
-        await createProfile({
-          id: data.user.id,
+        await getOrCreateProfile(data.user.id, {
           full_name: fullName.trim(),
-          role: 'student',
+          email: data.user.email,
         });
-        console.log('Profile created successfully for:', data.user.id);
+        console.log('Profile created/retrieved successfully for:', data.user.id);
       } catch (profileError: any) {
         console.error('Profile creation error:', profileError);
-        // If profile creation fails, we should clean up the auth user
-        // But Supabase doesn't allow this from client side
-        // The profile will be created on first login via getOrCreateProfile
+        // If profile creation fails, the profile will be created on first login via getOrCreateProfile
         console.warn('Profile will be created on first login');
       }
     } catch (error: any) {
