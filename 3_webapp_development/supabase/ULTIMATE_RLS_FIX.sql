@@ -141,9 +141,53 @@ BEGIN
 END;
 $$;
 
+-- Create RPC function to get a single workspace (bypasses RLS)
+CREATE OR REPLACE FUNCTION get_workspace_rpc(workspace_id_param UUID, user_id_param UUID)
+RETURNS TABLE (
+  id UUID,
+  name TEXT,
+  description TEXT,
+  invite_code TEXT,
+  owner_id UUID,
+  settings JSONB,
+  created_at TIMESTAMPTZ,
+  updated_at TIMESTAMPTZ
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  -- Temporarily disable RLS for this function
+  SET LOCAL row_security = off;
+  
+  -- Check if user has access to this workspace
+  IF NOT EXISTS (
+    SELECT 1 FROM workspace_members 
+    WHERE workspace_id = workspace_id_param AND user_id = user_id_param
+  ) THEN
+    RAISE EXCEPTION 'Access denied to workspace';
+  END IF;
+  
+  RETURN QUERY
+  SELECT 
+    w.id,
+    w.name,
+    w.description,
+    w.invite_code,
+    w.owner_id,
+    w.settings,
+    w.created_at,
+    w.updated_at
+  FROM workspaces w
+  WHERE w.id = workspace_id_param;
+END;
+$$;
+
 -- Grant permissions
 GRANT EXECUTE ON FUNCTION get_user_workspaces(UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION get_workspace_activity(UUID, UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION get_workspace_rpc(UUID, UUID) TO authenticated;
 
 -- Step 8: Force schema refresh
 NOTIFY pgrst, 'reload schema';

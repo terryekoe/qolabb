@@ -69,11 +69,23 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
 
   async function switchWorkspace(workspaceId: string) {
     try {
+      console.log('🔄 Switching to workspace:', workspaceId);
       const workspace = await getWorkspace(workspaceId);
+      console.log('✅ Successfully fetched workspace:', workspace);
       setCurrentWorkspace(workspace);
       localStorage.setItem('currentWorkspaceId', workspaceId);
-    } catch (error) {
-      console.error('Error switching workspace:', error);
+      console.log('✅ Workspace switch completed');
+    } catch (error: any) {
+      console.error('❌ Error switching workspace:', {
+        message: error?.message,
+        details: error?.details,
+        hint: error?.hint,
+        code: error?.code,
+        fullError: error
+      });
+      
+      // Don't update state if there's an error
+      // Keep the current workspace as is
     }
   }
 

@@ -223,14 +223,32 @@ export async function createWorkspace(workspace: WorkspaceInsert, userId: string
 }
 
 export async function getWorkspace(workspaceId: string) {
-  const { data, error } = await supabase
-    .from('workspaces')
-    .select('*')
-    .eq('id', workspaceId)
-    .single()
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
 
-  if (error) throw error
-  return data as Workspace
+  // Use RPC function to bypass RLS issues
+  const { data, error } = await supabase
+    .rpc('get_workspace_rpc', {
+      workspace_id_param: workspaceId,
+      user_id_param: user.id
+    })
+    .single();
+
+  if (error) {
+    console.error('RPC get_workspace_rpc error:', error);
+    // Fallback to direct query if RPC fails
+    const { data: fallbackData, error: fallbackError } = await supabase
+      .from('workspaces')
+      .select('*')
+      .eq('id', workspaceId)
+      .single();
+    
+    if (fallbackError) throw fallbackError;
+    return fallbackData as Workspace;
+  }
+  
+  return data as Workspace;
 }
 
 export async function getUserWorkspaces(userId: string) {
