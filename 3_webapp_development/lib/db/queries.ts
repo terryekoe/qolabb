@@ -293,7 +293,24 @@ export async function getWorkspace(workspaceId: string) {
   }
   
   console.log('✅ RPC query succeeded:', data);
-  return data as Workspace;
+  
+  // Transform RPC result back to standard workspace format
+  if (data) {
+    const workspace = {
+      id: data.workspace_id,
+      name: data.workspace_name,
+      description: data.workspace_description,
+      invite_code: data.workspace_invite_code,
+      owner_id: data.workspace_owner_id,
+      settings: data.workspace_settings,
+      created_at: data.workspace_created_at,
+      updated_at: data.workspace_updated_at
+    };
+    console.log('✅ Transformed workspace data:', workspace);
+    return workspace as Workspace;
+  }
+  
+  throw new Error('No workspace data returned from RPC');
 }
 
 export async function getUserWorkspaces(userId: string) {

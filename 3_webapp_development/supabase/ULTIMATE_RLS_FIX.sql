@@ -144,14 +144,14 @@ $$;
 -- Create RPC function to get a single workspace (bypasses RLS)
 CREATE OR REPLACE FUNCTION get_workspace_rpc(workspace_id_param UUID, user_id_param UUID)
 RETURNS TABLE (
-  id UUID,
-  name TEXT,
-  description TEXT,
-  invite_code TEXT,
-  owner_id UUID,
-  settings JSONB,
-  created_at TIMESTAMPTZ,
-  updated_at TIMESTAMPTZ
+  workspace_id UUID,
+  workspace_name TEXT,
+  workspace_description TEXT,
+  workspace_invite_code TEXT,
+  workspace_owner_id UUID,
+  workspace_settings JSONB,
+  workspace_created_at TIMESTAMPTZ,
+  workspace_updated_at TIMESTAMPTZ
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -192,14 +192,14 @@ BEGIN
   
   RETURN QUERY
   SELECT 
-    w.id,
-    w.name,
-    w.description,
-    w.invite_code,
-    w.owner_id,
-    w.settings,
-    w.created_at,
-    w.updated_at
+    w.id as workspace_id,
+    w.name as workspace_name,
+    w.description as workspace_description,
+    w.invite_code as workspace_invite_code,
+    w.owner_id as workspace_owner_id,
+    w.settings as workspace_settings,
+    w.created_at as workspace_created_at,
+    w.updated_at as workspace_updated_at
   FROM workspaces w
   WHERE w.id = workspace_id_param;
 END;
