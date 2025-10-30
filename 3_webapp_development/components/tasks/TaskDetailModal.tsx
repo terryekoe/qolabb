@@ -22,6 +22,7 @@ import {
   Hash,
 } from 'lucide-react';
 import { Button } from '@/components/Button';
+import Avatar from '@/components/ui/Avatar';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { 
   updateTask, 
@@ -431,9 +432,13 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                       </select>
                     ) : task.assignee ? (
                       <div className="flex items-center">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-qolabb-navy-400 to-qolabb-beige-400 flex items-center justify-center text-white text-sm font-bold mr-3">
-                          {task.assignee.full_name?.charAt(0) || 'U'}
-                        </div>
+                        <Avatar
+                          userId={task.assignee.id}
+                          name={task.assignee.full_name || 'User'}
+                          src={task.assignee.avatar_url}
+                          size="sm"
+                          className="mr-3"
+                        />
                         <div>
                           <p className="text-sm font-medium text-gray-900">
                             {task.assignee.full_name}

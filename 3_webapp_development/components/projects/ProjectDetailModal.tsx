@@ -17,6 +17,7 @@ import {
   UserPlus,
 } from 'lucide-react';
 import { Button } from '@/components/Button';
+import Avatar from '@/components/ui/Avatar';
 import { TaskModal } from './TaskModal';
 import { getProjectTasks, updateTask, deleteTask, isTeamLeaderOrInstructor } from '@/lib/db/queries';
 import { useAuth } from '@/lib/auth/AuthContext';
@@ -421,9 +422,13 @@ const TaskCard: React.FC<TaskCardProps> = ({
       <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
         {task.assignee && (
           <div className="flex items-center">
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-qolabb-navy-400 to-qolabb-beige-400 flex items-center justify-center text-white text-xs font-bold mr-1">
-              {task.assignee.full_name?.charAt(0) || 'U'}
-            </div>
+            <Avatar
+              userId={task.assignee.id}
+              name={task.assignee.full_name || 'User'}
+              src={task.assignee.avatar_url}
+              size="xs"
+              className="mr-1"
+            />
             <span className="truncate max-w-[100px]">{task.assignee.full_name}</span>
           </div>
         )}

@@ -19,6 +19,7 @@ import {
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
 import { WorkspaceSwitcher } from './WorkspaceSwitcher';
+import Avatar from '@/components/ui/Avatar';
 
 interface SidebarProps {
   collapsed: boolean;
@@ -146,9 +147,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
       {/* User Section */}
       <div className="p-4 border-t border-gray-200">
         <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer mb-2">
-          <div className="w-10 h-10 bg-gradient-to-br from-qolabb-navy-400 to-qolabb-beige-400 rounded-full flex items-center justify-center text-white font-bold">
-            {getInitials(profile?.full_name)}
-          </div>
+          <Avatar
+            userId={user?.id || 'current-user'}
+            name={profile?.full_name || 'User'}
+            src={profile?.avatar_url}
+            size="md"
+          />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-gray-900 truncate">{profile?.full_name || 'User'}</p>
             <p className="text-xs text-gray-500 truncate">{user?.email}</p>

@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/Button';
+import Avatar, { AvatarGroup } from '@/components/ui/Avatar';
 import { ProjectDetailModal } from '@/components/projects/ProjectDetailModal';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
@@ -397,20 +398,16 @@ export default function ProjectsPage() {
                         <div className="flex items-center justify-between">
                           <span className="text-xs text-gray-500">Contributors</span>
                           <div className="flex -space-x-2">
-                            {project.contributions.slice(0, 3).map((contrib: any, i: number) => (
-                              <div
-                                key={i}
-                                className="w-8 h-8 rounded-full bg-gradient-to-br from-qolabb-navy-400 to-qolabb-beige-400 border-2 border-white flex items-center justify-center text-white text-xs font-bold"
-                                title={contrib.user?.full_name}
-                              >
-                                {contrib.user?.full_name?.charAt(0) || 'U'}
-                              </div>
-                            ))}
-                            {project.contributions.length > 3 && (
-                              <div className="w-8 h-8 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-gray-600 text-xs font-semibold">
-                                +{project.contributions.length - 3}
-                              </div>
-                            )}
+                            <AvatarGroup
+                              users={project.contributions.map((contrib: any) => ({
+                                userId: contrib.user?.id || contrib.id,
+                                name: contrib.user?.full_name || 'User',
+                                src: contrib.user?.avatar_url
+                              }))}
+                              max={3}
+                              size="sm"
+                              className="[&>*]:border-2 [&>*]:border-white"
+                            />
                           </div>
                         </div>
                       </div>

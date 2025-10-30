@@ -6,6 +6,7 @@ import { FolderKanban, Users, BarChart3, TrendingUp, Plus, Clock } from 'lucide-
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { Button } from '@/components/Button';
+import Avatar from '@/components/ui/Avatar';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
 import { getWorkspaceStats, getWorkspaceActivity, getWorkspaceProjects } from '@/lib/db/queries';
@@ -234,9 +235,13 @@ export default function DashboardPage() {
                   <div className="space-y-4">
                     {recentActivity.map((activity) => (
                       <div key={activity.id} className="flex items-start space-x-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-qolabb-navy-400 to-qolabb-beige-400 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                          {activity.user?.full_name?.charAt(0) || 'U'}
-                        </div>
+                        <Avatar
+                          userId={activity.user?.id || activity.id}
+                          name={activity.user?.full_name || 'User'}
+                          src={activity.user?.avatar_url}
+                          size="md"
+                          className="flex-shrink-0"
+                        />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm text-gray-900">
                             <span className="font-semibold">{activity.user?.full_name || 'Someone'}</span>{' '}

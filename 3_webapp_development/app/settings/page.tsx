@@ -43,6 +43,7 @@ import {
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/Button";
+import Avatar from "@/components/ui/Avatar";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { useWorkspace } from "@/lib/workspace/WorkspaceContext";
 import {
@@ -52,6 +53,7 @@ import {
 } from "@/lib/db/queries";
 import { supabase } from "@/lib/supabase";
 import type { UserRole } from "@/lib/types/database";
+import { AVAILABLE_GOALS } from "@/lib/constants/goals";
 
 type SettingsCategory =
   | "profile"
@@ -493,17 +495,13 @@ export default function SettingsPage() {
         <div className="flex items-center space-x-6">
           {/* Avatar Display */}
           <div className="relative">
-            {profileData.avatar ? (
-              <img
-                src={profileData.avatar}
-                alt="Profile"
-                className="w-20 h-20 rounded-full object-cover border-2 border-gray-200"
-              />
-            ) : (
-              <div className="w-20 h-20 bg-gradient-to-br from-qolabb-navy-400 to-qolabb-beige-400 rounded-full flex items-center justify-center text-white font-bold text-2xl">
-                {profileData.fullName?.charAt(0) || "U"}
-              </div>
-            )}
+            <Avatar
+              userId={user?.id || 'default'}
+              name={profileData.fullName}
+              src={profileData.avatar}
+              size="xl"
+              className="border-2 border-gray-200"
+            />
             {uploading && (
               <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
@@ -672,17 +670,7 @@ export default function SettingsPage() {
             Select your learning and research goals
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {[
-              "Research Excellence",
-              "Academic Publishing",
-              "Grant Writing",
-              "Data Analysis",
-              "Collaboration",
-              "Teaching",
-              "Innovation",
-              "Leadership",
-              "Networking",
-            ].map((goal) => (
+            {AVAILABLE_GOALS.map((goal) => (
               <button
                 key={goal}
                 type="button"
@@ -995,13 +983,16 @@ export default function SettingsPage() {
                 className="p-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
               >
                 <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-qolabb-navy-400 to-qolabb-beige-400 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                    {member.profile?.full_name?.charAt(0) || "U"}
-                  </div>
+                  <Avatar
+                    userId={member.user?.id || member.id}
+                    name={member.user?.full_name || 'User'}
+                    src={member.user?.avatar_url}
+                    size="lg"
+                  />
                   <div>
                     <div className="flex items-center space-x-2">
                       <p className="font-semibold text-gray-900">
-                        {member.profile?.full_name || "Unknown User"}
+                        {member.user?.full_name || "Unknown User"}
                       </p>
                       {member.user_id === user?.id && (
                         <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-0.5 rounded-full">
@@ -1010,7 +1001,7 @@ export default function SettingsPage() {
                       )}
                     </div>
                     <p className="text-sm text-gray-600">
-                      {member.profile?.institution || "No institution"}
+                      {member.user?.institution || "No institution"}
                     </p>
                   </div>
                 </div>
