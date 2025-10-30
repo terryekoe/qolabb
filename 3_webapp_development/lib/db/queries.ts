@@ -237,7 +237,15 @@ export async function getWorkspace(workspaceId: string) {
     })
     .single();
 
-  if (!debugError && debugData) {
+  if (debugError) {
+    console.error('❌ Debug RPC error:', {
+      message: debugError.message,
+      details: debugError.details,
+      hint: debugError.hint,
+      code: debugError.code,
+      fullError: debugError
+    });
+  } else if (debugData) {
     console.log('🔍 Debug workspace access:', debugData);
   }
 
@@ -250,7 +258,19 @@ export async function getWorkspace(workspaceId: string) {
     .single();
 
   if (error) {
-    console.error('❌ RPC get_workspace_rpc error:', error);
+    console.error('❌ RPC get_workspace_rpc error:', {
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      code: error.code,
+      fullError: error
+    });
+    
+    // Check if the function doesn't exist
+    if (error.code === '42883' || error.message?.includes('function') || error.message?.includes('does not exist')) {
+      console.warn('⚠️ RPC function does not exist, using fallback query');
+    }
+    
     // Fallback to direct query if RPC fails
     const { data: fallbackData, error: fallbackError } = await supabase
       .from('workspaces')
@@ -259,7 +279,13 @@ export async function getWorkspace(workspaceId: string) {
       .single();
     
     if (fallbackError) {
-      console.error('❌ Fallback query also failed:', fallbackError);
+      console.error('❌ Fallback query also failed:', {
+        message: fallbackError.message,
+        details: fallbackError.details,
+        hint: fallbackError.hint,
+        code: fallbackError.code,
+        fullError: fallbackError
+      });
       throw fallbackError;
     }
     console.log('✅ Fallback query succeeded:', fallbackData);
