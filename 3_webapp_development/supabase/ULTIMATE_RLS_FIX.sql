@@ -157,16 +157,37 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
+DECLARE
+  has_access BOOLEAN := FALSE;
+  workspace_exists BOOLEAN := FALSE;
 BEGIN
   -- Temporarily disable RLS for this function
   SET LOCAL row_security = off;
   
-  -- Check if user has access to this workspace
-  IF NOT EXISTS (
-    SELECT 1 FROM workspace_members 
-    WHERE workspace_id = workspace_id_param AND user_id = user_id_param
-  ) THEN
-    RAISE EXCEPTION 'Access denied to workspace';
+  -- First check if workspace exists
+  SELECT EXISTS(SELECT 1 FROM workspaces WHERE id = workspace_id_param) INTO workspace_exists;
+  
+  IF NOT workspace_exists THEN
+    RAISE EXCEPTION 'Workspace not found';
+  END IF;
+  
+  -- Check if user has access to this workspace (either as owner or member)
+  -- Check if user is the owner
+  SELECT EXISTS(
+    SELECT 1 FROM workspaces 
+    WHERE id = workspace_id_param AND owner_id = user_id_param
+  ) INTO has_access;
+  
+  -- If not owner, check if user is a member
+  IF NOT has_access THEN
+    SELECT EXISTS(
+      SELECT 1 FROM workspace_members 
+      WHERE workspace_id = workspace_id_param AND user_id = user_id_param
+    ) INTO has_access;
+  END IF;
+  
+  IF NOT has_access THEN
+    RAISE EXCEPTION 'Access denied to workspace: user % does not have access to workspace %', user_id_param, workspace_id_param;
   END IF;
   
   RETURN QUERY
@@ -184,10 +205,38 @@ BEGIN
 END;
 $$;
 
+-- Create debug function to check workspace access
+CREATE OR REPLACE FUNCTION debug_workspace_access(workspace_id_param UUID, user_id_param UUID)
+RETURNS TABLE (
+  workspace_exists BOOLEAN,
+  is_owner BOOLEAN,
+  is_member BOOLEAN,
+  workspace_owner_id UUID,
+  member_count BIGINT
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  -- Temporarily disable RLS for this function
+  SET LOCAL row_security = off;
+  
+  RETURN QUERY
+  SELECT 
+    EXISTS(SELECT 1 FROM workspaces WHERE id = workspace_id_param) as workspace_exists,
+    EXISTS(SELECT 1 FROM workspaces WHERE id = workspace_id_param AND owner_id = user_id_param) as is_owner,
+    EXISTS(SELECT 1 FROM workspace_members WHERE workspace_id = workspace_id_param AND user_id = user_id_param) as is_member,
+    (SELECT owner_id FROM workspaces WHERE id = workspace_id_param) as workspace_owner_id,
+    (SELECT COUNT(*) FROM workspace_members WHERE workspace_id = workspace_id_param) as member_count;
+END;
+$$;
+
 -- Grant permissions
 GRANT EXECUTE ON FUNCTION get_user_workspaces(UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION get_workspace_activity(UUID, UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION get_workspace_rpc(UUID, UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION debug_workspace_access(UUID, UUID) TO authenticated;
 
 -- Step 8: Force schema refresh
 NOTIFY pgrst, 'reload schema';

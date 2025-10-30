@@ -227,6 +227,20 @@ export async function getWorkspace(workspaceId: string) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('User not authenticated');
 
+  console.log('🔍 Getting workspace:', { workspaceId, userId: user.id });
+
+  // First, let's debug the workspace access
+  const { data: debugData, error: debugError } = await supabase
+    .rpc('debug_workspace_access', {
+      workspace_id_param: workspaceId,
+      user_id_param: user.id
+    })
+    .single();
+
+  if (!debugError && debugData) {
+    console.log('🔍 Debug workspace access:', debugData);
+  }
+
   // Use RPC function to bypass RLS issues
   const { data, error } = await supabase
     .rpc('get_workspace_rpc', {
@@ -236,7 +250,7 @@ export async function getWorkspace(workspaceId: string) {
     .single();
 
   if (error) {
-    console.error('RPC get_workspace_rpc error:', error);
+    console.error('❌ RPC get_workspace_rpc error:', error);
     // Fallback to direct query if RPC fails
     const { data: fallbackData, error: fallbackError } = await supabase
       .from('workspaces')
@@ -244,10 +258,15 @@ export async function getWorkspace(workspaceId: string) {
       .eq('id', workspaceId)
       .single();
     
-    if (fallbackError) throw fallbackError;
+    if (fallbackError) {
+      console.error('❌ Fallback query also failed:', fallbackError);
+      throw fallbackError;
+    }
+    console.log('✅ Fallback query succeeded:', fallbackData);
     return fallbackData as Workspace;
   }
   
+  console.log('✅ RPC query succeeded:', data);
   return data as Workspace;
 }
 
