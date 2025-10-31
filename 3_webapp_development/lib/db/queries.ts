@@ -119,30 +119,60 @@ export async function getOrCreateProfile(
       return existingProfile;
     }
 
-    // Profile doesn't exist, create it
+    // Profile doesn't exist, use the safe_create_profile function
     console.log('Profile not found, creating new profile for user:', userId);
     
     const fullName = defaultData?.full_name || defaultData?.email?.split('@')[0] || 'User';
     
     try {
-      return await createProfile({
-        id: userId,
-        full_name: fullName,
-        role: 'student',
-        email: defaultData?.email || null,
-      });
-    } catch (createError: any) {
-      // If we get a duplicate key error, it means the profile was created by another process
-      // (e.g., during signup). Try to get the existing profile.
-      if (createError.message?.includes('duplicate key value violates unique constraint')) {
-        console.log('Profile already exists (created by another process), fetching existing profile');
-        const existingProfile = await getProfile(userId);
-        if (existingProfile) {
-          return existingProfile;
-        }
+      // Use the safe_create_profile database function which handles race conditions
+      const { data, error } = await supabase
+        .rpc('safe_create_profile', {
+          user_id: userId,
+          user_full_name: fullName,
+          user_role: 'student',
+          user_email: defaultData?.email || null,
+        });
+
+      if (error) {
+        console.error('safe_create_profile error:', JSON.stringify(error, null, 2));
+        throw new Error(`Failed to create profile: ${error.message}`);
       }
-      // Re-throw other errors
-      throw createError;
+
+      if (data && data.length > 0) {
+        return data[0] as Profile;
+      }
+
+      // Fallback: try to get the profile if the function didn't return data
+      const profile = await getProfile(userId);
+      if (profile) {
+        return profile;
+      }
+
+      throw new Error('Failed to create or retrieve profile');
+    } catch (createError: any) {
+      // If the safe function fails, fall back to the original method
+      console.log('safe_create_profile failed, falling back to createProfile:', createError.message);
+      
+      try {
+        return await createProfile({
+          id: userId,
+          full_name: fullName,
+          role: 'student',
+          email: defaultData?.email || null,
+        });
+      } catch (fallbackError: any) {
+        // If we get a duplicate key error, it means the profile was created by another process
+        if (fallbackError.message?.includes('duplicate key value violates unique constraint')) {
+          console.log('Profile already exists (created by another process), fetching existing profile');
+          const existingProfile = await getProfile(userId);
+          if (existingProfile) {
+            return existingProfile;
+          }
+        }
+        // Re-throw other errors
+        throw fallbackError;
+      }
     }
   } catch (error: any) {
     console.error('getOrCreateProfile error:', error?.message || error);
@@ -418,6 +448,25 @@ export async function joinWorkspaceByCode(inviteCode: string, userId: string) {
 }
 
 export async function getWorkspaceMembers(workspaceId: string) {
+  console.log('🔍 [SERVER] getWorkspaceMembers called with workspaceId:', workspaceId)
+  
+  // First, let's check the current user context
+  const { data: { user } } = await supabase.auth.getUser()
+  console.log('👤 [SERVER] Current authenticated user:', user?.id, user?.email)
+  
+  // Check raw workspace_members table first
+  const { data: rawData, error: rawError } = await supabase
+    .from('workspace_members')
+    .select('*')
+    .eq('workspace_id', workspaceId)
+  
+  console.log('🗃️ [SERVER] Raw workspace_members data:', { 
+    count: rawData ? rawData.length : 0, 
+    error: rawError?.message,
+    data: rawData 
+  })
+  
+  // Now the full query with profiles
   const { data, error } = await supabase
     .from('workspace_members')
     .select(`
@@ -426,7 +475,30 @@ export async function getWorkspaceMembers(workspaceId: string) {
     `)
     .eq('workspace_id', workspaceId)
 
-  if (error) throw error
+  console.log('📊 [SERVER] Query result with profiles:', { 
+    members: data ? data.length : 0, 
+    error: error?.message,
+    data: data 
+  })
+
+  if (error) {
+    console.error('❌ [SERVER] Error fetching workspace members:', error)
+    throw error
+  }
+  
+  // Log each member individually for debugging
+  if (data) {
+    data.forEach((member, index) => {
+      console.log(`👥 [SERVER] Member ${index + 1}:`, {
+        user_id: member.user_id,
+        role: member.role,
+        user_name: member.user?.full_name,
+        user_email: member.user?.email
+      })
+    })
+  }
+  
+  console.log('✅ [SERVER] Returning members:', data)
   return data
 }
 

@@ -276,14 +276,24 @@ export default function SettingsPage() {
   }, [user]);
 
   async function loadMembers() {
-    if (!currentWorkspace) return;
+    console.log('🔍 [CLIENT] loadMembers called');
+    console.log('🔍 [CLIENT] user:', user ? { id: user.id, email: user.email } : 'null');
+    console.log('🔍 [CLIENT] currentWorkspace:', currentWorkspace ? { id: currentWorkspace.id, name: currentWorkspace.name } : 'null');
+    
+    if (!currentWorkspace) {
+      console.log('❌ [CLIENT] No current workspace, returning early');
+      return;
+    }
 
     try {
       setLoading(true);
+      console.log('🚀 [CLIENT] Loading members for workspace:', currentWorkspace.id, currentWorkspace.name);
       const membersData = await getWorkspaceMembers(currentWorkspace.id);
+      console.log('✅ [CLIENT] Workspace members returned:', membersData);
+      console.log('📊 [CLIENT] Number of members:', membersData?.length || 0);
       setMembers(membersData || []);
     } catch (error) {
-      console.error("Error loading members:", error);
+      console.error("❌ [CLIENT] Error loading members:", error);
     } finally {
       setLoading(false);
     }
@@ -871,6 +881,47 @@ export default function SettingsPage() {
         <p className="text-gray-600">
           Manage {currentWorkspace?.name || "your workspace"}
         </p>
+      </div>
+
+      {/* Debug Information */}
+      <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
+        <h3 className="text-lg font-semibold text-yellow-800 mb-4">
+          🔍 Debug Information
+        </h3>
+        <div className="space-y-3 text-sm">
+          <div>
+            <span className="font-medium text-yellow-800">User:</span>{" "}
+            <span className="text-yellow-700">
+              {user ? `${user.email} (ID: ${user.id})` : "Not authenticated"}
+            </span>
+          </div>
+          <div>
+            <span className="font-medium text-yellow-800">Current Workspace:</span>{" "}
+            <span className="text-yellow-700">
+              {currentWorkspace ? `${currentWorkspace.name} (ID: ${currentWorkspace.id})` : "No workspace selected"}
+            </span>
+          </div>
+          <div>
+            <span className="font-medium text-yellow-800">Members Count:</span>{" "}
+            <span className="text-yellow-700">{members.length}</span>
+          </div>
+          <div>
+            <span className="font-medium text-yellow-800">Loading State:</span>{" "}
+            <span className="text-yellow-700">{loading ? "Loading..." : "Loaded"}</span>
+          </div>
+          <div>
+            <span className="font-medium text-yellow-800">Profile:</span>{" "}
+            <span className="text-yellow-700">
+              {profileData ? `${profileData.fullName || 'No name'} (Role: ${profileData.role || 'No role'})` : "No profile"}
+            </span>
+          </div>
+        </div>
+        <button
+          onClick={loadMembers}
+          className="mt-4 px-4 py-2 bg-yellow-200 text-yellow-800 rounded-lg hover:bg-yellow-300 transition-colors"
+        >
+          🔄 Reload Members
+        </button>
       </div>
 
       {/* Workspace Info */}

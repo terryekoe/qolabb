@@ -47,23 +47,11 @@ FOR DELETE USING (
 );
 
 -- =====================================================
--- Enable RLS on storage.objects (if not already enabled)
+-- Note: RLS is already enabled on storage.objects by default in Supabase
 -- =====================================================
 
-ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
-
 -- =====================================================
--- Comments for documentation
+-- Storage policies are now configured for avatar management
+-- Users can upload, update, and delete their own avatars
+-- All avatars are publicly readable
 -- =====================================================
-
-COMMENT ON POLICY "Public Avatar Access" ON storage.objects IS 
-'Allows public read access to all avatar images';
-
-COMMENT ON POLICY "Users can upload own avatar" ON storage.objects IS 
-'Allows authenticated users to upload avatar images to their own folder';
-
-COMMENT ON POLICY "Users can update own avatar" ON storage.objects IS 
-'Allows authenticated users to update their own avatar images';
-
-COMMENT ON POLICY "Users can delete own avatar" ON storage.objects IS 
-'Allows authenticated users to delete their own avatar images';

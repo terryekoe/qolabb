@@ -4,8 +4,8 @@
 -- Description: Creates core tables for workspaces, teams, projects, and contributions
 -- =====================================================
 
--- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- Enable UUID extension (pgcrypto provides gen_random_uuid)
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- =====================================================
 -- 1. PROFILES TABLE
@@ -29,7 +29,7 @@ CREATE INDEX idx_profiles_role ON profiles(role);
 -- Represents a classroom, course, or organization
 -- =====================================================
 CREATE TABLE workspaces (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT NOT NULL,
   description TEXT,
   invite_code TEXT UNIQUE NOT NULL,
@@ -48,7 +48,7 @@ CREATE INDEX idx_workspaces_invite_code ON workspaces(invite_code);
 -- Links users to workspaces with roles
 -- =====================================================
 CREATE TABLE workspace_members (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   workspace_id UUID REFERENCES workspaces(id) ON DELETE CASCADE NOT NULL,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   role TEXT CHECK (role IN ('owner', 'admin', 'member')) DEFAULT 'member',
@@ -65,7 +65,7 @@ CREATE INDEX idx_workspace_members_user ON workspace_members(user_id);
 -- Groups within a workspace for project collaboration
 -- =====================================================
 CREATE TABLE teams (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   workspace_id UUID REFERENCES workspaces(id) ON DELETE CASCADE NOT NULL,
   name TEXT NOT NULL,
   description TEXT,
@@ -84,7 +84,7 @@ CREATE INDEX idx_teams_created_by ON teams(created_by);
 -- Links users to teams within a workspace
 -- =====================================================
 CREATE TABLE team_members (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   team_id UUID REFERENCES teams(id) ON DELETE CASCADE NOT NULL,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   role TEXT CHECK (role IN ('leader', 'member')) DEFAULT 'member',
@@ -101,7 +101,7 @@ CREATE INDEX idx_team_members_user ON team_members(user_id);
 -- Projects that teams work on
 -- =====================================================
 CREATE TABLE projects (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   workspace_id UUID REFERENCES workspaces(id) ON DELETE CASCADE NOT NULL,
   team_id UUID REFERENCES teams(id) ON DELETE CASCADE NOT NULL,
   name TEXT NOT NULL,
@@ -123,7 +123,7 @@ CREATE INDEX idx_projects_status ON projects(status);
 -- Individual tasks within a project
 -- =====================================================
 CREATE TABLE tasks (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   project_id UUID REFERENCES projects(id) ON DELETE CASCADE NOT NULL,
   title TEXT NOT NULL,
   description TEXT,
@@ -146,7 +146,7 @@ CREATE INDEX idx_tasks_status ON tasks(status);
 -- Tracks individual contributions to projects
 -- =====================================================
 CREATE TABLE contributions (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   project_id UUID REFERENCES projects(id) ON DELETE CASCADE NOT NULL,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   task_id UUID REFERENCES tasks(id) ON DELETE SET NULL,
@@ -168,7 +168,7 @@ CREATE INDEX idx_contributions_created_at ON contributions(created_at DESC);
 -- Tracks all activities for the activity feed
 -- =====================================================
 CREATE TABLE activity_log (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   workspace_id UUID REFERENCES workspaces(id) ON DELETE CASCADE NOT NULL,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   action_type TEXT NOT NULL, -- 'created_project', 'completed_task', 'added_contribution', etc.
