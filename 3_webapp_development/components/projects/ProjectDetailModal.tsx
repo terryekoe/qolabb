@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
@@ -44,13 +44,7 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [activeTaskMenu, setActiveTaskMenu] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (isOpen && project) {
-      loadTasks();
-    }
-  }, [isOpen, project]);
-
-  async function loadTasks() {
+  const loadTasks = useCallback(async () => {
     if (!project) return;
     
     try {
@@ -63,7 +57,13 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({
     } finally {
       setLoading(false);
     }
-  }
+  }, [project]);
+
+  useEffect(() => {
+    if (isOpen && project) {
+      loadTasks();
+    }
+  }, [isOpen, project, loadTasks]);
 
   async function handleUpdateTaskStatus(taskId: string, newStatus: TaskStatus) {
     try {

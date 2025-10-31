@@ -447,16 +447,31 @@ export async function joinWorkspaceByCode(inviteCode: string, userId: string) {
   return workspace[0] as Workspace
 }
 
-// Updated getWorkspaceMembers function to use RPC
+// Updated getWorkspaceMembers function to fetch with profile data
 export async function getWorkspaceMembers(workspaceId: string) {
   console.log('🔍 [CLIENT] getWorkspaceMembers called with workspaceId:', workspaceId)
   
   try {
-    // Use the new RPC function that bypasses RLS
+    // Fetch workspace members with profile data using direct query
     const { data, error } = await supabase
-      .rpc('get_workspace_members_rpc', {
-        workspace_id_param: workspaceId
-      });
+      .from('workspace_members')
+      .select(`
+        id,
+        workspace_id,
+        user_id,
+        role,
+        joined_at,
+        user:profiles!user_id(
+          id,
+          full_name,
+          avatar_url,
+          institution,
+          role,
+          email
+        )
+      `)
+      .eq('workspace_id', workspaceId)
+      .order('joined_at', { ascending: true });
 
     if (error) {
       console.error('❌ [CLIENT] Error fetching workspace members:', error);
@@ -466,15 +481,15 @@ export async function getWorkspaceMembers(workspaceId: string) {
     console.log('✅ [CLIENT] Workspace members returned:', data);
     console.log('📊 [CLIENT] Number of members:', data?.length || 0);
 
-    // Transform the data to match the expected format
-    const transformedData = data?.map((member: any) => ({
+    // Transform the data to match the expected format (user profile is already nested)
+    const transformedData = (data || []).map((member: any) => ({
       id: member.id,
       workspace_id: member.workspace_id,
       user_id: member.user_id,
       role: member.role,
       joined_at: member.joined_at,
-      user: member.user_profile
-    })) || [];
+      user: member.user || null // Already nested from the select
+    }));
 
     return transformedData;
   } catch (error) {
@@ -763,13 +778,32 @@ export async function getTeamMembers(teamId: string) {
   const { data, error } = await supabase
     .from('team_members')
     .select(`
-      *,
-      user:profiles!user_id(*)
+      id,
+      team_id,
+      user_id,
+      role,
+      joined_at,
+      user:profiles!user_id(
+        id,
+        full_name,
+        avatar_url,
+        institution,
+        role,
+        email
+      )
     `)
     .eq('team_id', teamId)
 
   if (error) throw error
-  return data
+  
+  // Transform data to include both user and profile for compatibility
+  // Some components use `user`, others use `profile`
+  return (data || []).map((member: any) => ({
+    ...member,
+    // Set both user and profile fields for backward compatibility
+    user: member.user || null,
+    profile: member.user || null
+  }))
 }
 
 export async function isTeamLeaderOrInstructor(userId: string, teamId: string, workspaceId: string) {
@@ -1201,18 +1235,48 @@ export async function getWorkspaceActivity(workspaceId: string, limit = 20) {
       throw new Error('User not authenticated');
     }
 
+    // Fetch activity log with user profile data using direct query
     const { data, error } = await supabase
-      .rpc('get_workspace_activity_rpc', { 
-        workspace_id_param: workspaceId,
-        user_id_param: user.id,
-        limit_param: limit 
-      })
+      .from('activity_log')
+      .select(`
+        id,
+        workspace_id,
+        user_id,
+        action_type,
+        entity_type,
+        entity_id,
+        metadata,
+        created_at,
+        user:profiles!user_id(
+          id,
+          full_name,
+          avatar_url,
+          institution
+        )
+      `)
+      .eq('workspace_id', workspaceId)
+      .order('created_at', { ascending: false })
+      .limit(limit);
 
     if (error) {
       console.error('getWorkspaceActivity error:', JSON.stringify(error, null, 2));
       throw error;
     }
-    return data || [];
+    
+    // Transform data to match expected format
+    const transformedData = (data || []).map((activity: any) => ({
+      id: activity.id,
+      workspace_id: activity.workspace_id,
+      user_id: activity.user_id,
+      action_type: activity.action_type,
+      entity_type: activity.entity_type,
+      entity_id: activity.entity_id,
+      metadata: activity.metadata,
+      created_at: activity.created_at,
+      user: activity.user || null // Already nested from the select
+    }));
+    
+    return transformedData;
   } catch (error: any) {
     console.error('getWorkspaceActivity catch:', error?.message || error);
     return [];

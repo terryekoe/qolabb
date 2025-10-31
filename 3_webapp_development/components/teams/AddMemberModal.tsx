@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, UserPlus, Search, Loader2, Users } from 'lucide-react'
 import Avatar from '@/components/ui/Avatar'
@@ -36,24 +36,7 @@ export default function AddMemberModal({
   const [loading, setLoading] = useState(false)
   const [addingMember, setAddingMember] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (isOpen) {
-      loadAvailableMembers()
-    }
-  }, [isOpen, teamId, workspaceId])
-
-  useEffect(() => {
-    if (searchQuery.trim() === '') {
-      setFilteredMembers(availableMembers)
-    } else {
-      const filtered = availableMembers.filter(member =>
-        (member.user.full_name || '').toLowerCase().includes(searchQuery.toLowerCase())
-      )
-      setFilteredMembers(filtered)
-    }
-  }, [searchQuery, availableMembers])
-
-  const loadAvailableMembers = async () => {
+  const loadAvailableMembers = useCallback(async () => {
     try {
       setLoading(true)
       console.log('🚀 AddMemberModal: Loading available members for team:', teamId, 'in workspace:', workspaceId)
@@ -82,7 +65,24 @@ export default function AddMemberModal({
     } finally {
       setLoading(false)
     }
-  }
+  }, [teamId, workspaceId])
+
+  useEffect(() => {
+    if (isOpen) {
+      loadAvailableMembers()
+    }
+  }, [isOpen, loadAvailableMembers])
+
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setFilteredMembers(availableMembers)
+    } else {
+      const filtered = availableMembers.filter(member =>
+        (member.user.full_name || '').toLowerCase().includes(searchQuery.toLowerCase())
+      )
+      setFilteredMembers(filtered)
+    }
+  }, [searchQuery, availableMembers])
 
   const handleAddMember = async (userId: string, userName: string) => {
     if (!user) {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { Workspace } from '../types/database';
 import { getUserWorkspaces, getUserWorkspacesRPC, getWorkspace } from '../db/queries';
@@ -21,17 +21,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const [workspaces, setWorkspaces] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      loadWorkspaces();
-    } else {
-      setWorkspaces([]);
-      setCurrentWorkspace(null);
-      setLoading(false);
-    }
-  }, [user]);
-
-  async function loadWorkspaces() {
+  const loadWorkspaces = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -65,7 +55,17 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadWorkspaces();
+    } else {
+      setWorkspaces([]);
+      setCurrentWorkspace(null);
+      setLoading(false);
+    }
+  }, [user, loadWorkspaces]);
 
   async function switchWorkspace(workspaceId: string) {
     try {

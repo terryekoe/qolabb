@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   CheckSquare,
@@ -322,11 +322,40 @@ export default function TasksPage() {
     })
   );
 
+  const loadData = useCallback(async () => {
+    if (!currentWorkspace || !user) return;
+    
+    try {
+      setLoading(true);
+      // Load all projects
+      const projectsData = await getWorkspaceProjects(currentWorkspace.id);
+      setProjects(projectsData || []);
+      
+      // Load tasks from all projects
+      const allTasks: any[] = [];
+      for (const project of projectsData || []) {
+        const projectTasks = await getProjectTasks(project.id);
+        const tasksWithProject = projectTasks.map((task: any) => ({
+          ...task,
+          project_name: project.name,
+          team_id: project.team_id,
+        }));
+        allTasks.push(...tasksWithProject);
+      }
+      
+      setTasks(allTasks);
+    } catch (error) {
+      console.error('Error loading tasks:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [currentWorkspace, user]);
+
   useEffect(() => {
     if (currentWorkspace) {
       loadData();
     }
-  }, [currentWorkspace]);
+  }, [currentWorkspace, loadData]);
   
   // Keyboard shortcuts
   useEffect(() => {
@@ -379,35 +408,6 @@ export default function TasksPage() {
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [showShortcuts, projects, tasks, searchQuery, statusFilter, selectedProject, user, editingTask]);
-
-  async function loadData() {
-    if (!currentWorkspace || !user) return;
-    
-    try {
-      setLoading(true);
-      // Load all projects
-      const projectsData = await getWorkspaceProjects(currentWorkspace.id);
-      setProjects(projectsData || []);
-      
-      // Load tasks from all projects
-      const allTasks: any[] = [];
-      for (const project of projectsData || []) {
-        const projectTasks = await getProjectTasks(project.id);
-        const tasksWithProject = projectTasks.map((task: any) => ({
-          ...task,
-          project_name: project.name,
-          team_id: project.team_id,
-        }));
-        allTasks.push(...tasksWithProject);
-      }
-      
-      setTasks(allTasks);
-    } catch (error) {
-      console.error('Error loading tasks:', error);
-    } finally {
-      setLoading(false);
-    }
-  }
 
   async function handleUpdateTaskStatus(taskId: string, newStatus: TaskStatus) {
     try {

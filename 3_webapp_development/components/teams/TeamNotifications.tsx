@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Bell, 
@@ -42,13 +42,7 @@ export default function TeamNotifications({ onNotificationUpdate }: TeamNotifica
   const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('all')
   const [showSettings, setShowSettings] = useState(false)
 
-  useEffect(() => {
-    if (user?.id) {
-      loadNotifications()
-    }
-  }, [user?.id])
-
-  const loadNotifications = async () => {
+  const loadNotifications = useCallback(async () => {
     if (!user?.id) return
     
     try {
@@ -61,7 +55,13 @@ export default function TeamNotifications({ onNotificationUpdate }: TeamNotifica
     } finally {
       setLoading(false)
     }
-  }
+  }, [user?.id])
+
+  useEffect(() => {
+    if (user?.id) {
+      loadNotifications()
+    }
+  }, [user?.id, loadNotifications])
 
   const handleMarkAsRead = async (notificationId: string) => {
     if (!user?.id) return
