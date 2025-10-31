@@ -447,59 +447,61 @@ export async function joinWorkspaceByCode(inviteCode: string, userId: string) {
   return workspace[0] as Workspace
 }
 
+// Updated getWorkspaceMembers function to use RPC
 export async function getWorkspaceMembers(workspaceId: string) {
-  console.log('🔍 [SERVER] getWorkspaceMembers called with workspaceId:', workspaceId)
+  console.log('🔍 [CLIENT] getWorkspaceMembers called with workspaceId:', workspaceId)
   
-  // First, let's check the current user context
-  const { data: { user } } = await supabase.auth.getUser()
-  console.log('👤 [SERVER] Current authenticated user:', user?.id, user?.email)
-  
-  // Check raw workspace_members table first
-  const { data: rawData, error: rawError } = await supabase
-    .from('workspace_members')
-    .select('*')
-    .eq('workspace_id', workspaceId)
-  
-  console.log('🗃️ [SERVER] Raw workspace_members data:', { 
-    count: rawData ? rawData.length : 0, 
-    error: rawError?.message,
-    data: rawData 
-  })
-  
-  // Now the full query with profiles
-  const { data, error } = await supabase
-    .from('workspace_members')
-    .select(`
-      *,
-      user:profiles!user_id(*)
-    `)
-    .eq('workspace_id', workspaceId)
+  try {
+    // Use the new RPC function that bypasses RLS
+    const { data, error } = await supabase
+      .rpc('get_workspace_members_rpc', {
+        workspace_id_param: workspaceId
+      });
 
-  console.log('📊 [SERVER] Query result with profiles:', { 
-    members: data ? data.length : 0, 
-    error: error?.message,
-    data: data 
-  })
+    if (error) {
+      console.error('❌ [CLIENT] Error fetching workspace members:', error);
+      throw error;
+    }
 
-  if (error) {
-    console.error('❌ [SERVER] Error fetching workspace members:', error)
-    throw error
+    console.log('✅ [CLIENT] Workspace members returned:', data);
+    console.log('📊 [CLIENT] Number of members:', data?.length || 0);
+
+    // Transform the data to match the expected format
+    const transformedData = data?.map((member: any) => ({
+      id: member.id,
+      workspace_id: member.workspace_id,
+      user_id: member.user_id,
+      role: member.role,
+      joined_at: member.joined_at,
+      user: member.user_profile
+    })) || [];
+
+    return transformedData;
+  } catch (error) {
+    console.error('❌ [CLIENT] Exception in getWorkspaceMembers:', error);
+    return [];
   }
-  
-  // Log each member individually for debugging
-  if (data) {
-    data.forEach((member, index) => {
-      console.log(`👥 [SERVER] Member ${index + 1}:`, {
-        user_id: member.user_id,
-        role: member.role,
-        user_name: member.user?.full_name,
-        user_email: member.user?.email
-      })
-    })
+}
+
+// Add a function to check if user can view workspace members
+export async function canViewWorkspaceMembers(workspaceId: string, userId: string) {
+  try {
+    const { data, error } = await supabase
+      .rpc('can_view_workspace_members', {
+        workspace_id_param: workspaceId,
+        user_id_param: userId
+      });
+
+    if (error) {
+      console.error('Error checking workspace member permissions:', error);
+      return false;
+    }
+
+    return data === true;
+  } catch (error) {
+    console.error('Exception checking workspace member permissions:', error);
+    return false;
   }
-  
-  console.log('✅ [SERVER] Returning members:', data)
-  return data
 }
 
 // =====================================================
@@ -794,94 +796,116 @@ export async function isTeamLeaderOrInstructor(userId: string, teamId: string, w
   return teamMember?.role === 'leader'
 }
 
-export async function addTeamMember(teamId: string, userId: string, role: 'leader' | 'member' = 'member', assignedBy?: string) {
-  // First, get the team's workspace and settings
-  const { data: team } = await supabase
-    .from('teams')
-    .select('workspace_id, name, settings')
-    .eq('id', teamId)
-    .single()
+// Update the addTeamMember function to ensure workspace membership
+export async function addTeamMember(
+  teamId: string,
+  userId: string,
+  role: 'leader' | 'member' = 'member',
+  assignedBy?: string
+) {
+  try {
+    // First, get the team's workspace
+    const { data: team, error: teamError } = await supabase
+      .from('teams')
+      .select('workspace_id, name, settings')
+      .eq('id', teamId)
+      .single();
 
-  if (!team) {
-    throw new Error('Team not found')
-  }
-
-  // Check if the user is a member of the workspace
-  const { data: workspaceMember } = await supabase
-    .from('workspace_members')
-    .select('id')
-    .eq('workspace_id', (team as any).workspace_id)
-    .eq('user_id', userId)
-    .single()
-
-  if (!workspaceMember) {
-    throw new Error('User must be a workspace member before being added to a team')
-  }
-
-  // Check if the user is already a member of this team
-  const { data: existingMember } = await supabase
-    .from('team_members')
-    .select('id')
-    .eq('team_id', teamId)
-    .eq('user_id', userId)
-    .single()
-
-  if (existingMember) {
-    throw new Error('User is already a member of this team')
-  }
-
-  // Check team capacity if max_members is set
-  const teamSettings = (team as any).settings || {}
-  if (teamSettings.max_members) {
-    const { count: currentMemberCount } = await supabase
-      .from('team_members')
-      .select('*', { count: 'exact', head: true })
-      .eq('team_id', teamId)
-
-    if (currentMemberCount && currentMemberCount >= teamSettings.max_members) {
-      throw new Error(`Team has reached maximum member capacity (${teamSettings.max_members} members)`)
+    if (teamError || !team) {
+      throw new Error('Team not found');
     }
-  }
 
-  const { data, error } = await supabase
-    .from('team_members')
-    .insert({
-      team_id: teamId,
-      user_id: userId,
-      role
-    } as any)
-    .select(`
-      *,
-      user:profiles!user_id(*)
-    `)
-    .single()
+    // Check if the user is a member of the workspace
+    const { data: workspaceMember, error: memberError } = await supabase
+      .from('workspace_members')
+      .select('id')
+      .eq('workspace_id', team.workspace_id)
+      .eq('user_id', userId)
+      .single();
 
-  if (error) throw error
+    if (memberError || !workspaceMember) {
+      // User is not a workspace member, add them first
+      console.log('User is not a workspace member, adding them first...');
+      
+      const { error: addMemberError } = await supabase
+        .rpc('add_workspace_member', {
+          workspace_id_param: team.workspace_id,
+          user_id_param: userId,
+          role_param: 'member',
+          added_by_param: assignedBy || undefined
+        });
 
-  // Log activity and create notification
-  if (team) {
+      if (addMemberError) {
+        console.error('Failed to add user to workspace:', addMemberError);
+        throw new Error('Failed to add user to workspace. Please try again.');
+      }
+    }
+
+    // Check if user is already a team member
+    const { data: existingTeamMember } = await supabase
+      .from('team_members')
+      .select('id')
+      .eq('team_id', teamId)
+      .eq('user_id', userId)
+      .single();
+
+    if (existingTeamMember) {
+      throw new Error('User is already a member of this team');
+    }
+
+    // Check team capacity if max_members is set
+    const teamSettings = team.settings || {};
+    if (teamSettings.max_members) {
+      const { count: currentMemberCount } = await supabase
+        .from('team_members')
+        .select('*', { count: 'exact', head: true })
+        .eq('team_id', teamId);
+
+      if (currentMemberCount && currentMemberCount >= teamSettings.max_members) {
+        throw new Error(`Team has reached maximum member capacity (${teamSettings.max_members} members)`);
+      }
+    }
+
+    // Add the user to the team
+    const { data, error } = await supabase
+      .from('team_members')
+      .insert({
+        team_id: teamId,
+        user_id: userId,
+        role
+      })
+      .select(`
+        *,
+        user:profiles!user_id(*)
+      `)
+      .single();
+
+    if (error) throw error;
+
+    // Log activity and create notification
     await Promise.all([
-      // Log activity
       logActivity({
-        workspace_id: (team as any).workspace_id,
+        workspace_id: team.workspace_id,
         user_id: userId,
         action_type: 'joined_team',
         entity_type: 'team',
         entity_id: teamId,
-        metadata: { team_name: (team as any).name, role },
+        metadata: { team_name: team.name, role },
       }),
-      // Create notification if assigned by someone else
       assignedBy && assignedBy !== userId ? 
         createTeamAssignmentNotification(
           userId,
-          (team as any).name,
+          team.name,
           assignedBy,
           role
         ) : Promise.resolve()
-    ])
-  }
+    ]);
 
-  return data
+    return data;
+  } catch (error: any) {
+    console.error('addTeamMember error:', error?.message || error);
+    throw error;
+  }
 }
 
 export async function removeTeamMember(teamId: string, userId: string) {
