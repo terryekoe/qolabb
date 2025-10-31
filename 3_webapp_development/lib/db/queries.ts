@@ -615,8 +615,16 @@ export async function getTeamProjects(teamId: string) {
 
 export async function getWorkspaceProjects(workspaceId: string) {
   try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
     const { data, error } = await supabase
-      .rpc('get_workspace_projects_rpc', { workspace_id: workspaceId })
+      .rpc('get_workspace_projects_rpc', { 
+        workspace_id_param: workspaceId,
+        user_id_param: user.id
+      })
 
     if (error) {
       console.error('getWorkspaceProjects error:', JSON.stringify(error, null, 2));
@@ -1188,10 +1196,16 @@ export async function logActivity(activity: ActivityLogInsert) {
 
 export async function getWorkspaceActivity(workspaceId: string, limit = 20) {
   try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
     const { data, error } = await supabase
       .rpc('get_workspace_activity_rpc', { 
-        workspace_id: workspaceId,
-        activity_limit: limit 
+        workspace_id_param: workspaceId,
+        user_id_param: user.id,
+        limit_param: limit 
       })
 
     if (error) {
