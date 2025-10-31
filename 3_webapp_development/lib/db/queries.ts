@@ -616,15 +616,7 @@ export async function getTeamProjects(teamId: string) {
 export async function getWorkspaceProjects(workspaceId: string) {
   try {
     const { data, error } = await supabase
-      .from('projects')
-      .select(`
-        *,
-        team:teams(*),
-        tasks(*),
-        contributions(*)
-      `)
-      .eq('workspace_id', workspaceId)
-      .order('created_at', { ascending: false })
+      .rpc('get_workspace_projects_rpc', { workspace_id: workspaceId })
 
     if (error) {
       console.error('getWorkspaceProjects error:', JSON.stringify(error, null, 2));
@@ -1197,14 +1189,10 @@ export async function logActivity(activity: ActivityLogInsert) {
 export async function getWorkspaceActivity(workspaceId: string, limit = 20) {
   try {
     const { data, error } = await supabase
-      .from('activity_log')
-      .select(`
-        *,
-        user:profiles!user_id(*)
-      `)
-      .eq('workspace_id', workspaceId)
-      .order('created_at', { ascending: false })
-      .limit(limit)
+      .rpc('get_workspace_activity_rpc', { 
+        workspace_id: workspaceId,
+        activity_limit: limit 
+      })
 
     if (error) {
       console.error('getWorkspaceActivity error:', JSON.stringify(error, null, 2));
