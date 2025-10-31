@@ -71,8 +71,13 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
       ])
 
       // Enhance members with their current team information
+      // Transform workspace members to match expected format
       const enhancedMembers: WorkspaceMemberWithTeams[] = await Promise.all(
-        (workspaceMembers || []).map(async (member) => {
+        (workspaceMembers || []).map(async (member: any) => {
+          // Extract profile data - handle both nested user and direct profile
+          const profile = member.user || member;
+          const memberId = member.user_id || member.id;
+          
           const memberTeams: string[] = []
           const teamRoles: { [teamId: string]: 'leader' | 'member' } = {}
           
@@ -80,7 +85,7 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
           for (const team of workspaceTeams || []) {
             try {
               const teamMembers = await getTeamMembers(team.id)
-              const membership = teamMembers?.find(tm => tm.user_id === member.id)
+              const membership = teamMembers?.find(tm => tm.user_id === memberId)
               if (membership) {
                 memberTeams.push(team.id)
                 teamRoles[team.id] = membership.role
@@ -91,7 +96,12 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
           }
           
           return {
-            ...member,
+            id: memberId,
+            full_name: profile?.full_name || 'Unknown',
+            avatar_url: profile?.avatar_url || null,
+            email: profile?.email || '',
+            institution: profile?.institution || '',
+            role: profile?.role || member.role || 'member',
             current_teams: memberTeams,
             team_roles: teamRoles
           }

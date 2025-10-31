@@ -272,7 +272,7 @@ function KanbanColumn({
 }
 
 export default function TasksPage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { currentWorkspace } = useWorkspace();
   
   const [tasks, setTasks] = useState<any[]>([]);
@@ -411,6 +411,14 @@ export default function TasksPage() {
 
   async function handleUpdateTaskStatus(taskId: string, newStatus: TaskStatus) {
     try {
+      // Check if user is instructor - instructors cannot complete tasks
+      const userRole = profile?.role?.toLowerCase() || '';
+      if ((userRole === 'instructor' || userRole === 'teaching_assistant') && newStatus === 'completed') {
+        alert('Instructors and TAs cannot complete tasks. Please assign tasks to students.');
+        await loadData(); // Reload to revert any optimistic update
+        return;
+      }
+      
       // Optimistic update
       setTasks(prevTasks => 
         prevTasks.map(task => 
@@ -420,10 +428,29 @@ export default function TasksPage() {
       
       await updateTask(taskId, { status: newStatus });
       await loadData();
-    } catch (error) {
-      console.error('Error updating task:', error);
-      // Revert on error
-      await loadData();
+    } catch (error: any) {
+      // Better error handling
+      const errorMessage = error?.message || error?.error_description || JSON.stringify(error, null, 2) || 'Unknown error';
+      const errorDetails = error?.details || error?.hint || '';
+      
+      console.error('Error updating task:', {
+        message: errorMessage,
+        details: errorDetails,
+        code: error?.code,
+        taskId,
+        newStatus,
+        error,
+      });
+      
+      // Revert on error by reloading data
+      try {
+        await loadData();
+      } catch (reloadError) {
+        console.error('Error reloading data after task update failure:', reloadError);
+      }
+      
+      // Show user-friendly error message
+      alert(`Failed to update task status: ${errorMessage}`);
     }
   }
 
@@ -441,9 +468,24 @@ export default function TasksPage() {
     const taskId = active.id as string;
     const newStatus = over.id as TaskStatus;
     
+    // Validate that the new status is a valid TaskStatus
+    const validStatuses: TaskStatus[] = ['todo', 'in_progress', 'completed', 'blocked'];
+    if (!validStatuses.includes(newStatus)) {
+      console.warn('Invalid task status:', newStatus);
+      return;
+    }
+    
     // Find the task to check if status actually changed
     const task = tasks.find(t => t.id === taskId);
-    if (!task || task.status === newStatus) return;
+    if (!task) {
+      console.warn('Task not found:', taskId);
+      return;
+    }
+    
+    if (task.status === newStatus) {
+      // No change needed
+      return;
+    }
     
     await handleUpdateTaskStatus(taskId, newStatus);
   }

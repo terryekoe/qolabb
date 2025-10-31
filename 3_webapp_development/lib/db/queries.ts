@@ -737,15 +737,43 @@ export async function getUserTasks(userId: string) {
 }
 
 export async function updateTask(taskId: string, updates: Partial<Task>) {
-  const { data, error } = await supabase
-    .from('tasks')
-    .update(updates as any)
-    .eq('id', taskId)
-    .select()
-    .single()
+  try {
+    const { data, error } = await supabase
+      .from('tasks')
+      .update(updates as any)
+      .eq('id', taskId)
+      .select()
+      .single()
 
-  if (error) throw error
-  return data as Task
+    if (error) {
+      // Provide more context in the error
+      const enhancedError = new Error(error.message || 'Failed to update task');
+      (enhancedError as any).code = error.code;
+      (enhancedError as any).details = error.details;
+      (enhancedError as any).hint = error.hint;
+      (enhancedError as any).taskId = taskId;
+      (enhancedError as any).updates = updates;
+      throw enhancedError;
+    }
+    
+    if (!data) {
+      throw new Error(`Task with id ${taskId} not found or update failed`);
+    }
+    
+    return data as Task
+  } catch (error: any) {
+    // Re-throw with additional context
+    if (error.message && error.code) {
+      throw error; // Already enhanced
+    }
+    
+    // Wrap unknown errors
+    const wrappedError = new Error(error?.message || 'Failed to update task');
+    (wrappedError as any).originalError = error;
+    (wrappedError as any).taskId = taskId;
+    (wrappedError as any).updates = updates;
+    throw wrappedError;
+  }
 }
 
 export async function deleteTask(taskId: string) {
@@ -856,6 +884,20 @@ export async function addTeamMember(
       .eq('workspace_id', team.workspace_id)
       .eq('user_id', userId)
       .single();
+
+    // Check user's role - instructors should not be added to teams
+    const { data: userProfile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single();
+
+    if (userProfile) {
+      const userRole = userProfile.role?.toLowerCase() || '';
+      if (userRole === 'instructor') {
+        throw new Error('Instructors cannot be added as team members. They can only manage teams.');
+      }
+    }
 
     if (memberError || !workspaceMember) {
       // User is not a workspace member, add them first
@@ -2004,11 +2046,20 @@ export async function getWorkspaceStats(workspaceId: string) {
       .eq('status', 'completed')
       .eq('project.workspace_id', workspaceId)
 
+    // Calculate average participation from contributions
+    const { data: contributions } = await supabase
+      .from('contributions')
+      .select('hours_spent, project:projects!inner(workspace_id)')
+      .eq('project.workspace_id', workspaceId)
+
+    const totalHours = contributions?.reduce((sum, c) => sum + (c.hours_spent || 0), 0) || 0
+    const avgParticipation = memberCount && memberCount > 0 ? Math.round((totalHours / memberCount) * 10) / 10 : 0
+
     return {
       activeProjects: projectCount || 0,
       totalMembers: memberCount || 0,
       tasksCompleted: completedTasks || 0,
-      avgParticipation: 0, // Will calculate from contributions later
+      avgParticipation,
     }
   } catch (error: any) {
     console.error('getWorkspaceStats error:', error?.message || JSON.stringify(error, null, 2));
@@ -2018,6 +2069,372 @@ export async function getWorkspaceStats(workspaceId: string) {
       tasksCompleted: 0,
       avgParticipation: 0,
     }
+  }
+}
+
+// Get detailed analytics for a workspace
+export async function getWorkspaceAnalytics(workspaceId: string) {
+  try {
+    const stats = await getWorkspaceStats(workspaceId)
+    
+    // Get all teams with member counts
+    const { data: teams } = await supabase
+      .from('teams')
+      .select(`
+        id,
+        name,
+        team_members(count)
+      `)
+      .eq('workspace_id', workspaceId)
+
+    // Get all contributions with user info
+    const { data: contributions } = await supabase
+      .from('contributions')
+      .select(`
+        id,
+        user_id,
+        hours_spent,
+        contribution_type,
+        created_at,
+        project:projects!inner(id, workspace_id, team_id)
+      `)
+      .eq('project.workspace_id', workspaceId)
+
+    // Get all tasks with status
+    const { data: tasks } = await supabase
+      .from('tasks')
+      .select(`
+        id,
+        status,
+        assigned_to,
+        project:projects!inner(id, workspace_id)
+      `)
+      .eq('project.workspace_id', workspaceId)
+
+    // Calculate participation metrics
+    const participationByUser: Record<string, { hours: number; contributions: number }> = {}
+    contributions?.forEach(contrib => {
+      if (!participationByUser[contrib.user_id]) {
+        participationByUser[contrib.user_id] = { hours: 0, contributions: 0 }
+      }
+      participationByUser[contrib.user_id].hours += contrib.hours_spent || 0
+      participationByUser[contrib.user_id].contributions += 1
+    })
+
+    const participationScores = Object.values(participationByUser).map(p => p.hours)
+    const avgParticipation = participationScores.length > 0
+      ? participationScores.reduce((a, b) => a + b, 0) / participationScores.length
+      : 0
+
+    // Task completion rate
+    const totalTasks = tasks?.length || 0
+    const completedTasks = tasks?.filter(t => t.status === 'completed').length || 0
+    const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
+
+    return {
+      ...stats,
+      teams: teams || [],
+      totalTeams: teams?.length || 0,
+      totalContributions: contributions?.length || 0,
+      totalHours: contributions?.reduce((sum, c) => sum + (c.hours_spent || 0), 0) || 0,
+      participationByUser,
+      completionRate,
+      avgParticipation: Math.round(avgParticipation * 10) / 10,
+    }
+  } catch (error: any) {
+    console.error('getWorkspaceAnalytics error:', error?.message || JSON.stringify(error, null, 2));
+    throw error
+  }
+}
+
+// Get team analytics
+export async function getTeamAnalytics(teamId: string) {
+  try {
+    // Get team with members (excluding instructors)
+    const { data: team } = await supabase
+      .from('teams')
+      .select(`
+        id,
+        name,
+        workspace_id,
+        team_members(
+          id,
+          user_id,
+          role,
+          user:profiles!user_id(id, full_name, avatar_url, role)
+        )
+      `)
+      .eq('id', teamId)
+      .single()
+
+    if (!team) throw new Error('Team not found')
+
+    // Get team projects
+    const { data: projects } = await supabase
+      .from('projects')
+      .select('id, name, status')
+      .eq('team_id', teamId)
+
+    // Get contributions for team projects
+    const projectIds = projects?.map(p => p.id) || []
+    const { data: contributions } = projectIds.length > 0 ? await supabase
+      .from('contributions')
+      .select('*')
+      .in('project_id', projectIds) : { data: [] }
+
+    // Get tasks for team projects
+    const { data: tasks } = projectIds.length > 0 ? await supabase
+      .from('tasks')
+      .select('*')
+      .in('project_id', projectIds) : { data: [] }
+
+    // Calculate participation by member (excluding instructors)
+    const memberParticipation: Record<string, {
+      userId: string
+      name: string
+      hours: number
+      contributions: number
+      tasksCompleted: number
+      tasksAssigned: number
+    }> = {}
+
+    // Filter out instructors from team members
+    const studentMembers = team.team_members?.filter((member: any) => {
+      const userRole = member.user?.role?.toLowerCase() || '';
+      return userRole !== 'instructor' && userRole !== 'teaching_assistant';
+    }) || [];
+
+    // Initialize members (only students, not instructors)
+    studentMembers.forEach((member: any) => {
+      memberParticipation[member.user_id] = {
+        userId: member.user_id,
+        name: member.user?.full_name || 'Unknown',
+        hours: 0,
+        contributions: 0,
+        tasksCompleted: 0,
+        tasksAssigned: 0,
+      }
+    })
+
+    // Aggregate contributions
+    contributions?.forEach(contrib => {
+      if (memberParticipation[contrib.user_id]) {
+        memberParticipation[contrib.user_id].hours += contrib.hours_spent || 0
+        memberParticipation[contrib.user_id].contributions += 1
+      }
+    })
+
+    // Aggregate tasks
+    tasks?.forEach(task => {
+      if (task.assigned_to && memberParticipation[task.assigned_to]) {
+        memberParticipation[task.assigned_to].tasksAssigned += 1
+        if (task.status === 'completed') {
+          memberParticipation[task.assigned_to].tasksCompleted += 1
+        }
+      }
+    })
+
+    const participationData = Object.values(memberParticipation)
+    const totalHours = participationData.reduce((sum, m) => sum + m.hours, 0)
+    const avgHours = participationData.length > 0 ? totalHours / participationData.length : 0
+
+    // Calculate fairness score (how balanced participation is)
+    // Lower variance = more fair
+    const hoursArray = participationData.map(m => m.hours)
+    const mean = avgHours
+    const variance = hoursArray.length > 0
+      ? hoursArray.reduce((sum, h) => sum + Math.pow(h - mean, 2), 0) / hoursArray.length
+      : 0
+    const fairnessScore = mean > 0 ? Math.max(0, Math.min(100, Math.round(100 - (variance / mean) * 10))) : 0
+
+    return {
+      team: {
+        id: team.id,
+        name: team.name,
+        workspaceId: team.workspace_id,
+      },
+      members: participationData,
+      projects: projects || [],
+      totalProjects: projects?.length || 0,
+      totalContributions: contributions?.length || 0,
+      totalHours,
+      avgHours: Math.round(avgHours * 10) / 10,
+      totalTasks: tasks?.length || 0,
+      completedTasks: tasks?.filter(t => t.status === 'completed').length || 0,
+      fairnessScore,
+    }
+  } catch (error: any) {
+    console.error('getTeamAnalytics error:', error?.message || JSON.stringify(error, null, 2));
+    throw error
+  }
+}
+
+// Get user's personal analytics
+export async function getUserAnalytics(userId: string, workspaceId?: string) {
+  try {
+    // Get user's contributions
+    let contributionsQuery = supabase
+      .from('contributions')
+      .select(`
+        id,
+        project_id,
+        hours_spent,
+        contribution_type,
+        created_at,
+        project:projects!inner(id, name, workspace_id, team_id)
+      `)
+      .eq('user_id', userId)
+
+    if (workspaceId) {
+      contributionsQuery = contributionsQuery.eq('project.workspace_id', workspaceId)
+    }
+
+    const { data: contributions } = await contributionsQuery
+
+    // Get user's tasks
+    let tasksQuery = supabase
+      .from('tasks')
+      .select(`
+        id,
+        title,
+        status,
+        priority,
+        project_id,
+        project:projects!inner(id, name, workspace_id)
+      `)
+      .eq('assigned_to', userId)
+
+    if (workspaceId) {
+      tasksQuery = tasksQuery.eq('project.workspace_id', workspaceId)
+    }
+
+    const { data: tasks } = await tasksQuery
+
+    // Calculate breakdown by contribution type
+    const contributionBreakdown: Record<string, number> = {
+      code: 0,
+      documentation: 0,
+      research: 0,
+      design: 0,
+      meeting: 0,
+      other: 0,
+    }
+
+    contributions?.forEach(contrib => {
+      const type = contrib.contribution_type || 'other'
+      contributionBreakdown[type] = (contributionBreakdown[type] || 0) + 1
+    })
+
+    // Calculate weekly hours
+    const now = new Date()
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+    const weekContributions = contributions?.filter(c => {
+      const created = new Date(c.created_at)
+      return created >= weekAgo
+    }) || []
+    const weekHours = weekContributions.reduce((sum, c) => sum + (c.hours_spent || 0), 0)
+
+    // Total hours
+    const totalHours = contributions?.reduce((sum, c) => sum + (c.hours_spent || 0), 0) || 0
+
+    return {
+      totalContributions: contributions?.length || 0,
+      totalHours: Math.round(totalHours * 10) / 10,
+      weekHours: Math.round(weekHours * 10) / 10,
+      totalTasks: tasks?.length || 0,
+      completedTasks: tasks?.filter(t => t.status === 'completed').length || 0,
+      inProgressTasks: tasks?.filter(t => t.status === 'in_progress').length || 0,
+      contributionBreakdown,
+      tasks: tasks || [],
+      contributions: contributions || [],
+    }
+  } catch (error: any) {
+    console.error('getUserAnalytics error:', error?.message || JSON.stringify(error, null, 2));
+    throw error
+  }
+}
+
+// Get student performance data for instructors/TAs
+export async function getStudentPerformance(workspaceId: string, userId?: string) {
+  try {
+    // Get all workspace members (excluding instructors and TAs)
+    const { data: members } = await supabase
+      .from('workspace_members')
+      .select(`
+        user_id,
+        role,
+        user:profiles!user_id(id, full_name, avatar_url, institution, role)
+      `)
+      .eq('workspace_id', workspaceId)
+
+    if (!members || members.length === 0) return []
+
+    // Filter out instructors and TAs - only include students
+    const studentMembers = members.filter((member: any) => {
+      const userRole = member.user?.role?.toLowerCase() || '';
+      return userRole === 'student' || !userRole || userRole === 'member';
+    });
+
+    if (studentMembers.length === 0) return [];
+
+    const userIds = studentMembers.map(m => m.user_id)
+    const performanceData: Array<{
+      userId: string
+      name: string
+      avatar?: string
+      institution?: string
+      totalHours: number
+      contributions: number
+      tasksCompleted: number
+      tasksAssigned: number
+      participationScore: number
+      lastActive?: string
+    }> = []
+
+    // Get analytics for each student (not instructors)
+    for (const member of studentMembers) {
+      const userAnalytics = await getUserAnalytics(member.user_id, workspaceId)
+      
+      // Get last contribution timestamp
+      const { data: lastContrib } = await supabase
+        .from('contributions')
+        .select('created_at, project:projects!inner(workspace_id)')
+        .eq('user_id', member.user_id)
+        .eq('project.workspace_id', workspaceId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single()
+
+      const completionRate = userAnalytics.totalTasks > 0
+        ? Math.round((userAnalytics.completedTasks / userAnalytics.totalTasks) * 100)
+        : 0
+
+      // Calculate participation score (combination of hours, contributions, and completion)
+      const participationScore = Math.round(
+        (userAnalytics.totalHours * 0.4) +
+        (userAnalytics.totalContributions * 2) +
+        (completionRate * 0.5)
+      )
+
+      performanceData.push({
+        userId: member.user_id,
+        name: member.user?.full_name || 'Unknown',
+        avatar: member.user?.avatar_url,
+        institution: member.user?.institution,
+        totalHours: userAnalytics.totalHours,
+        contributions: userAnalytics.totalContributions,
+        tasksCompleted: userAnalytics.completedTasks,
+        tasksAssigned: userAnalytics.totalTasks,
+        participationScore,
+        lastActive: lastContrib?.created_at,
+      })
+    }
+
+    // Sort by participation score
+    return performanceData.sort((a, b) => b.participationScore - a.participationScore)
+  } catch (error: any) {
+    console.error('getStudentPerformance error:', error?.message || JSON.stringify(error, null, 2));
+    return []
   }
 }
 

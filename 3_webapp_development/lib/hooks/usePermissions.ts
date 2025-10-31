@@ -83,7 +83,11 @@ export function usePermissions(): UsePermissionsReturn {
     },
     
     analytics: (): boolean => {
-      return can('analytics', 'view_workspace_stats') || 
+      // Students can view their own stats and team stats
+      // Instructors/TAs can view workspace stats
+      return can('analytics', 'view_own_stats') || 
+             can('analytics', 'view_team_stats') ||
+             can('analytics', 'view_workspace_stats') || 
              can('analytics', 'generate_reports');
     }
   };
