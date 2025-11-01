@@ -97,7 +97,12 @@ function DraggableTaskCard({
     opacity: isDragging ? 0.5 : 1,
   };
 
-  const isMyTask = task.assigned_to === user?.id;
+  // Check if task is assigned to current user (either via old assigned_to or new assignees)
+  const isMyTask = task.assigned_to === user?.id || 
+    (task.assignees && task.assignees.some((a: any) => {
+      const assignee = a.user || a;
+      return assignee?.id === user?.id || a?.user_id === user?.id;
+    }));
   const statusConfig = getStatusConfig(task.status);
 
   // Use a ref to track if we're dragging to prevent onClick interference
