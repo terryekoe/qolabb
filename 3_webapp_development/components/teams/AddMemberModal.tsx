@@ -56,12 +56,33 @@ export default function AddMemberModal({
       const members = await getAvailableWorkspaceMembers(workspaceId, teamId)
       console.log('📥 AddMemberModal: Received members:', members)
       
-      // Type assertion to handle the database response structure
-      setAvailableMembers((members as any) || [])
-      console.log('✅ AddMemberModal: Set available members, count:', (members as any)?.length || 0)
+      // Normalize and filter members - handle cases where user might be an array or null
+      const normalizedMembers = ((members as any) || [])
+        .map((member: any) => {
+          // Handle array response from Supabase join
+          let user = member.user
+          if (Array.isArray(user)) {
+            user = user[0] || null
+          }
+          
+          // Only return members with valid user data
+          if (!member || !member.user_id || !user || !user.id) {
+            return null
+          }
+          
+          return {
+            user_id: member.user_id,
+            user: user as Profile
+          }
+        })
+        .filter((member: any): member is WorkspaceMember => member !== null)
+      
+      console.log('✅ AddMemberModal: Normalized members, count:', normalizedMembers.length)
+      setAvailableMembers(normalizedMembers)
     } catch (error) {
       console.error('❌ AddMemberModal: Error loading available members:', error)
       toast.error('Failed to load available members')
+      setAvailableMembers([])
     } finally {
       setLoading(false)
     }
@@ -77,9 +98,12 @@ export default function AddMemberModal({
     if (searchQuery.trim() === '') {
       setFilteredMembers(availableMembers)
     } else {
-      const filtered = availableMembers.filter(member =>
-        (member.user.full_name || '').toLowerCase().includes(searchQuery.toLowerCase())
-      )
+      const filtered = availableMembers.filter(member => {
+        // Add null safety checks
+        if (!member || !member.user) return false
+        const fullName = member.user.full_name || ''
+        return fullName.toLowerCase().includes(searchQuery.toLowerCase())
+      })
       setFilteredMembers(filtered)
     }
   }, [searchQuery, availableMembers])
@@ -188,38 +212,50 @@ export default function AddMemberModal({
               </div>
             ) : (
               <div className="space-y-3">
-                {filteredMembers.map((member) => (
-                  <div
-                    key={member.user_id}
-                    className="flex items-center justify-between p-4 border border-gray-200 rounded-xl hover:bg-gradient-to-r hover:from-qolabb-navy-50 hover:to-qolabb-beige-50 hover:border-qolabb-navy-200 transition-all duration-200 group"
-                  >
-                    <div className="flex items-center gap-4">
-                      <Avatar
-                        userId={member.user_id}
-                        name={member.user.full_name}
-                        src={member.user.avatar_url}
-                        size="lg"
-                        className="shadow-md"
-                      />
-                      <div>
-                        <p className="font-semibold text-gray-900 group-hover:text-qolabb-navy-700">{member.user.full_name}</p>
-                        <p className="text-sm text-gray-500">{member.user.role || 'Member'}</p>
+                {filteredMembers
+                  .filter((member) => {
+                    // Double-check for null/undefined members
+                    return member && member.user_id && member.user && member.user.id
+                  })
+                  .map((member) => {
+                    // Extract user properties with safe defaults
+                    const fullName = member.user?.full_name ?? 'Unknown User'
+                    const avatarUrl = member.user?.avatar_url ?? null
+                    const role = member.user?.role ?? 'Member'
+                    
+                    return (
+                      <div
+                        key={member.user_id}
+                        className="flex items-center justify-between p-4 border border-gray-200 rounded-xl hover:bg-gradient-to-r hover:from-qolabb-navy-50 hover:to-qolabb-beige-50 hover:border-qolabb-navy-200 transition-all duration-200 group"
+                      >
+                        <div className="flex items-center gap-4">
+                          <Avatar
+                            userId={member.user_id}
+                            name={fullName}
+                            src={avatarUrl}
+                            size="lg"
+                            className="shadow-md"
+                          />
+                          <div>
+                            <p className="font-semibold text-gray-900 group-hover:text-qolabb-navy-700">{fullName}</p>
+                            <p className="text-sm text-gray-500">{role}</p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleAddMember(member.user_id, fullName)}
+                          disabled={addingMember === member.user_id}
+                          className="px-6 py-2.5 bg-gradient-to-r from-qolabb-navy-500 to-qolabb-navy-600 text-white rounded-xl hover:from-qolabb-navy-600 hover:to-qolabb-navy-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-md hover:shadow-lg flex items-center gap-2"
+                        >
+                          {addingMember === member.user_id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <UserPlus className="w-4 h-4" />
+                          )}
+                          {addingMember === member.user_id ? 'Adding...' : 'Add'}
+                        </button>
                       </div>
-                    </div>
-                    <button
-                      onClick={() => handleAddMember(member.user_id, member.user.full_name)}
-                      disabled={addingMember === member.user_id}
-                      className="px-6 py-2.5 bg-gradient-to-r from-qolabb-navy-500 to-qolabb-navy-600 text-white rounded-xl hover:from-qolabb-navy-600 hover:to-qolabb-navy-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-md hover:shadow-lg flex items-center gap-2"
-                    >
-                      {addingMember === member.user_id ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <UserPlus className="w-4 h-4" />
-                      )}
-                      {addingMember === member.user_id ? 'Adding...' : 'Add'}
-                    </button>
-                  </div>
-                ))}
+                    )
+                  })}
               </div>
             )}
           </div>
