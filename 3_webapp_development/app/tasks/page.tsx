@@ -724,7 +724,7 @@ export default function TasksPage() {
                            task.description?.toLowerCase().includes(searchQuery.toLowerCase());
       let matchesFilter = true;
       if (statusFilter === 'my_tasks') {
-        matchesFilter = task.assigned_to === user?.id;
+        matchesFilter = isTaskAssignedToUser(task);
       } else if (statusFilter !== 'all') {
         matchesFilter = task.status === statusFilter;
       }
@@ -796,7 +796,7 @@ export default function TasksPage() {
     // Status filter
     let matchesStatus = true;
     if (statusFilter === 'my_tasks') {
-      matchesStatus = task.assigned_to === user?.id;
+      matchesStatus = isTaskAssignedToUser(task);
     } else if (statusFilter !== 'all') {
       matchesStatus = task.status === statusFilter;
     }
@@ -810,9 +810,10 @@ export default function TasksPage() {
     // Assignee filter
     let matchesAssignee = true;
     if (assigneeFilter === 'me') {
-      matchesAssignee = task.assigned_to === user?.id;
+      matchesAssignee = isTaskAssignedToUser(task);
     } else if (assigneeFilter === 'unassigned') {
-      matchesAssignee = !task.assigned_to;
+      // Check both old assigned_to and new assignees array
+      matchesAssignee = !task.assigned_to && (!task.assignees || task.assignees.length === 0);
     }
     
     // Overdue filter
@@ -889,6 +890,21 @@ export default function TasksPage() {
     }
   };
 
+  // Helper function to check if a task is assigned to the current user
+  const isTaskAssignedToUser = (task: any) => {
+    if (!user?.id) return false;
+    // Check old single assignee field
+    if (task.assigned_to === user.id) return true;
+    // Check new multiple assignees
+    if (task.assignees && Array.isArray(task.assignees)) {
+      return task.assignees.some((a: any) => {
+        const assignee = a.user || a;
+        return assignee?.id === user.id || a?.user_id === user.id;
+      });
+    }
+    return false;
+  };
+
   // Group tasks by status for Kanban view
   const tasksByStatus = {
     todo: sortedTasks.filter(t => t.status === 'todo'),
@@ -898,7 +914,7 @@ export default function TasksPage() {
 
   const taskCounts = {
     all: tasks.length,
-    my_tasks: tasks.filter(t => t.assigned_to === user?.id).length,
+    my_tasks: tasks.filter(isTaskAssignedToUser).length,
     todo: tasks.filter(t => t.status === 'todo').length,
     in_progress: tasks.filter(t => t.status === 'in_progress').length,
     completed: tasks.filter(t => t.status === 'completed').length,
@@ -948,7 +964,7 @@ export default function TasksPage() {
             <CheckSquare size={18} />
             <span>Tasks</span>
           </button>
-          {tasks.length > 0 && projects.length > 0 && (canManageTasks || taskCounts.my_tasks > 0) && (
+          {tasks.length > 0 && projects.length > 0 && (
             <button
               onClick={() => setPageSection('workload')}
               className={`px-6 py-3 rounded-lg font-medium text-sm transition-colors flex items-center gap-2 ${
