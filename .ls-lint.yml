@@ -1,7 +1,7 @@
 ls:
-  .dir: snake_case
+  .dir: snake_case | kebab-case
   .*: snake_case
-  .md: snake_case | regex:[0-9A-Z\-]+
+  .md: snake_case | kebab-case | regex:[0-9A-Z_\-]+
   .txt: snake_case | kebab-case
   .yml: snake_case | kebab-case
 
@@ -15,3 +15,11 @@ ignore:
   - __pycache__
   - .ls-lint.yml
   - .markdownlint.yml
+  - node_modules
+  - .next
+  - 3_webapp_development/docs
+  - 3_webapp_development/app/coming-soon
+  - 3_webapp_development/app/debug-auth
+  - 3_webapp_development/supabase/.temp
+  - 3_webapp_development/DEPLOYMENT_INSTRUCTIONS.md
+  - 3_webapp_development/supabase/SETUP_GUIDE.md
