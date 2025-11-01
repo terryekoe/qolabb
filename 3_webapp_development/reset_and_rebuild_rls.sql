@@ -49,6 +49,8 @@ DROP FUNCTION IF EXISTS is_user_team_member(UUID, UUID);
 DROP FUNCTION IF EXISTS is_user_team_leader(UUID, UUID);
 DROP FUNCTION IF EXISTS is_user_workspace_member_safe(UUID, UUID);
 DROP FUNCTION IF EXISTS users_share_workspace(UUID, UUID);
+DROP FUNCTION IF EXISTS can_manage_project_tasks(UUID, UUID);
+DROP FUNCTION IF EXISTS can_access_task(UUID, UUID);
 
 -- =====================================================
 -- STEP 4: CREATE HELPER FUNCTIONS (Bypass RLS safely)
@@ -100,6 +102,63 @@ SET search_path = public;
 GRANT EXECUTE ON FUNCTION is_user_team_member(UUID, UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION is_user_team_leader(UUID, UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION is_user_workspace_member_safe(UUID, UUID) TO authenticated;
+
+-- Helper function to check if user can manage tasks in a project (bypasses RLS)
+CREATE OR REPLACE FUNCTION can_manage_project_tasks(p_project_id UUID, p_user_id UUID DEFAULT auth.uid())
+RETURNS BOOLEAN AS $$
+BEGIN
+  -- SECURITY DEFINER functions bypass RLS by default
+  RETURN EXISTS (
+    SELECT 1 
+    FROM projects p
+    JOIN teams t ON t.id = p.team_id
+    JOIN workspaces w ON w.id = t.workspace_id
+    WHERE p.id = p_project_id
+    AND (
+      -- User is workspace owner
+      w.owner_id = p_user_id
+      -- OR user is a team member
+      OR EXISTS (
+        SELECT 1 FROM team_members tm
+        WHERE tm.team_id = t.id
+        AND tm.user_id = p_user_id
+      )
+    )
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER STABLE
+SET search_path = public;
+
+-- Helper function to check if user can access a task (bypasses RLS)
+CREATE OR REPLACE FUNCTION can_access_task(p_task_id UUID, p_user_id UUID DEFAULT auth.uid())
+RETURNS BOOLEAN AS $$
+BEGIN
+  -- SECURITY DEFINER functions bypass RLS by default
+  RETURN EXISTS (
+    SELECT 1 
+    FROM tasks t
+    JOIN projects p ON t.project_id = p.id
+    JOIN teams tm ON tm.id = p.team_id
+    WHERE t.id = p_task_id
+    AND (
+      -- User is assigned to the task (old single assignee)
+      t.assigned_to = p_user_id
+      -- OR user is assigned via task_assignees
+      OR EXISTS (
+        SELECT 1 FROM task_assignees ta
+        WHERE ta.task_id = p_task_id
+        AND ta.user_id = p_user_id
+      )
+      -- OR user can manage project tasks
+      OR can_manage_project_tasks(p.project_id, p_user_id)
+    )
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER STABLE
+SET search_path = public;
+
+GRANT EXECUTE ON FUNCTION can_manage_project_tasks(UUID, UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION can_access_task(UUID, UUID) TO authenticated;
 
 -- =====================================================
 -- STEP 5: REBUILD RLS WITH MINIMAL, NON-RECURSIVE POLICIES
@@ -430,60 +489,36 @@ USING (
   )
 );
 
--- TASKS: Team members can access tasks (using helper function to avoid recursion)
+-- TASKS: Team members can access tasks (using helper functions to avoid recursion)
 ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "tasks_select" ON tasks
 FOR SELECT TO authenticated
 USING (
-  -- Use helper function via projects (bypasses RLS, no recursion)
-  EXISTS (
-    SELECT 1 FROM projects p
-    WHERE p.id = tasks.project_id
-    AND is_user_team_member(p.team_id, auth.uid())
-  )
+  -- Use helper function to check access (bypasses RLS, no recursion)
+  can_access_task(tasks.id, auth.uid())
+  -- OR user can manage the project tasks
+  OR can_manage_project_tasks(tasks.project_id, auth.uid())
 );
 
 CREATE POLICY "tasks_insert" ON tasks
 FOR INSERT TO authenticated
 WITH CHECK (
-  EXISTS (
-    SELECT 1 FROM projects p
-    WHERE p.id = tasks.project_id
-    AND is_user_team_member(p.team_id, auth.uid())
-  )
+  -- Use helper function to check if user can manage project tasks (bypasses RLS)
+  can_manage_project_tasks(tasks.project_id, auth.uid())
 );
 
 CREATE POLICY "tasks_update" ON tasks
 FOR UPDATE TO authenticated
 USING (
-  assigned_to = auth.uid()
-  OR EXISTS (
-    SELECT 1 FROM task_assignees ta
-    WHERE ta.task_id = tasks.id
-    AND ta.user_id = auth.uid()
-  )
-  OR EXISTS (
-    SELECT 1 FROM projects p
-    JOIN teams t ON t.id = p.team_id
-    JOIN workspaces w ON w.id = t.workspace_id
-    WHERE p.id = tasks.project_id
-    AND w.owner_id = auth.uid()
-  )
+  -- Use helper function to check access (bypasses RLS, no recursion)
+  can_access_task(tasks.id, auth.uid())
+  -- OR user can manage the project tasks
+  OR can_manage_project_tasks(tasks.project_id, auth.uid())
 )
 WITH CHECK (
-  assigned_to = auth.uid()
-  OR EXISTS (
-    SELECT 1 FROM task_assignees ta
-    WHERE ta.task_id = tasks.id
-    AND ta.user_id = auth.uid()
-  )
-  OR EXISTS (
-    SELECT 1 FROM projects p
-    JOIN teams t ON t.id = p.team_id
-    JOIN workspaces w ON w.id = t.workspace_id
-    WHERE p.id = tasks.project_id
-    AND w.owner_id = auth.uid()
-  )
+  -- Same checks for WITH CHECK clause
+  can_access_task(tasks.id, auth.uid())
+  OR can_manage_project_tasks(tasks.project_id, auth.uid())
 );
 
 CREATE POLICY "tasks_delete" ON tasks
@@ -503,24 +538,24 @@ ALTER TABLE task_assignees ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "task_assignees_select" ON task_assignees
 FOR SELECT TO authenticated
 USING (
-  EXISTS (
+  -- Use helper function to check if user can access the task (bypasses RLS, no recursion)
+  can_access_task(task_assignees.task_id, auth.uid())
+  -- OR user can manage the project tasks
+  OR EXISTS (
     SELECT 1 FROM tasks t
-    JOIN projects p ON t.project_id = p.id
     WHERE t.id = task_assignees.task_id
-    AND is_user_team_member(p.team_id, auth.uid())
+    AND can_manage_project_tasks(t.project_id, auth.uid())
   )
 );
 
 CREATE POLICY "task_assignees_insert" ON task_assignees
 FOR INSERT TO authenticated
 WITH CHECK (
+  -- Use helper function to check if user can manage project tasks (bypasses RLS)
   EXISTS (
     SELECT 1 FROM tasks t
-    JOIN projects p ON t.project_id = p.id
-    JOIN teams tm ON tm.id = p.team_id
-    JOIN workspaces w ON w.id = tm.workspace_id
     WHERE t.id = task_assignees.task_id
-    AND w.owner_id = auth.uid()
+    AND can_manage_project_tasks(t.project_id, auth.uid())
   )
 );
 
