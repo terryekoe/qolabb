@@ -49,30 +49,8 @@ USING (
   )
   
   -- OR users can see profiles of people in the same workspace
-  -- Using helper function to avoid RLS recursion
+  -- Using helper function to avoid RLS recursion - this is the primary check for workspace membership
   OR users_share_workspace(profiles.id, auth.uid())
-  
-  -- OR if current user owns a workspace that the profile user is in
-  OR EXISTS (
-    SELECT 1 FROM workspaces w
-    WHERE w.owner_id = auth.uid()
-    AND EXISTS (
-      SELECT 1 FROM workspace_members wm
-      WHERE wm.workspace_id = w.id
-      AND wm.user_id = profiles.id
-    )
-  )
-  
-  -- OR if profile user owns a workspace that current user is in
-  OR EXISTS (
-    SELECT 1 FROM workspaces w
-    WHERE w.owner_id = profiles.id
-    AND EXISTS (
-      SELECT 1 FROM workspace_members wm
-      WHERE wm.workspace_id = w.id
-      AND wm.user_id = auth.uid()
-    )
-  )
 );
 
 -- Notify PostgREST to reload schema

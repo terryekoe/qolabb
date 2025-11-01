@@ -48,6 +48,7 @@ DROP FUNCTION IF EXISTS user_workspace_role(UUID, UUID);
 DROP FUNCTION IF EXISTS is_user_team_member(UUID, UUID);
 DROP FUNCTION IF EXISTS is_user_team_leader(UUID, UUID);
 DROP FUNCTION IF EXISTS is_user_workspace_member_safe(UUID, UUID);
+DROP FUNCTION IF EXISTS users_share_workspace(UUID, UUID);
 
 -- =====================================================
 -- STEP 4: CREATE HELPER FUNCTIONS (Bypass RLS safely)
@@ -104,12 +105,35 @@ GRANT EXECUTE ON FUNCTION is_user_workspace_member_safe(UUID, UUID) TO authentic
 -- STEP 5: REBUILD RLS WITH MINIMAL, NON-RECURSIVE POLICIES
 -- =====================================================
 
--- PROFILES: Users can see their own profile + profiles of people they share tasks with
+-- PROFILES: Users can see their own profile + profiles of people they share tasks/workspaces with
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+
+-- Helper function to check if two users share a workspace (bypasses RLS to prevent recursion)
+CREATE OR REPLACE FUNCTION users_share_workspace(p_user1_id UUID, p_user2_id UUID DEFAULT auth.uid())
+RETURNS BOOLEAN AS $$
+BEGIN
+  -- SECURITY DEFINER functions bypass RLS by default
+  RETURN EXISTS (
+    SELECT 1 
+    FROM workspace_members wm1
+    INNER JOIN workspace_members wm2 ON wm1.workspace_id = wm2.workspace_id
+    WHERE wm1.user_id = p_user1_id
+    AND wm2.user_id = p_user2_id
+    AND wm1.workspace_id = wm2.workspace_id
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER STABLE
+SET search_path = public;
+
+GRANT EXECUTE ON FUNCTION users_share_workspace(UUID, UUID) TO authenticated;
+
 CREATE POLICY "profiles_select" ON profiles
 FOR SELECT TO authenticated
 USING (
+  -- Users can always see their own profile
   id = auth.uid()
+  
+  -- OR users can see profiles of people they share tasks with
   OR EXISTS (
     SELECT 1 FROM tasks t
     WHERE (t.assigned_to = auth.uid() OR t.assigned_to = profiles.id)
@@ -119,6 +143,10 @@ USING (
       AND (ta.user_id = auth.uid() OR ta.user_id = profiles.id)
     )
   )
+  
+  -- OR users can see profiles of people in the same workspace
+  -- Using helper function to avoid RLS recursion - this is the primary check for workspace membership
+  OR users_share_workspace(profiles.id, auth.uid())
 );
 
 CREATE POLICY "profiles_update" ON profiles
