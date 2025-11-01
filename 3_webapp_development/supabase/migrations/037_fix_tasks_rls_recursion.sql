@@ -103,28 +103,21 @@ WITH CHECK (
 );
 
 -- Recreate task_assignees policies using helper functions (no recursion)
+-- NOTE: We use can_access_task which already checks can_manage_project_tasks internally
+-- No need to query tasks table directly here - that would cause recursion!
 CREATE POLICY "task_assignees_select" ON task_assignees
 FOR SELECT TO authenticated
 USING (
   -- Use helper function to check if user can access the task (bypasses RLS, no recursion)
   can_access_task(task_assignees.task_id, auth.uid())
-  -- OR user can manage the project tasks
-  OR EXISTS (
-    SELECT 1 FROM tasks t
-    WHERE t.id = task_assignees.task_id
-    AND can_manage_project_tasks(t.project_id, auth.uid())
-  )
 );
 
 CREATE POLICY "task_assignees_insert" ON task_assignees
 FOR INSERT TO authenticated
 WITH CHECK (
-  -- Use helper function to check if user can manage project tasks (bypasses RLS)
-  EXISTS (
-    SELECT 1 FROM tasks t
-    WHERE t.id = task_assignees.task_id
-    AND can_manage_project_tasks(t.project_id, auth.uid())
-  )
+  -- Use helper function to check if user can manage the task (bypasses RLS)
+  -- This checks if user can manage tasks for the project this task belongs to
+  can_manage_task(task_assignees.task_id, auth.uid())
 );
 
 -- Notify PostgREST to reload schema
