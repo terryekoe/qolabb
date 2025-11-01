@@ -84,7 +84,19 @@ export function TaskActivityTimeline({ taskId, projectId }: TaskActivityTimeline
 
       if (error) throw error;
 
-      setActivities(data || []);
+      // Handle case where user might be an array (Supabase sometimes returns arrays)
+      const formattedActivities = (data || []).map((activity: any) => {
+        let user = activity.user;
+        if (Array.isArray(user)) {
+          user = user[0] || null;
+        }
+        return {
+          ...activity,
+          user: user || null,
+        };
+      });
+
+      setActivities(formattedActivities);
     } catch (err: any) {
       console.error('Error loading activities:', err);
     } finally {

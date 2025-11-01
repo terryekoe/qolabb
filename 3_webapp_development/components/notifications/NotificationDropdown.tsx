@@ -235,7 +235,7 @@ export function NotificationDropdown({
                           {notification.message}
                         </p>
                         <p className="text-xs text-gray-500 mt-2">
-                          {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+                          {formatDistanceToNow(new Date(notification.created_at))}
                         </p>
                       </div>
                       

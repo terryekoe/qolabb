@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Settings as SettingsIcon,
@@ -52,6 +52,9 @@ import {
   getWorkspaceMembers,
   getProfile,
   updateProfile,
+  getUserContributions,
+  getUserTasks,
+  getUserTeams,
 } from "@/lib/db/queries";
 import { supabase } from "@/lib/supabase";
 import type { UserRole } from "@/lib/types/database";
@@ -132,7 +135,10 @@ const settingsSections: SettingsSection[] = [
   },
 ];
 
-export default function SettingsPage() {
+// Force dynamic rendering to prevent prerender errors
+export const dynamic = 'force-dynamic';
+
+function SettingsPageContent() {
   const { user } = useAuth();
   const { currentWorkspace, refreshWorkspaces } = useWorkspace();
   const searchParams = useSearchParams();
@@ -142,6 +148,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [exportingData, setExportingData] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -451,6 +458,153 @@ export default function SettingsPage() {
       alert('Failed to remove profile picture: ' + error.message);
     } finally {
       setUploading(false);
+    }
+  }
+
+  async function handleExportData() {
+    if (!user) return;
+
+    try {
+      setExportingData(true);
+
+      // Fetch all user data
+      const [profile, contributions, tasks, teamsData, workspaceMemberships] = await Promise.all([
+        getProfile(user.id),
+        getUserContributions(user.id),
+        getUserTasks(user.id),
+        getUserTeams(user.id),
+        supabase
+          .from('workspace_members')
+          .select(`
+            id,
+            workspace_id,
+            role,
+            joined_at,
+            workspace:workspaces(
+              id,
+              name,
+              description,
+              invite_code,
+              created_at
+            )
+          `)
+          .eq('user_id', user.id),
+      ]);
+
+      // Get user's activity logs
+      const { data: activityLogs } = await supabase
+        .from('activity_log')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1000);
+
+      // Get user's notifications
+      const { data: notifications } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(500);
+
+      // Get user's team memberships with details
+      const teams = Array.isArray(teamsData) ? teamsData : [];
+      const teamMemberships = teams.flatMap((teamMember: any) => {
+        const team = teamMember.team;
+        if (!team) return [];
+        return [{
+          team_id: team.id,
+          team_name: team.name,
+          role: teamMember.role,
+          joined_at: teamMember.joined_at,
+        }];
+      });
+
+      // Extract unique teams
+      const teamMap = new Map<string, any>();
+      teams.forEach((tm: any) => {
+        if (tm.team?.id) {
+          teamMap.set(tm.team.id, tm.team);
+        }
+      });
+      const uniqueTeams = Array.from(teamMap.values());
+
+      // Get projects user participated in (via contributions or tasks)
+      const projectIds = new Set<string>();
+      contributions?.forEach((c: any) => c.project_id && projectIds.add(c.project_id));
+      tasks?.forEach((t: any) => t.project_id && projectIds.add(t.project_id));
+
+      const { data: projects } = projectIds.size > 0
+        ? await supabase
+            .from('projects')
+            .select('*')
+            .in('id', Array.from(projectIds))
+        : { data: [] };
+
+      // Normalize workspace data - handle arrays from Supabase joins
+      const normalizedWorkspaces = (workspaceMemberships.data || []).map((wm: any) => {
+        let workspace = wm.workspace;
+        if (Array.isArray(workspace)) {
+          workspace = workspace[0] || null;
+        }
+        return {
+          ...wm,
+          workspace: workspace,
+        };
+      });
+
+      // Format export data
+      const exportData = {
+        export_metadata: {
+          exported_at: new Date().toISOString(),
+          exported_by: user.id,
+          format_version: '1.0',
+        },
+        profile: profile || null,
+        contributions: contributions || [],
+        tasks: tasks || [],
+        teams: uniqueTeams.map((team: any) => ({
+          id: team.id,
+          name: team.name,
+          description: team.description,
+          workspace_id: team.workspace_id,
+          role: teamMemberships.find((tm: any) => tm.team_id === team.id)?.role || 'member',
+          joined_at: teamMemberships.find((tm: any) => tm.team_id === team.id)?.joined_at || null,
+        })),
+        projects: projects || [],
+        workspace_memberships: normalizedWorkspaces,
+        activity_logs: activityLogs || [],
+        notifications: notifications || [],
+        summary: {
+          total_contributions: contributions?.length || 0,
+          total_tasks: tasks?.length || 0,
+          total_teams: uniqueTeams.length,
+          total_projects: projects?.length || 0,
+          total_workspaces: normalizedWorkspaces.length,
+          total_activities: activityLogs?.length || 0,
+          total_notifications: notifications?.length || 0,
+        },
+      };
+
+      // Convert to JSON and download
+      const jsonContent = JSON.stringify(exportData, null, 2);
+      const blob = new Blob([jsonContent], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      
+      link.href = url;
+      link.download = `qolabb_data_export_${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      alert('Data export completed successfully!');
+    } catch (error: any) {
+      console.error('Export data error:', error);
+      alert('Failed to export data. Please try again.');
+    } finally {
+      setExportingData(false);
     }
   }
 
@@ -1350,12 +1504,14 @@ export default function SettingsPage() {
             <Button
               variant="ghost"
               className="text-qolabb-navy-600 hover:bg-qolabb-navy-50"
+              onClick={handleExportData}
+              disabled={exportingData}
             >
               <Download size={18} className="mr-2" />
-              Export My Data
+              {exportingData ? 'Exporting...' : 'Export My Data'}
             </Button>
             <p className="text-sm text-gray-500 mt-2">
-              Download a copy of all your data
+              Download a copy of all your data (JSON format)
             </p>
           </div>
         </div>
@@ -1699,5 +1855,19 @@ export default function SettingsPage() {
         </div>
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-96">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-qolabb-navy-600"></div>
+        </div>
+      </DashboardLayout>
+    }>
+      <SettingsPageContent />
+    </Suspense>
   );
 }

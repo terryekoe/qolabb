@@ -14,6 +14,7 @@ import {
   Notification,
 } from '@/lib/db/queries';
 import { NotificationDropdown } from '@/components/notifications/NotificationDropdown';
+import { GlobalSearchModal } from '@/components/search/GlobalSearchModal';
 import { supabase } from '@/lib/supabase';
 
 interface DashboardHeaderProps {
@@ -28,6 +29,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   const { currentWorkspace } = useWorkspace();
   const { user } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -81,6 +83,24 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
       supabase.removeChannel(channel);
     };
   }, [user?.id, loadNotifications]);
+
+  // Handle keyboard shortcuts (Cmd/Ctrl+K)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Check for Cmd+K (Mac) or Ctrl+K (Windows/Linux)
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setShowSearch(true);
+      }
+      // Close search on Escape
+      if (e.key === 'Escape' && showSearch) {
+        setShowSearch(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showSearch]);
 
   // Handle click outside to close dropdown
   useEffect(() => {
@@ -168,10 +188,19 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         {/* Right Side */}
         <div className="flex items-center space-x-3">
           {/* Search */}
-          <button className="hidden sm:flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowSearch(true)}
+            className="hidden sm:flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+            title="Search (⌘K)"
+          >
             <Search size={18} className="text-gray-500" />
             <span className="text-sm text-gray-600">Search...</span>
-          </button>
+            <kbd className="hidden lg:inline-flex px-1.5 py-0.5 text-xs font-semibold text-gray-500 bg-white border border-gray-300 rounded">
+              ⌘K
+            </kbd>
+          </motion.button>
 
           {/* Notifications */}
           <div className="relative" ref={dropdownRef}>
@@ -209,6 +238,9 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Global Search Modal */}
+      <GlobalSearchModal isOpen={showSearch} onClose={() => setShowSearch(false)} />
     </header>
   );
 };

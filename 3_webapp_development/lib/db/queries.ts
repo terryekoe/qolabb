@@ -1593,17 +1593,26 @@ export async function getWorkspaceActivity(workspaceId: string, limit = 20) {
     }
     
     // Transform data to match expected format
-    const transformedData = (data || []).map((activity: any) => ({
-      id: activity.id,
-      workspace_id: activity.workspace_id,
-      user_id: activity.user_id,
-      action_type: activity.action_type,
-      entity_type: activity.entity_type,
-      entity_id: activity.entity_id,
-      metadata: activity.metadata,
-      created_at: activity.created_at,
-      user: activity.user || null // Already nested from the select
-    }));
+    // Ensure user is a single object, not an array
+    const transformedData = (data || []).map((activity: any) => {
+      // Handle case where user might be an array (Supabase sometimes returns arrays)
+      let user = activity.user;
+      if (Array.isArray(user)) {
+        user = user[0] || null;
+      }
+      
+      return {
+        id: activity.id,
+        workspace_id: activity.workspace_id,
+        user_id: activity.user_id,
+        action_type: activity.action_type,
+        entity_type: activity.entity_type,
+        entity_id: activity.entity_id,
+        metadata: activity.metadata,
+        created_at: activity.created_at,
+        user: user || null,
+      };
+    });
     
     return transformedData;
   } catch (error: any) {
@@ -2375,11 +2384,12 @@ export async function getWorkspaceAnalytics(workspaceId: string) {
       .eq('workspace_id', workspaceId)
 
     // Get all contributions with user info
-    const { data: contributions } = await supabase
+    const { data: contributionsData } = await supabase
       .from('contributions')
       .select(`
         id,
         user_id,
+        task_id,
         hours_spent,
         contribution_type,
         created_at,
@@ -2388,7 +2398,7 @@ export async function getWorkspaceAnalytics(workspaceId: string) {
       .eq('project.workspace_id', workspaceId)
 
     // Get all tasks with status
-    const { data: tasks } = await supabase
+    const { data: tasksData } = await supabase
       .from('tasks')
       .select(`
         id,
@@ -2397,6 +2407,29 @@ export async function getWorkspaceAnalytics(workspaceId: string) {
         project:projects!inner(id, workspace_id)
       `)
       .eq('project.workspace_id', workspaceId)
+
+    // Normalize data - handle arrays from Supabase joins
+    const contributions = (contributionsData || []).map((contrib: any) => {
+      let project = contrib.project;
+      if (Array.isArray(project)) {
+        project = project[0] || null;
+      }
+      return {
+        ...contrib,
+        project: project,
+      };
+    });
+
+    const tasks = (tasksData || []).map((task: any) => {
+      let project = task.project;
+      if (Array.isArray(project)) {
+        project = project[0] || null;
+      }
+      return {
+        ...task,
+        project: project,
+      };
+    });
 
     // Calculate participation metrics (unified: contributions + tasks)
     const participationByUser: Record<string, { hours: number; contributions: number; tasksCompleted: number }> = {}
@@ -2419,7 +2452,7 @@ export async function getWorkspaceAnalytics(workspaceId: string) {
 
     // Enhance with completed tasks (estimate hours for tasks without contributions)
     const taskIdsWithContributions = new Set(
-      contributions?.filter(c => c.task_id).map(c => c.task_id) || []
+      contributions?.filter((c: any) => c.task_id).map((c: any) => c.task_id) || []
     )
     
     tasks?.forEach(task => {
@@ -2494,7 +2527,7 @@ export async function getTeamAnalytics(teamId: string) {
     const projectIds = projects?.map(p => p.id) || []
     const { data: contributions } = projectIds.length > 0 ? await supabase
       .from('contributions')
-      .select('*')
+      .select('id, user_id, task_id, project_id, hours_spent, contribution_type, created_at')
       .in('project_id', projectIds) : { data: [] }
 
     // Get tasks for team projects
@@ -2541,7 +2574,7 @@ export async function getTeamAnalytics(teamId: string) {
 
     // Aggregate tasks and enhance hours with completed tasks
     const taskIdsWithContributions = new Set(
-      contributions?.filter(c => c.task_id).map(c => c.task_id) || []
+      contributions?.filter((c: any) => c.task_id).map((c: any) => c.task_id) || []
     )
     
     tasks?.forEach(task => {
@@ -2602,6 +2635,7 @@ export async function getUserAnalytics(userId: string, workspaceId?: string) {
       .select(`
         id,
         project_id,
+        task_id,
         hours_spent,
         contribution_type,
         created_at,
@@ -2613,7 +2647,7 @@ export async function getUserAnalytics(userId: string, workspaceId?: string) {
       contributionsQuery = contributionsQuery.eq('project.workspace_id', workspaceId)
     }
 
-    const { data: contributions } = await contributionsQuery
+    const { data: contributionsData } = await contributionsQuery
 
     // Get user's tasks
     let tasksQuery = supabase
@@ -2632,7 +2666,30 @@ export async function getUserAnalytics(userId: string, workspaceId?: string) {
       tasksQuery = tasksQuery.eq('project.workspace_id', workspaceId)
     }
 
-    const { data: tasks } = await tasksQuery
+    const { data: tasksData } = await tasksQuery
+
+    // Normalize data - handle arrays from Supabase joins
+    const contributions = (contributionsData || []).map((contrib: any) => {
+      let project = contrib.project;
+      if (Array.isArray(project)) {
+        project = project[0] || null;
+      }
+      return {
+        ...contrib,
+        project: project,
+      };
+    });
+
+    const tasks = (tasksData || []).map((task: any) => {
+      let project = task.project;
+      if (Array.isArray(project)) {
+        project = project[0] || null;
+      }
+      return {
+        ...task,
+        project: project,
+      };
+    });
 
     // Calculate breakdown by contribution type
     const contributionBreakdown: Record<string, number> = {
@@ -2667,7 +2724,7 @@ export async function getUserAnalytics(userId: string, workspaceId?: string) {
     
     // Find completed tasks without contributions (missing participation data)
     const completedTasksWithContributions = new Set(
-      contributions?.filter(c => c.task_id).map(c => c.task_id) || []
+      contributions?.filter((c: any) => c.task_id).map((c: any) => c.task_id) || []
     )
     const completedTasksWithoutContributions = completedTasks.filter(
       t => !completedTasksWithContributions.has(t.id)
@@ -2727,8 +2784,20 @@ export async function getStudentPerformance(workspaceId: string, userId?: string
 
     if (!members || members.length === 0) return []
 
+    // Normalize member data - handle arrays from Supabase joins
+    const normalizedMembers = (members || []).map((member: any) => {
+      let user = member.user;
+      if (Array.isArray(user)) {
+        user = user[0] || null;
+      }
+      return {
+        ...member,
+        user: user || null,
+      };
+    });
+
     // Filter out instructors and TAs - only include students
-    const studentMembers = members.filter((member: any) => {
+    const studentMembers = normalizedMembers.filter((member: any) => {
       const userRole = member.user?.role?.toLowerCase() || '';
       return userRole === 'student' || !userRole || userRole === 'member';
     });
@@ -3888,4 +3957,199 @@ export async function createTaskStatusChangedNotification(
       project_name: projectName
     }
   })
+}
+
+// =====================================================
+// GLOBAL SEARCH FUNCTIONS
+// =====================================================
+
+export interface SearchResult {
+  type: 'task' | 'project' | 'team' | 'member'
+  id: string
+  title: string
+  description?: string
+  metadata?: Record<string, any>
+  url?: string
+}
+
+/**
+ * Search across all workspace entities (tasks, projects, teams, members)
+ * @param workspaceId - Workspace ID to search within
+ * @param query - Search query string
+ * @param limit - Maximum number of results per category (default: 5)
+ * @returns Search results grouped by type
+ */
+export async function globalSearch(
+  workspaceId: string,
+  query: string,
+  limit: number = 5
+): Promise<{
+  tasks: SearchResult[]
+  projects: SearchResult[]
+  teams: SearchResult[]
+  members: SearchResult[]
+}> {
+  if (!query || query.trim().length < 2) {
+    return { tasks: [], projects: [], teams: [], members: [] }
+  }
+
+  const searchTerm = query.trim().toLowerCase()
+
+  try {
+    // Search Tasks
+    const { data: tasks, error: tasksError } = await supabase
+      .from('tasks')
+      .select(`
+        id,
+        title,
+        description,
+        status,
+        project:projects!inner(
+          id,
+          name,
+          workspace_id
+        )
+      `)
+      .eq('project.workspace_id', workspaceId)
+      .or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`)
+      .limit(limit)
+      .order('created_at', { ascending: false })
+
+    if (tasksError) {
+      console.error('Search tasks error:', tasksError)
+    }
+
+    // Search Projects
+    const { data: projects, error: projectsError } = await supabase
+      .from('projects')
+      .select(`
+        id,
+        name,
+        description,
+        status,
+        workspace_id
+      `)
+      .eq('workspace_id', workspaceId)
+      .or(`name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`)
+      .limit(limit)
+      .order('created_at', { ascending: false })
+
+    if (projectsError) {
+      console.error('Search projects error:', projectsError)
+    }
+
+    // Search Teams
+    const { data: teams, error: teamsError } = await supabase
+      .from('teams')
+      .select(`
+        id,
+        name,
+        description,
+        workspace_id
+      `)
+      .eq('workspace_id', workspaceId)
+      .or(`name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`)
+      .limit(limit)
+      .order('created_at', { ascending: false })
+
+    if (teamsError) {
+      console.error('Search teams error:', teamsError)
+    }
+
+    // Search Members (workspace members)
+    // Note: We need to search profiles separately and then join, as direct ilike on joined table may not work
+    let members: any[] = []
+    let membersError: any = null
+    
+    const { data: allProfiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, full_name, avatar_url, role, institution')
+      .ilike('full_name', `%${searchTerm}%`)
+      .limit(50) // Get more profiles to filter by workspace membership
+    
+    if (!profilesError && allProfiles && allProfiles.length > 0) {
+      const profileIds = allProfiles.map(p => p.id)
+      
+      const { data: workspaceMembers, error: membersErrorData } = await supabase
+        .from('workspace_members')
+        .select(`
+          user_id,
+          profile:profiles!user_id(
+            id,
+            full_name,
+            avatar_url,
+            role,
+            institution
+          )
+        `)
+        .eq('workspace_id', workspaceId)
+        .in('user_id', profileIds)
+        .limit(limit)
+
+      members = workspaceMembers || []
+      membersError = membersErrorData
+    } else if (profilesError) {
+      membersError = profilesError
+    }
+
+    if (membersError) {
+      console.error('Search members error:', membersError)
+    }
+
+    // Format results
+    const formattedTasks: SearchResult[] = (tasks || []).map((task: any) => ({
+      type: 'task' as const,
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      metadata: {
+        status: task.status,
+        projectName: task.project?.name,
+        projectId: task.project?.id,
+      },
+      url: `/tasks?task=${task.id}`,
+    }))
+
+    const formattedProjects: SearchResult[] = (projects || []).map((project: any) => ({
+      type: 'project' as const,
+      id: project.id,
+      title: project.name,
+      description: project.description,
+      metadata: {
+        status: project.status,
+      },
+      url: `/projects?project=${project.id}`,
+    }))
+
+    const formattedTeams: SearchResult[] = (teams || []).map((team: any) => ({
+      type: 'team' as const,
+      id: team.id,
+      title: team.name,
+      description: team.description,
+      metadata: {},
+      url: `/teams?team=${team.id}`,
+    }))
+
+    const formattedMembers: SearchResult[] = (members || []).map((member: any) => ({
+      type: 'member' as const,
+      id: member.user_id,
+      title: member.profile?.full_name || 'Unknown User',
+      description: member.profile?.institution || member.profile?.role || '',
+      metadata: {
+        avatarUrl: member.profile?.avatar_url,
+        role: member.profile?.role,
+      },
+      url: `/teams?member=${member.user_id}`,
+    }))
+
+    return {
+      tasks: formattedTasks,
+      projects: formattedProjects,
+      teams: formattedTeams,
+      members: formattedMembers,
+    }
+  } catch (error: any) {
+    console.error('Global search error:', error?.message || JSON.stringify(error, null, 2))
+    return { tasks: [], projects: [], teams: [], members: [] }
+  }
 }

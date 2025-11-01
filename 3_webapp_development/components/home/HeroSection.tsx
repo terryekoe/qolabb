@@ -85,7 +85,7 @@ export const HeroSection: React.FC = () => {
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
               <Link href="/signup">
                 <Button variant="primary" size="lg" className="group">
-                  Get Started Free
+                  Get Started
                   <ArrowRight className="inline-block ml-2 group-hover:translate-x-1 transition-transform" size={20} />
                 </Button>
               </Link>

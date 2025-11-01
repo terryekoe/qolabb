@@ -75,8 +75,12 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
       const enhancedMembers: WorkspaceMemberWithTeams[] = await Promise.all(
         (workspaceMembers || []).map(async (member: any) => {
           // Extract profile data - handle both nested user and direct profile
-          const profile = member.user || member;
-          const memberId = member.user_id || member.id;
+          // Handle case where user might be an array (Supabase sometimes returns arrays)
+          let profile = member.user || member;
+          if (Array.isArray(profile)) {
+            profile = profile[0] || member;
+          }
+          const memberId = member.user_id || member.id || profile?.id;
           
           const memberTeams: string[] = []
           const teamRoles: { [teamId: string]: 'leader' | 'member' } = {}
@@ -104,7 +108,7 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
             role: profile?.role || member.role || 'member',
             current_teams: memberTeams,
             team_roles: teamRoles
-          }
+          } as WorkspaceMemberWithTeams
         })
       )
 

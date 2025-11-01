@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FolderKanban,
@@ -37,7 +37,10 @@ import {
 type ProjectStatus = 'pending' | 'active' | 'completed' | 'archived';
 type FilterType = 'all' | ProjectStatus;
 
-export default function ProjectsPage() {
+// Force dynamic rendering to prevent prerender errors
+export const dynamic = 'force-dynamic';
+
+function ProjectsPageContent() {
   const { user } = useAuth();
   const { currentWorkspace } = useWorkspace();
   const searchParams = useSearchParams();
@@ -570,5 +573,19 @@ export default function ProjectsPage() {
         />
       )}
     </DashboardLayout>
+  );
+}
+
+export default function ProjectsPage() {
+  return (
+    <Suspense fallback={
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-96">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-qolabb-navy-600"></div>
+        </div>
+      </DashboardLayout>
+    }>
+      <ProjectsPageContent />
+    </Suspense>
   );
 }
