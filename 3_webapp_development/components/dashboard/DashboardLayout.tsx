@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Sidebar } from './Sidebar';
 import { DashboardHeader } from './DashboardHeader';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { InAppNotificationManager } from '@/components/notifications/InAppNotificationManager';
+import { markNotificationAsRead } from '@/lib/db/queries';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -40,10 +42,39 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
     setSidebarCollapsed(!sidebarCollapsed);
   };
 
+  const handleNotificationClick = (notification: any) => {
+    // Navigate based on notification type
+    if (notification.type === 'task_assignment' && notification.data?.task_id) {
+      router.push('/tasks');
+    } else if (notification.data?.project_id) {
+      router.push('/projects');
+    } else if (notification.data?.team_id || notification.data?.team_name) {
+      router.push('/teams');
+    }
+  };
+
+  const handleMarkAsRead = async (notificationId: string) => {
+    if (!user?.id) return;
+    try {
+      await markNotificationAsRead(notificationId, user.id);
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Sidebar collapsed={sidebarCollapsed} onClose={() => setSidebarCollapsed(true)} />
       <DashboardHeader onToggleSidebar={toggleSidebar} sidebarCollapsed={sidebarCollapsed} />
+      
+      {/* In-App Notifications */}
+      {user?.id && (
+        <InAppNotificationManager
+          userId={user.id}
+          onNotificationClick={handleNotificationClick}
+          onMarkAsRead={handleMarkAsRead}
+        />
+      )}
       
       {/* Main Content */}
       <main

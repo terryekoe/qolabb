@@ -24,12 +24,22 @@ import {
 import { Button } from '@/components/Button';
 import Avatar from '@/components/ui/Avatar';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
 import { 
   updateTask, 
   deleteTask, 
   getProjectTasks,
-  getTeamMembers
+  getTeamMembers,
+  getProjectContributions,
+  getTaskAssignees,
+  addTaskAssignees,
+  removeTaskAssignee
 } from '@/lib/db/queries';
+import { TaskComments } from './TaskComments';
+import { TaskActivityTimeline } from './TaskActivityTimeline';
+import { TaskTimeTracker } from './TaskTimeTracker';
+import { TaskAttachments } from './TaskAttachments';
+import { TaskSubtasks } from './TaskSubtasks';
 import type { TaskStatus, TaskPriority } from '@/lib/types/database';
 
 interface TaskDetailModalProps {
@@ -49,7 +59,8 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   onTaskDeleted,
   canManage,
 }) => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const { currentWorkspace } = useWorkspace();
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
@@ -58,8 +69,24 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   const [editAssignedTo, setEditAssignedTo] = useState('');
   const [editDueDate, setEditDueDate] = useState('');
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
+  const [contributions, setContributions] = useState<any[]>([]);
+  const [assignees, setAssignees] = useState<any[]>([]);
+  const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingContributions, setLoadingContributions] = useState(false);
   const [error, setError] = useState('');
+
+  // Check if user can manage attachments (either has canManage permission OR is assigned to the task)
+  const canManageAttachments = React.useMemo(() => {
+    if (!user) return false;
+    // Users with canManage permission can always manage attachments
+    if (canManage) return true;
+    // Check if user is in the assignees list (new multiple assignees system)
+    if (assignees.some((a: any) => a.user_id === user.id)) return true;
+    // Check if user is the single assignee (old system, for backward compatibility)
+    if (task.assigned_to === user.id) return true;
+    return false;
+  }, [canManage, user, assignees, task.assigned_to]);
 
   // Initialize edit fields when task changes
   useEffect(() => {
@@ -71,8 +98,10 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
       setEditAssignedTo(task.assigned_to || '');
       setEditDueDate(task.due_date ? task.due_date.split('T')[0] : '');
       
-      // Load team members
+      // Load team members, contributions, and assignees
       loadTeamMembers();
+      loadContributions();
+      loadAssignees();
     }
   }, [task, isOpen]);
 
@@ -84,6 +113,40 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
       setTeamMembers(members || []);
     } catch (error) {
       console.error('Error loading team members:', error);
+    }
+  }
+
+  async function loadContributions() {
+    if (!task?.project_id) return;
+    
+    try {
+      setLoadingContributions(true);
+      const projectContributions = await getProjectContributions(task.project_id);
+      // Filter contributions linked to this task
+      const taskContributions = (projectContributions || []).filter(
+        (contrib: any) => contrib.task_id === task.id
+      );
+      setContributions(taskContributions);
+    } catch (error) {
+      console.error('Error loading contributions:', error);
+    } finally {
+      setLoadingContributions(false);
+    }
+  }
+
+  async function loadAssignees() {
+    if (!task?.id) return;
+    
+    try {
+      const taskAssignees = await getTaskAssignees(task.id);
+      setAssignees(taskAssignees || []);
+      setSelectedAssignees((taskAssignees || []).map((a: any) => a.user_id));
+    } catch (error) {
+      console.error('Error loading assignees:', error);
+      // Fallback to old assigned_to if assignees query fails
+      if (task.assigned_to) {
+        setSelectedAssignees([task.assigned_to]);
+      }
     }
   }
 
@@ -142,23 +205,54 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   }
 
   async function handleSave() {
-    if (!task?.id) return;
+    if (!task?.id || !user?.id) return;
     
     setLoading(true);
     setError('');
     
     try {
+      const wasJustCompleted = task.status !== 'completed' && editStatus === 'completed';
+      
+      // Update task basic fields
       await updateTask(task.id, {
         title: editTitle.trim(),
         description: editDescription || null,
         status: editStatus,
         priority: editPriority,
-        assigned_to: editAssignedTo || null,
         due_date: editDueDate || null,
       });
       
+      // Handle assignees separately
+      const currentAssigneeIds = new Set(assignees.map((a: any) => a.user_id));
+      const newAssigneeIds = new Set(selectedAssignees.filter(id => id !== ''));
+      
+      // Find assignees to add
+      const toAdd = Array.from(newAssigneeIds).filter(id => !currentAssigneeIds.has(id));
+      // Find assignees to remove
+      const toRemove = Array.from(currentAssigneeIds).filter(id => !newAssigneeIds.has(id));
+      
+      // Add new assignees
+      if (toAdd.length > 0) {
+        await addTaskAssignees(task.id, toAdd, user.id);
+      }
+      
+      // Remove unassigned assignees
+      if (toRemove.length > 0) {
+        for (const userId of toRemove) {
+          await removeTaskAssignee(task.id, userId, user.id);
+        }
+      }
+      
+      // Reload assignees
+      await loadAssignees();
+      
       setIsEditing(false);
       onTaskUpdated();
+      
+      // Reload contributions if task was completed
+      if (wasJustCompleted) {
+        await loadContributions();
+      }
     } catch (error: any) {
       console.error('Error updating task:', error);
       setError(error.message || 'Failed to update task');
@@ -329,6 +423,14 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Left Column - Main Content */}
                 <div className="lg:col-span-2 space-y-6">
+                  {/* Subtasks */}
+                  {user && (
+                    <TaskSubtasks
+                      taskId={task.id}
+                      userId={user.id}
+                    />
+                  )}
+
                   {/* Description */}
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
@@ -355,23 +457,50 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                     )}
                   </div>
 
-                  {/* Activity/Comments Section (Placeholder) */}
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                      <MessageSquare size={18} className="mr-2" />
-                      Activity
-                    </h3>
-                    
-                    <div className="bg-gray-50 rounded-lg p-4 text-center">
-                      <MessageSquare size={24} className="mx-auto text-gray-300 mb-2" />
-                      <p className="text-gray-500 text-sm">Comments and activity will appear here</p>
-                      <p className="text-gray-400 text-xs mt-1">Coming soon</p>
+                  {/* Comments Section */}
+                  {user && currentWorkspace && task?.project_id && (
+                    <div>
+                      <TaskComments
+                        taskId={task.id}
+                        projectId={task.project_id}
+                        workspaceId={currentWorkspace.id}
+                        userId={user.id}
+                        userProfile={profile ? {
+                          id: profile.id,
+                          full_name: profile.full_name || 'User',
+                          avatar_url: profile.avatar_url || undefined,
+                        } : undefined}
+                      />
                     </div>
-                  </div>
+                  )}
+
+                  {/* Activity Timeline */}
+                  {task?.project_id && (
+                    <div>
+                      <TaskActivityTimeline
+                        taskId={task.id}
+                        projectId={task.project_id}
+                      />
+                    </div>
+                  )}
                 </div>
 
                 {/* Right Column - Metadata */}
                 <div className="space-y-6">
+                  {/* Time Tracker - Only show for assigned users */}
+                  {user && task?.project_id && (task.assigned_to === user.id || assignees.some((a: any) => a.user_id === user.id)) && (
+                    <TaskTimeTracker
+                      taskId={task.id}
+                      projectId={task.project_id}
+                      userId={user.id}
+                      taskTitle={task.title}
+                      estimatedHours={task.estimated_hours || undefined}
+                      onTimeLogged={async () => {
+                        await loadContributions();
+                      }}
+                    />
+                  )}
+
                   {/* Status */}
                   <div>
                     <h4 className="text-sm font-medium text-gray-700 mb-2">Status</h4>
@@ -414,23 +543,62 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                     )}
                   </div>
 
-                  {/* Assignee */}
+                  {/* Assignees */}
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">Assignee</h4>
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Assignees</h4>
                     {isEditing ? (
-                      <select
-                        value={editAssignedTo}
-                        onChange={(e) => setEditAssignedTo(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
-                      >
-                        <option value="">Unassigned</option>
-                        {teamMembers.map((member) => (
-                          <option key={member.user_id} value={member.user_id}>
-                            {member.profile?.full_name || member.user_id}
-                          </option>
-                        ))}
-                      </select>
+                      <div className="space-y-2">
+                        <select
+                          multiple
+                          value={selectedAssignees}
+                          onChange={(e) => {
+                            const values = Array.from(e.target.selectedOptions, option => option.value);
+                            setSelectedAssignees(values);
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent min-h-[100px]"
+                          size={Math.min(teamMembers.length + 1, 6)}
+                        >
+                          <option value="">Unassigned</option>
+                          {teamMembers.map((member) => (
+                            <option key={member.user_id} value={member.user_id}>
+                              {member.profile?.full_name || member.user_id}
+                            </option>
+                          ))}
+                        </select>
+                        <p className="text-xs text-gray-500">
+                          Hold Cmd/Ctrl to select multiple assignees
+                        </p>
+                      </div>
+                    ) : assignees.length > 0 ? (
+                      <div className="space-y-2">
+                        {assignees.map((assignee: any) => {
+                          const isMe = assignee.user_id === user?.id;
+                          return (
+                            <div key={assignee.id} className="flex items-center">
+                              <Avatar
+                                userId={assignee.user_id}
+                                name={assignee.user?.full_name || 'User'}
+                                src={assignee.user?.avatar_url}
+                                size="sm"
+                                className="mr-3"
+                              />
+                              <div className="flex-1">
+                                <p className="text-sm font-medium text-gray-900">
+                                  {assignee.user?.full_name || 'Unknown User'}
+                                  {isMe && (
+                                    <span className="ml-2 text-xs text-qolabb-navy-600">(You)</span>
+                                  )}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  Assigned {new Date(assignee.assigned_at).toLocaleDateString()}
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     ) : task.assignee ? (
+                      // Fallback to old single assignee display
                       <div className="flex items-center">
                         <Avatar
                           userId={task.assignee.id}
@@ -476,18 +644,68 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                     )}
                   </div>
 
-                  {/* Attachments (Placeholder) */}
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
-                      <Paperclip size={16} className="mr-2" />
-                      Attachments
-                    </h4>
-                    <div className="bg-gray-50 rounded-lg p-4 text-center">
-                      <Paperclip size={20} className="mx-auto text-gray-300 mb-2" />
-                      <p className="text-gray-500 text-sm">Drag and drop files here</p>
-                      <p className="text-gray-400 text-xs mt-1">Coming soon</p>
+                  {/* Contributions */}
+                  {task.status === 'completed' && (
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
+                        <Link size={16} className="mr-2" />
+                        Linked Contributions
+                      </h4>
+                      {loadingContributions ? (
+                        <div className="text-center py-4 text-sm text-gray-500">
+                          Loading contributions...
+                        </div>
+                      ) : contributions.length > 0 ? (
+                        <div className="space-y-2">
+                          {contributions.map((contrib: any) => (
+                            <div
+                              key={contrib.id}
+                              className="bg-gray-50 border border-gray-200 rounded-lg p-3"
+                            >
+                              <div className="flex items-start justify-between mb-1">
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-gray-900 truncate">
+                                    {contrib.title}
+                                  </p>
+                                  {contrib.description && (
+                                    <p className="text-xs text-gray-600 mt-1 line-clamp-2">
+                                      {contrib.description}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
+                                <span className="capitalize">{contrib.contribution_type}</span>
+                                {contrib.hours_spent && (
+                                  <span className="flex items-center">
+                                    <Clock size={12} className="mr-1" />
+                                    {contrib.hours_spent}h
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+                          <Link size={20} className="mx-auto text-gray-300 mb-2" />
+                          <p className="text-gray-500 text-sm">No contributions logged yet</p>
+                          <p className="text-gray-400 text-xs mt-1">
+                            Contributions linked to this task will appear here
+                          </p>
+                        </div>
+                      )}
                     </div>
-                  </div>
+                  )}
+
+                  {/* Attachments */}
+                  {user && (
+                    <TaskAttachments
+                      taskId={task.id}
+                      userId={user.id}
+                      canManage={canManageAttachments}
+                    />
+                  )}
 
                   {/* Delete Task (Admin Only) */}
                   {canManage && !isEditing && (

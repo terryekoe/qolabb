@@ -152,6 +152,8 @@ export default function SettingsPage() {
     
     if (tab === 'workspace' && section === 'invite') {
       setActiveSection('workspace');
+    } else if (tab === 'notifications') {
+      setActiveSection('notifications');
     }
   }, [searchParams]);
 

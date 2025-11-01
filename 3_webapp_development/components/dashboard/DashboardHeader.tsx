@@ -1,9 +1,20 @@
 'use client';
 
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, Bell, Search } from 'lucide-react';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
+import { useAuth } from '@/lib/auth/AuthContext';
+import {
+  getUserNotifications,
+  getUnreadNotificationCount,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+  deleteNotification,
+  Notification,
+} from '@/lib/db/queries';
+import { NotificationDropdown } from '@/components/notifications/NotificationDropdown';
+import { supabase } from '@/lib/supabase';
 
 interface DashboardHeaderProps {
   onToggleSidebar: () => void;
@@ -15,9 +26,126 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   sidebarCollapsed 
 }) => {
   const { currentWorkspace } = useWorkspace();
+  const { user } = useAuth();
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Load notifications
+  const loadNotifications = useCallback(async () => {
+    if (!user?.id) return;
+    
+    try {
+      setLoading(true);
+      const userNotifications = await getUserNotifications(user.id, { limit: 20 });
+      setNotifications(userNotifications);
+      
+      const count = await getUnreadNotificationCount(user.id);
+      setUnreadCount(count);
+    } catch (error) {
+      console.error('Error loading notifications:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.id]);
+
+  // Initial load
+  useEffect(() => {
+    loadNotifications();
+  }, [loadNotifications]);
+
+  // Set up real-time subscription for notifications
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const channel = supabase
+      .channel(`notifications:${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          // Reload notifications when changes occur
+          loadNotifications();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, loadNotifications]);
+
+  // Handle click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowNotifications(false);
+      }
+    };
+
+    if (showNotifications) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showNotifications]);
+
+  const handleMarkAsRead = async (notificationId: string) => {
+    if (!user?.id) return;
+    
+    try {
+      await markNotificationAsRead(notificationId, user.id);
+      setNotifications(prev =>
+        prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
+      );
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    if (!user?.id) return;
+    
+    try {
+      await markAllNotificationsAsRead(user.id);
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      setUnreadCount(0);
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+    }
+  };
+
+  const handleDelete = async (notificationId: string) => {
+    if (!user?.id) return;
+    
+    try {
+      await deleteNotification(notificationId, user.id);
+      const wasUnread = notifications.find(n => n.id === notificationId)?.read === false;
+      setNotifications(prev => prev.filter(n => n.id !== notificationId));
+      if (wasUnread) {
+        setUnreadCount(prev => Math.max(0, prev - 1));
+      }
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+    }
+  };
 
   return (
-    <header className="fixed top-0 right-0 left-0 md:left-64 h-16 bg-white border-b border-gray-200 z-30 transition-all duration-300"
+    <header 
+      className="fixed top-0 right-0 left-0 md:left-64 h-16 bg-white border-b border-gray-200 z-30 transition-all duration-300"
       style={{ left: sidebarCollapsed ? '0' : '16rem' }}
     >
       <div className="h-full flex items-center justify-between px-6">
@@ -46,14 +174,39 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           </button>
 
           {/* Notifications */}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <Bell size={22} className="text-gray-600" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-          </motion.button>
+          <div className="relative" ref={dropdownRef}>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setShowNotifications(!showNotifications)}
+              className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              aria-label="Notifications"
+            >
+              <Bell size={22} className="text-gray-600" />
+              {unreadCount > 0 && (
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center"
+                >
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </motion.span>
+              )}
+            </motion.button>
+
+            <AnimatePresence>
+              {showNotifications && (
+                <NotificationDropdown
+                  notifications={notifications}
+                  unreadCount={unreadCount}
+                  onClose={() => setShowNotifications(false)}
+                  onMarkAsRead={handleMarkAsRead}
+                  onMarkAllAsRead={handleMarkAllAsRead}
+                  onDelete={handleDelete}
+                />
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
     </header>

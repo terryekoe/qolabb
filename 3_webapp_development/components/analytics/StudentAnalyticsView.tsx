@@ -103,17 +103,21 @@ export function StudentAnalyticsView() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Total Hours"
-          value={userStats.totalHours || 0}
-          change={`${userStats.weekHours || 0} this week`}
+          value={userStats.totalUnifiedHours || userStats.totalHours || 0}
+          change={userStats.completedTasksWithoutContributions > 0 
+            ? `${userStats.estimatedHoursFromTasks || 0}h from tasks` 
+            : `${userStats.weekHours || 0} this week`}
           changeType="positive"
           icon={Clock}
           color="blue"
         />
         <StatCard
           title="Contributions"
-          value={userStats.totalContributions || 0}
-          change="All time"
-          changeType="neutral"
+          value={userStats.totalUnifiedContributions || userStats.totalContributions || 0}
+          change={userStats.completedTasksWithoutContributions > 0 
+            ? `+${userStats.completedTasksWithoutContributions} from tasks` 
+            : "All time"}
+          changeType={userStats.completedTasksWithoutContributions > 0 ? "positive" : "neutral"}
           icon={Activity}
           color="green"
         />
@@ -127,12 +131,13 @@ export function StudentAnalyticsView() {
         />
         <StatCard
           title="Participation Score"
-          value={Math.round(
-            (userStats.totalHours * 0.4) +
-            (userStats.totalContributions * 2) +
-            (completionRate * 0.5)
+          value={userStats.unifiedParticipationScore || Math.round(
+            (userStats.totalUnifiedHours * 0.4) +
+            (userStats.totalUnifiedContributions * 2) +
+            (completionRate * 0.5) +
+            (userStats.completedTasks * 1.0)
           )}
-          change="Based on hours, contributions & completion"
+          change={`Unified: Tasks + Contributions`}
           changeType="positive"
           icon={Award}
           color="orange"
@@ -166,6 +171,29 @@ export function StudentAnalyticsView() {
         {/* Overview Tab */}
         {activeTab === 'overview' && (
           <div className="space-y-6">
+            {/* Unified Participation Warning */}
+            {userStats.completedTasksWithoutContributions > 0 && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start space-x-3">
+                  <Target className="text-blue-600 flex-shrink-0 mt-0.5" size={18} />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-blue-900 mb-1">
+                      Enhanced Participation Tracking
+                    </p>
+                    <p className="text-xs text-blue-800">
+                      {userStats.completedTasksWithoutContributions} completed task{userStats.completedTasksWithoutContributions !== 1 ? 's' : ''} without logged contributions.
+                      Estimated {userStats.estimatedHoursFromTasks || 0} hours included in your participation score.
+                      {userStats.completedTasksWithoutContributions > 0 && (
+                        <span className="block mt-1 font-medium">
+                          💡 Tip: Log contributions when completing tasks for more accurate tracking!
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Contribution Type Breakdown */}
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Contribution Types</h3>

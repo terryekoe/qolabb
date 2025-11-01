@@ -19,13 +19,17 @@ import {
   Edit2,
   Trash2,
   GripVertical,
+  BarChart3,
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/Button';
 import { TaskModal } from '@/components/projects/TaskModal';
 import { TaskDetailModal } from '@/components/tasks/TaskDetailModal';
+import { TeamWorkloadWidget } from '@/components/tasks/TeamWorkloadWidget';
+import { ContributionLogModal } from '@/components/tasks/ContributionLogModal';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
+import { useRouter } from 'next/navigation';
 import { 
   getWorkspaceProjects,
   getProjectTasks,
@@ -44,6 +48,7 @@ import {
   useSensors,
   DragStartEvent,
   DragEndEvent,
+  useDroppable,
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -95,18 +100,31 @@ function DraggableTaskCard({
   const isMyTask = task.assigned_to === user?.id;
   const statusConfig = getStatusConfig(task.status);
 
+  // Use a ref to track if we're dragging to prevent onClick interference
+  const dragStartRef = React.useRef<boolean>(false);
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-all group relative cursor-pointer"
-      onClick={() => onTaskClick(task)}
+      onClick={(e) => {
+        // Only trigger task click if not dragging (activation distance will prevent this for drags)
+        if (!dragStartRef.current && !isDragging) {
+          onTaskClick(task);
+        }
+        dragStartRef.current = false;
+      }}
     >
       <div className="flex items-start gap-2">
         <div
           {...attributes}
           {...listeners}
           className="cursor-grab active:cursor-grabbing mt-1 opacity-0 group-hover:opacity-100 transition-opacity"
+          onMouseDown={() => {
+            // Mark that we started a drag
+            dragStartRef.current = true;
+          }}
         >
           <GripVertical size={16} className="text-gray-400" />
         </div>
@@ -229,8 +247,18 @@ function KanbanColumn({
     green: 'bg-green-100 text-green-700',
   };
 
+  // Make the column a droppable area
+  const { setNodeRef, isOver } = useDroppable({
+    id,
+  });
+
   return (
-    <div className="bg-gray-50 rounded-xl p-4">
+    <div 
+      ref={setNodeRef}
+      className={`bg-gray-50 rounded-xl p-4 transition-colors ${
+        isOver ? 'bg-gray-100 ring-2 ring-qolabb-navy-400 ring-offset-2' : ''
+      }`}
+    >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           {icon}
@@ -261,7 +289,7 @@ function KanbanColumn({
             />
           ))}
           {tasks.length === 0 && (
-            <div className="text-center py-8 text-sm text-gray-400">
+            <div className="text-center py-8 text-sm text-gray-400 border-2 border-dashed border-gray-300 rounded-lg">
               Drop tasks here
             </div>
           )}
@@ -274,6 +302,7 @@ function KanbanColumn({
 export default function TasksPage() {
   const { user, profile } = useAuth();
   const { currentWorkspace } = useWorkspace();
+  const router = useRouter();
   
   const [tasks, setTasks] = useState<any[]>([]);
   const [projects, setProjects] = useState<any[]>([]);
@@ -287,10 +316,16 @@ export default function TasksPage() {
   const [activeTaskMenu, setActiveTaskMenu] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'kanban'>('kanban');
+  const [pageSection, setPageSection] = useState<'tasks' | 'workload'>('tasks');
+  const [showFilters, setShowFilters] = useState(false);
   
   // Task detail modal
   const [selectedTask, setSelectedTask] = useState<any>(null);
   const [showTaskDetail, setShowTaskDetail] = useState(false);
+  
+  // Contribution log modal
+  const [showContributionModal, setShowContributionModal] = useState(false);
+  const [taskForContribution, setTaskForContribution] = useState<any>(null);
   
   // Advanced filtering
   const [priorityFilter, setPriorityFilter] = useState<'all' | TaskPriority>('all');
@@ -374,11 +409,12 @@ export default function TasksPage() {
         }
       }
       
-      // ESC = Clear selection
+      // ESC = Clear selection and close expandable panels
       if (e.key === 'Escape') {
         setSelectedTasks(new Set());
         setEditingTask(null);
         setActiveTaskMenu(null);
+        setShowFilters(false);
       }
       
       // CMD/CTRL + A = Select all
@@ -419,6 +455,23 @@ export default function TasksPage() {
         return;
       }
       
+      // IMPORTANT: Capture task info BEFORE updating, so we can show modal after
+      const taskBeforeUpdate = tasks.find(t => t.id === taskId);
+      const oldStatus = taskBeforeUpdate?.status;
+      const wasJustCompleted = oldStatus !== 'completed' && newStatus === 'completed';
+      const isMyTask = taskBeforeUpdate?.assigned_to === user?.id;
+      
+      console.log('Task status update:', {
+        taskId,
+        oldStatus,
+        newStatus,
+        wasJustCompleted,
+        isMyTask,
+        assignedTo: taskBeforeUpdate?.assigned_to,
+        userId: user?.id,
+        task: taskBeforeUpdate
+      });
+      
       // Optimistic update
       setTasks(prevTasks => 
         prevTasks.map(task => 
@@ -427,6 +480,26 @@ export default function TasksPage() {
       );
       
       await updateTask(taskId, { status: newStatus });
+      
+      // Show contribution modal BEFORE reloading data (so we have the task info)
+      if (wasJustCompleted && isMyTask && taskBeforeUpdate) {
+        console.log('Showing contribution modal for task:', taskBeforeUpdate.id);
+        setTaskForContribution({
+          id: taskBeforeUpdate.id,
+          title: taskBeforeUpdate.title,
+          description: taskBeforeUpdate.description,
+          project_id: taskBeforeUpdate.project_id,
+        });
+        setShowContributionModal(true);
+      } else {
+        console.log('Not showing modal:', {
+          wasJustCompleted,
+          isMyTask,
+          hasTask: !!taskBeforeUpdate
+        });
+      }
+      
+      // Reload data after showing modal (or if modal shouldn't show)
       await loadData();
     } catch (error: any) {
       // Better error handling
@@ -469,7 +542,7 @@ export default function TasksPage() {
     const newStatus = over.id as TaskStatus;
     
     // Validate that the new status is a valid TaskStatus
-    const validStatuses: TaskStatus[] = ['todo', 'in_progress', 'completed', 'blocked'];
+    const validStatuses: TaskStatus[] = ['todo', 'in_progress', 'completed'];
     if (!validStatuses.includes(newStatus)) {
       console.warn('Invalid task status:', newStatus);
       return;
@@ -772,15 +845,46 @@ export default function TasksPage() {
   return (
     <DashboardLayout>
       <div className="p-6 space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">All Tasks</h1>
-            <p className="text-gray-600 mt-1">
-              View and manage tasks across all projects in {currentWorkspace.name}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
+        {/* Page Section Tabs */}
+        <div className="bg-white rounded-xl border border-gray-200 p-1 inline-flex">
+          <button
+            onClick={() => setPageSection('tasks')}
+            className={`px-6 py-3 rounded-lg font-medium text-sm transition-colors flex items-center gap-2 ${
+              pageSection === 'tasks'
+                ? 'bg-qolabb-navy-600 text-white shadow-sm'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+            }`}
+          >
+            <CheckSquare size={18} />
+            <span>Tasks</span>
+          </button>
+          {tasks.length > 0 && projects.length > 0 && (canManageTasks || taskCounts.my_tasks > 0) && (
+            <button
+              onClick={() => setPageSection('workload')}
+              className={`px-6 py-3 rounded-lg font-medium text-sm transition-colors flex items-center gap-2 ${
+                pageSection === 'workload'
+                  ? 'bg-qolabb-navy-600 text-white shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <BarChart3 size={18} />
+              <span>Team Workload</span>
+            </button>
+          )}
+        </div>
+
+        {/* Tasks Section */}
+        {pageSection === 'tasks' && (
+          <>
+            {/* Header with Quick Stats */}
+            <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Tasks</h1>
+              <p className="text-gray-600 mt-1">
+                Manage and track your work across all projects
+              </p>
+            </div>
             {projects.length > 0 && (
               <div className="relative group">
                 <Button
@@ -793,7 +897,7 @@ export default function TasksPage() {
                   className="flex items-center space-x-2"
                 >
                   <Plus size={20} />
-                  <span>New Task</span>
+                  <span>Create New Task</span>
                 </Button>
                 
                 {/* Dropdown for project selection when multiple projects */}
@@ -814,83 +918,167 @@ export default function TasksPage() {
               </div>
             )}
           </div>
+
+          {/* Quick Stats Bar */}
+          {tasks.length > 0 && (
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div className="bg-white rounded-lg border border-gray-200 p-4">
+                <div className="text-2xl font-bold text-gray-900">{taskCounts.all}</div>
+                <div className="text-sm text-gray-600 mt-1">Total Tasks</div>
+              </div>
+              <div className="bg-white rounded-lg border border-gray-200 p-4">
+                <div className="text-2xl font-bold text-orange-600">{taskCounts.todo}</div>
+                <div className="text-sm text-gray-600 mt-1">To Do</div>
+              </div>
+              <div className="bg-white rounded-lg border border-gray-200 p-4">
+                <div className="text-2xl font-bold text-blue-600">{taskCounts.in_progress}</div>
+                <div className="text-sm text-gray-600 mt-1">In Progress</div>
+              </div>
+              <div className="bg-white rounded-lg border border-gray-200 p-4">
+                <div className="text-2xl font-bold text-green-600">{taskCounts.completed}</div>
+                <div className="text-sm text-gray-600 mt-1">Completed</div>
+              </div>
+              <div className="bg-white rounded-lg border border-gray-200 p-4">
+                <div className="text-2xl font-bold text-red-600">{overdueCount}</div>
+                <div className="text-sm text-gray-600 mt-1">
+                  {overdueCount === 1 ? 'Overdue' : 'Overdue'}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Filters */}
-        <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-4">
-          {/* Search and View Toggle */}
-          <div className="flex gap-4">
+        {/* Filters and View Controls */}
+        <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-5">
+          {/* Primary Controls: Search and View Mode */}
+          <div className="flex flex-col sm:flex-row gap-4">
+            {/* Search Bar - Always Visible */}
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
+                <Search className="text-gray-400" size={20} />
+              </div>
               <input
+                id="task-search"
                 type="text"
-                placeholder="Search tasks..."
+                placeholder="Search tasks by title or description..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
               />
+              <p className="text-xs text-gray-500 mt-1.5 ml-1">
+                Press <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs">⌘K</kbd> to focus search
+              </p>
             </div>
             
-            {/* View Mode Toggle */}
-            <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg">
-              <button
-                onClick={() => setViewMode('kanban')}
-                className={`px-4 py-2 rounded font-medium text-sm transition-colors ${
-                  viewMode === 'kanban'
-                    ? 'bg-white text-qolabb-navy-700 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                Kanban
-              </button>
-              <button
-                onClick={() => setViewMode('list')}
-                className={`px-4 py-2 rounded font-medium text-sm transition-colors ${
-                  viewMode === 'list'
-                    ? 'bg-white text-qolabb-navy-700 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                List
-              </button>
-            </div>
-          </div>
-
-          {/* Status & Project Filters */}
-          <div className="flex flex-col lg:flex-row gap-4">
-            {/* Status Filter */}
-            <div className="flex items-center space-x-2 overflow-x-auto flex-1">
-              <Filter size={20} className="text-gray-400 flex-shrink-0" />
-              {(['all', 'my_tasks', 'todo', 'in_progress', 'completed'] as FilterType[]).map((status) => (
+            {/* Filter and View Mode Controls */}
+            <div className="flex items-center gap-3 self-start pt-0">
+              {/* Filter Icon Button */}
+              <div className="relative">
                 <button
-                  key={status}
-                  onClick={() => setStatusFilter(status)}
-                  className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors ${
-                    statusFilter === status
-                      ? 'bg-qolabb-navy-600 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  onClick={() => setShowFilters(!showFilters)}
+                  className={`p-2.5 rounded-lg transition-colors ${
+                    showFilters || statusFilter !== 'all' || selectedProject !== 'all'
+                      ? 'bg-qolabb-navy-100 text-qolabb-navy-700'
+                      : 'hover:bg-gray-100 text-gray-600'
                   }`}
+                  title="Filter tasks"
                 >
-                  {status === 'my_tasks' ? 'My Tasks' : status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ')}
-                  <span className="ml-2 opacity-75">({taskCounts[status]})</span>
+                  <Filter size={20} />
                 </button>
-              ))}
-            </div>
+                {(statusFilter !== 'all' || selectedProject !== 'all') && (
+                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                )}
+              </div>
 
-            {/* Project Filter */}
-            <select
-              value={selectedProject}
-              onChange={(e) => setSelectedProject(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
-            >
-              <option value="all">All Projects</option>
-              {projects.map((project) => (
-                <option key={project.id} value={project.id}>
-                  {project.name}
-                </option>
-              ))}
-            </select>
+              {/* View Mode Toggle */}
+              <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg">
+                <button
+                  onClick={() => setViewMode('kanban')}
+                  className={`px-4 py-2 rounded font-medium text-sm transition-colors flex items-center gap-2 ${
+                    viewMode === 'kanban'
+                      ? 'bg-white text-qolabb-navy-700 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                  title="Board view - Drag tasks between columns to update status"
+                >
+                  <FolderKanban size={16} />
+                  <span>Board</span>
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`px-4 py-2 rounded font-medium text-sm transition-colors flex items-center gap-2 ${
+                    viewMode === 'list'
+                      ? 'bg-white text-qolabb-navy-700 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                  title="List view - See all tasks in a grid layout"
+                >
+                  <CheckSquare size={16} />
+                  <span>Grid</span>
+                </button>
+              </div>
+            </div>
           </div>
+
+          {/* Expandable Filters */}
+          {showFilters && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="border-t border-gray-200 pt-5 space-y-4"
+            >
+              {/* Status Filter */}
+              <div>
+                <label className="text-xs font-medium text-gray-700 mb-2 block">Filter by Status</label>
+                <div className="flex items-center space-x-2 overflow-x-auto">
+                  {(['all', 'my_tasks', 'todo', 'in_progress', 'completed'] as FilterType[]).map((status) => {
+                    const labels: Record<FilterType, string> = {
+                      all: 'All Tasks',
+                      my_tasks: 'My Tasks',
+                      todo: 'To Do',
+                      in_progress: 'In Progress',
+                      completed: 'Completed'
+                    };
+                    return (
+                      <button
+                        key={status}
+                        onClick={() => setStatusFilter(status)}
+                        className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors ${
+                          statusFilter === status
+                            ? 'bg-qolabb-navy-600 text-white shadow-sm'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        {labels[status]}
+                        <span className="ml-2 opacity-75">({taskCounts[status]})</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Project Filter */}
+              <div>
+                <label htmlFor="project-filter" className="text-xs font-medium text-gray-700 mb-2 block">
+                  Filter by Project
+                </label>
+                <select
+                  id="project-filter"
+                  value={selectedProject}
+                  onChange={(e) => setSelectedProject(e.target.value)}
+                  className="w-full sm:w-auto px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent bg-white"
+                >
+                  <option value="all">All Projects ({projects.length})</option>
+                  {projects.map((project) => (
+                    <option key={project.id} value={project.id}>
+                      {project.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </motion.div>
+          )}
         </div>
 
         {/* Tasks List */}
@@ -912,43 +1100,75 @@ export default function TasksPage() {
           >
             <CheckSquare size={64} className="mx-auto text-gray-300 mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              {searchQuery || statusFilter !== 'all' || selectedProject !== 'all' ? 'No tasks found' : 'No tasks yet'}
+              {searchQuery || statusFilter !== 'all' || selectedProject !== 'all' 
+                ? 'No tasks match your filters' 
+                : 'Get started with tasks'}
             </h3>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-600 mb-6 max-w-md mx-auto">
               {searchQuery || statusFilter !== 'all' || selectedProject !== 'all'
-                ? 'Try adjusting your filters or search query'
+                ? 'Try adjusting your search or filters to find what you\'re looking for.'
                 : projects.length === 0
-                ? 'Create a project first, then add tasks to get started'
-                : 'Create your first task to start tracking work'}
+                ? 'Start by creating a project, then add tasks to track your team\'s work.'
+                : 'Create your first task to begin tracking progress and collaborating with your team.'}
             </p>
-            {projects.length === 0 ? (
-              <Button
-                variant="secondary"
-                onClick={() => window.location.href = '/projects'}
-                className="flex items-center space-x-2 mx-auto"
-              >
-                <FolderKanban size={20} />
-                <span>Go to Projects</span>
-              </Button>
-            ) : !searchQuery && statusFilter === 'all' && selectedProject === 'all' && projects.length === 1 ? (
-              <Button
-                variant="primary"
-                onClick={() => handleCreateTask(projects[0])}
-                className="flex items-center space-x-2 mx-auto"
-              >
-                <Plus size={20} />
-                <span>Create First Task</span>
-              </Button>
-            ) : null}
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              {projects.length === 0 ? (
+                <Button
+                  variant="primary"
+                  onClick={() => router.push('/projects')}
+                  className="flex items-center space-x-2"
+                >
+                  <FolderKanban size={20} />
+                  <span>Go to Projects</span>
+                </Button>
+              ) : !searchQuery && statusFilter === 'all' && selectedProject === 'all' ? (
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    if (projects.length === 1) {
+                      handleCreateTask(projects[0]);
+                    } else if (projects.length > 1) {
+                      handleCreateTask(projects[0]);
+                    }
+                  }}
+                  className="flex items-center space-x-2"
+                >
+                  <Plus size={20} />
+                  <span>Create Your First Task</span>
+                </Button>
+              ) : (
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setStatusFilter('all');
+                    setSelectedProject('all');
+                  }}
+                  className="flex items-center space-x-2"
+                >
+                  <Filter size={20} />
+                  <span>Clear Filters</span>
+                </Button>
+              )}
+            </div>
           </motion.div>
         ) : viewMode === 'kanban' ? (
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCorners}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-          >
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Task Board</h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  Drag tasks between columns to update their status
+                </p>
+              </div>
+            </div>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCorners}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+            >
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* To Do Column */}
               <KanbanColumn
                 id="todo"
@@ -1012,8 +1232,16 @@ export default function TasksPage() {
               ) : null}
             </DragOverlay>
           </DndContext>
+          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">All Tasks ({filteredTasks.length})</h3>
+                <p className="text-sm text-gray-600 mt-1">Click any task to view details and manage it</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredTasks.map((task, index) => {
               const statusConfig = getStatusConfig(task.status);
               const isMyTask = task.assigned_to === user?.id;
@@ -1107,6 +1335,54 @@ export default function TasksPage() {
                 </motion.div>
               );
             })}
+            </div>
+          </div>
+        )}
+          </>
+        )}
+
+        {/* Team Workload Section */}
+        {pageSection === 'workload' && (
+          <div className="space-y-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Team Workload</h1>
+              <p className="text-gray-600 mt-1">
+                Analyze task distribution and workload balance across your team
+              </p>
+            </div>
+            {tasks.length > 0 && projects.length > 0 ? (
+              <div className="bg-white rounded-xl border border-gray-200 p-5">
+                <TeamWorkloadWidget
+                  tasks={tasks}
+                  projects={projects}
+                  currentWorkspaceId={currentWorkspace.id}
+                  userId={user?.id}
+                />
+              </div>
+            ) : (
+              <div className="bg-white rounded-xl p-12 text-center border-2 border-dashed border-gray-300">
+                <BarChart3 size={64} className="mx-auto text-gray-300 mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">No Tasks Available</h3>
+                <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                  Create some tasks first to see the team workload analysis.
+                </p>
+                {projects.length > 0 && (
+                  <Button
+                    variant="primary"
+                    onClick={() => {
+                      setPageSection('tasks');
+                      if (projects.length === 1) {
+                        handleCreateTask(projects[0]);
+                      }
+                    }}
+                    className="flex items-center space-x-2 mx-auto"
+                  >
+                    <Plus size={20} />
+                    <span>Go to Tasks</span>
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -1138,6 +1414,24 @@ export default function TasksPage() {
           onTaskUpdated={handleTaskUpdated}
           onTaskDeleted={handleTaskDeleted}
           canManage={canManageTasks}
+        />
+      )}
+
+      {/* Contribution Log Modal */}
+      {taskForContribution && user && (
+        <ContributionLogModal
+          isOpen={showContributionModal && !!taskForContribution}
+          onClose={() => {
+            setShowContributionModal(false);
+            setTaskForContribution(null);
+          }}
+          onSuccess={() => {
+            loadData();
+            setShowContributionModal(false);
+            setTaskForContribution(null);
+          }}
+          task={taskForContribution}
+          userId={user.id}
         />
       )}
     </DashboardLayout>

@@ -127,7 +127,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
           const active = isActive(item.href);
           
           return (
-            <Link key={item.href} href={item.href}>
+            <Link 
+              key={item.href} 
+              href={item.href}
+              prefetch={true}
+              className="block"
+            >
               <motion.div
                 whileHover={{ x: 4 }}
                 className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${

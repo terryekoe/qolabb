@@ -610,6 +610,26 @@ export async function createProject(project: ProjectInsert, userId: string) {
     metadata: { project_name: project.name },
   })
 
+  // Notify team members about new project
+  if (project.team_id) {
+    const { data: teamMembers } = await supabase
+      .from('team_members')
+      .select('user_id')
+      .eq('team_id', project.team_id)
+
+    const teamMemberIds = teamMembers?.map(m => m.user_id).filter(id => id !== userId) || []
+
+    if (teamMemberIds.length > 0) {
+      await createProjectUpdateNotification(
+        teamMemberIds,
+        project.name,
+        (data as any).id,
+        'created',
+        userId
+      )
+    }
+  }
+
   return data as Project
 }
 
@@ -653,6 +673,13 @@ export async function getWorkspaceProjects(workspaceId: string) {
 }
 
 export async function updateProject(projectId: string, updates: Partial<Project>) {
+  // Get current project to check for status changes
+  const { data: currentProject } = await supabase
+    .from('projects')
+    .select('name, team_id, status')
+    .eq('id', projectId)
+    .single()
+
   const { data, error } = await supabase
     .from('projects')
     .update(updates as any)
@@ -661,6 +688,53 @@ export async function updateProject(projectId: string, updates: Partial<Project>
     .single()
 
   if (error) throw error
+
+  // Get current user from auth
+  const { data: { user: authUser } } = await supabase.auth.getUser()
+  const userId = authUser?.id
+
+  // Notify team members about project updates
+  if (currentProject && userId && currentProject.team_id) {
+    const { data: teamMembers } = await supabase
+      .from('team_members')
+      .select('user_id')
+      .eq('team_id', currentProject.team_id)
+
+    const teamMemberIds = teamMembers?.map(m => m.user_id).filter(id => id !== userId) || []
+
+    if (teamMemberIds.length > 0) {
+      // Check what changed
+      if (updates.status && updates.status !== currentProject.status) {
+        if (updates.status === 'completed') {
+          await createProjectUpdateNotification(
+            teamMemberIds,
+            currentProject.name,
+            projectId,
+            'completed',
+            userId
+          )
+        } else {
+          await createProjectUpdateNotification(
+            teamMemberIds,
+            currentProject.name,
+            projectId,
+            'updated',
+            userId
+          )
+        }
+      } else if (Object.keys(updates).length > 0) {
+        // General project update
+        await createProjectUpdateNotification(
+          teamMemberIds,
+          currentProject.name,
+          projectId,
+          'updated',
+          userId
+        )
+      }
+    }
+  }
+
   return data as Project
 }
 
@@ -693,6 +767,23 @@ export async function createTask(task: TaskInsert, userId: string) {
       entity_id: (data as any).id,
       metadata: { task_title: task.title, assigned_to: task.assigned_to },
     })
+
+    // Create notification if task is assigned during creation (old single assignee system)
+    if (task.assigned_to && task.assigned_to !== userId) {
+      const { data: projectData } = await supabase
+        .from('projects')
+        .select('name')
+        .eq('id', task.project_id)
+        .single()
+
+      await createTaskAssignmentNotification(
+        task.assigned_to,
+        task.title,
+        (data as any).id,
+        userId,
+        projectData?.name
+      )
+    }
   }
 
   return data as Task
@@ -705,7 +796,13 @@ export async function getProjectTasks(projectId: string) {
       .select(`
         *,
         assignee:profiles!assigned_to(*),
-        creator:profiles!created_by(*)
+        creator:profiles!created_by(*),
+        assignees:task_assignees(
+          id,
+          user_id,
+          assigned_at,
+          user:profiles!user_id(id, full_name, avatar_url)
+        )
       `)
       .eq('project_id', projectId)
       .order('created_at', { ascending: false })
@@ -722,22 +819,71 @@ export async function getProjectTasks(projectId: string) {
 }
 
 export async function getUserTasks(userId: string) {
-  const { data, error } = await supabase
+  // Get tasks where user is assigned (either via old assigned_to or new task_assignees)
+  const { data: tasksByOld, error: error1 } = await supabase
     .from('tasks')
     .select(`
       *,
       project:projects(*),
-      assignee:profiles!assigned_to(*)
+      assignee:profiles!assigned_to(*),
+      assignees:task_assignees(
+        id,
+        user_id,
+        assigned_at,
+        user:profiles!user_id(id, full_name, avatar_url)
+      )
     `)
     .eq('assigned_to', userId)
-    .order('created_at', { ascending: false })
 
-  if (error) throw error
-  return data
+  const { data: tasksByNew, error: error2 } = await supabase
+    .from('task_assignees')
+    .select(`
+      task:tasks(
+        *,
+        project:projects(*),
+        assignee:profiles!assigned_to(*),
+        assignees:task_assignees(
+          id,
+          user_id,
+          assigned_at,
+          user:profiles!user_id(id, full_name, avatar_url)
+        )
+      )
+    `)
+    .eq('user_id', userId)
+
+  if (error1 || error2) {
+    throw error1 || error2
+  }
+
+  // Combine and deduplicate
+  const allTasks = [
+    ...(tasksByOld || []),
+    ...(tasksByNew?.map((ta: any) => ta.task).filter(Boolean) || [])
+  ]
+
+  // Deduplicate by task id
+  const uniqueTasks = Array.from(
+    new Map(allTasks.map((task: any) => [task.id, task])).values()
+  )
+
+  return uniqueTasks.sort((a: any, b: any) => 
+    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  )
 }
 
 export async function updateTask(taskId: string, updates: Partial<Task>) {
   try {
+    // Get current task to detect changes
+    const { data: currentTask } = await supabase
+      .from('tasks')
+      .select(`
+        *,
+        project:projects!project_id(id, workspace_id)
+      `)
+      .eq('id', taskId)
+      .single()
+
     const { data, error } = await supabase
       .from('tasks')
       .update(updates as any)
@@ -758,6 +904,147 @@ export async function updateTask(taskId: string, updates: Partial<Task>) {
     
     if (!data) {
       throw new Error(`Task with id ${taskId} not found or update failed`);
+    }
+
+    // Log activity for significant changes
+    if (currentTask && (currentTask as any).project?.workspace_id) {
+      const workspaceId = (currentTask as any).project.workspace_id;
+      
+      // Get current user from auth
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      const userId = authUser?.id || currentTask.created_by || '';
+      
+      if (!userId) {
+        console.warn('No user ID available for activity logging');
+      }
+      
+      // Log status change
+      if (updates.status && updates.status !== currentTask.status && userId) {
+        await logActivity({
+          workspace_id: workspaceId,
+          user_id: userId,
+          action_type: 'status_changed',
+          entity_type: 'task',
+          entity_id: taskId,
+          metadata: {
+            old_status: currentTask.status,
+            new_status: updates.status,
+            task_title: data.title,
+          },
+        });
+
+        // Get project name for notifications
+        const { data: project } = await supabase
+          .from('projects')
+          .select('name, team_id')
+          .eq('id', data.project_id)
+          .single()
+
+        const projectName = project?.name
+
+        // Create notification for task status change
+        if (updates.status === 'completed' && currentTask.status !== 'completed') {
+          // Notify task assignees and team members about completion
+          const { data: assignees } = await supabase
+            .from('task_assignees')
+            .select('user_id')
+            .eq('task_id', taskId)
+
+          const assigneeIds = assignees?.map(a => a.user_id) || []
+          // Include old assigned_to for backward compatibility
+          if (currentTask.assigned_to) {
+            assigneeIds.push(currentTask.assigned_to)
+          }
+
+          // Get team members if project has a team
+          let teamMemberIds: string[] = []
+          if (project?.team_id) {
+            const { data: teamMembers } = await supabase
+              .from('team_members')
+              .select('user_id')
+              .eq('team_id', project.team_id)
+            teamMemberIds = teamMembers?.map(m => m.user_id) || []
+          }
+
+          // Combine unique IDs
+          const uniqueIds = [...new Set([...assigneeIds, ...teamMemberIds])].filter(id => id !== userId)
+
+          await Promise.all(
+            uniqueIds.map(notifyUserId =>
+              createTaskCompletedNotification(
+                notifyUserId,
+                data.title,
+                taskId,
+                userId,
+                projectName
+              )
+            )
+          )
+        } else if (updates.status && currentTask.assigned_to) {
+          // Notify assignee about status change
+          await createTaskStatusChangedNotification(
+            currentTask.assigned_to,
+            data.title,
+            taskId,
+            currentTask.status,
+            updates.status,
+            userId,
+            projectName
+          )
+        }
+      }
+      
+      // Log assignment change (old single assignee system)
+      if (updates.assigned_to !== undefined && updates.assigned_to !== currentTask.assigned_to && userId) {
+        const assigneeName = updates.assigned_to 
+          ? (await supabase.from('profiles').select('full_name').eq('id', updates.assigned_to).single()).data?.full_name || 'someone'
+          : null;
+        
+        await logActivity({
+          workspace_id: workspaceId,
+          user_id: userId,
+          action_type: 'assigned_task',
+          entity_type: 'task',
+          entity_id: taskId,
+          metadata: {
+            assignee_id: updates.assigned_to,
+            assignee_name: assigneeName,
+            task_title: data.title,
+          },
+        });
+
+        // Create notification for newly assigned user (old system)
+        if (updates.assigned_to) {
+          const { data: project } = await supabase
+            .from('projects')
+            .select('name')
+            .eq('id', data.project_id)
+            .single()
+          
+          await createTaskAssignmentNotification(
+            updates.assigned_to,
+            data.title,
+            taskId,
+            userId,
+            project?.name
+          )
+        }
+      }
+      
+      // Log general update (if not already logged above)
+      if (!updates.status && updates.assigned_to === undefined && userId) {
+        await logActivity({
+          workspace_id: workspaceId,
+          user_id: userId,
+          action_type: 'updated_task',
+          entity_type: 'task',
+          entity_id: taskId,
+          metadata: {
+            task_title: data.title,
+            changes: Object.keys(updates),
+          },
+        });
+      }
     }
     
     return data as Task
@@ -2111,14 +2398,42 @@ export async function getWorkspaceAnalytics(workspaceId: string) {
       `)
       .eq('project.workspace_id', workspaceId)
 
-    // Calculate participation metrics
-    const participationByUser: Record<string, { hours: number; contributions: number }> = {}
+    // Calculate participation metrics (unified: contributions + tasks)
+    const participationByUser: Record<string, { hours: number; contributions: number; tasksCompleted: number }> = {}
+    
+    // Initialize all users who have tasks
+    tasks?.forEach(task => {
+      if (task.assigned_to && !participationByUser[task.assigned_to]) {
+        participationByUser[task.assigned_to] = { hours: 0, contributions: 0, tasksCompleted: 0 }
+      }
+    })
+    
+    // Aggregate contributions
     contributions?.forEach(contrib => {
       if (!participationByUser[contrib.user_id]) {
-        participationByUser[contrib.user_id] = { hours: 0, contributions: 0 }
+        participationByUser[contrib.user_id] = { hours: 0, contributions: 0, tasksCompleted: 0 }
       }
       participationByUser[contrib.user_id].hours += contrib.hours_spent || 0
       participationByUser[contrib.user_id].contributions += 1
+    })
+
+    // Enhance with completed tasks (estimate hours for tasks without contributions)
+    const taskIdsWithContributions = new Set(
+      contributions?.filter(c => c.task_id).map(c => c.task_id) || []
+    )
+    
+    tasks?.forEach(task => {
+      if (task.status === 'completed' && task.assigned_to) {
+        if (!participationByUser[task.assigned_to]) {
+          participationByUser[task.assigned_to] = { hours: 0, contributions: 0, tasksCompleted: 0 }
+        }
+        participationByUser[task.assigned_to].tasksCompleted += 1
+        
+        // If completed task has no contribution, estimate hours (1.5h per task)
+        if (!taskIdsWithContributions.has(task.id)) {
+          participationByUser[task.assigned_to].hours += 1.5
+        }
+      }
     })
 
     const participationScores = Object.values(participationByUser).map(p => p.hours)
@@ -2224,12 +2539,21 @@ export async function getTeamAnalytics(teamId: string) {
       }
     })
 
-    // Aggregate tasks
+    // Aggregate tasks and enhance hours with completed tasks
+    const taskIdsWithContributions = new Set(
+      contributions?.filter(c => c.task_id).map(c => c.task_id) || []
+    )
+    
     tasks?.forEach(task => {
       if (task.assigned_to && memberParticipation[task.assigned_to]) {
         memberParticipation[task.assigned_to].tasksAssigned += 1
         if (task.status === 'completed') {
           memberParticipation[task.assigned_to].tasksCompleted += 1
+          
+          // If completed task has no contribution, estimate hours (1.5h per task)
+          if (!taskIdsWithContributions.has(task.id)) {
+            memberParticipation[task.assigned_to].hours += 1.5
+          }
         }
       }
     })
@@ -2334,19 +2658,53 @@ export async function getUserAnalytics(userId: string, workspaceId?: string) {
     }) || []
     const weekHours = weekContributions.reduce((sum, c) => sum + (c.hours_spent || 0), 0)
 
-    // Total hours
+    // Total hours from contributions
     const totalHours = contributions?.reduce((sum, c) => sum + (c.hours_spent || 0), 0) || 0
+
+    // Calculate task completion participation
+    const completedTasks = tasks?.filter(t => t.status === 'completed') || []
+    const inProgressTasks = tasks?.filter(t => t.status === 'in_progress') || []
+    
+    // Find completed tasks without contributions (missing participation data)
+    const completedTasksWithContributions = new Set(
+      contributions?.filter(c => c.task_id).map(c => c.task_id) || []
+    )
+    const completedTasksWithoutContributions = completedTasks.filter(
+      t => !completedTasksWithContributions.has(t.id)
+    )
+
+    // Estimate hours for completed tasks without contributions
+    // Use average of 1-2 hours per completed task as default estimate
+    const estimatedHoursFromTasks = completedTasksWithoutContributions.length * 1.5
+    
+    // Unified participation metrics
+    const totalUnifiedHours = totalHours + estimatedHoursFromTasks
+    const totalUnifiedContributions = (contributions?.length || 0) + completedTasksWithoutContributions.length
+
+    // Calculate unified participation score (combines tasks + contributions)
+    const taskCompletionWeight = completedTasks.length * 0.5 // Each completed task = 0.5 points
+    const contributionWeight = (contributions?.length || 0) * 1.0 // Each contribution = 1.0 point
+    const hoursWeight = totalUnifiedHours * 0.3 // Each hour = 0.3 points
+    const unifiedParticipationScore = Math.round(
+      taskCompletionWeight + contributionWeight + hoursWeight
+    )
 
     return {
       totalContributions: contributions?.length || 0,
       totalHours: Math.round(totalHours * 10) / 10,
       weekHours: Math.round(weekHours * 10) / 10,
       totalTasks: tasks?.length || 0,
-      completedTasks: tasks?.filter(t => t.status === 'completed').length || 0,
-      inProgressTasks: tasks?.filter(t => t.status === 'in_progress').length || 0,
+      completedTasks: completedTasks.length,
+      inProgressTasks: inProgressTasks.length,
       contributionBreakdown,
       tasks: tasks || [],
       contributions: contributions || [],
+      // Unified participation metrics
+      totalUnifiedHours: Math.round(totalUnifiedHours * 10) / 10,
+      totalUnifiedContributions,
+      estimatedHoursFromTasks: Math.round(estimatedHoursFromTasks * 10) / 10,
+      completedTasksWithoutContributions: completedTasksWithoutContributions.length,
+      unifiedParticipationScore,
     }
   } catch (error: any) {
     console.error('getUserAnalytics error:', error?.message || JSON.stringify(error, null, 2));
@@ -2395,7 +2753,7 @@ export async function getStudentPerformance(workspaceId: string, userId?: string
     for (const member of studentMembers) {
       const userAnalytics = await getUserAnalytics(member.user_id, workspaceId)
       
-      // Get last contribution timestamp
+      // Get last activity timestamp (from contributions or task completion)
       const { data: lastContrib } = await supabase
         .from('contributions')
         .select('created_at, project:projects!inner(workspace_id)')
@@ -2405,15 +2763,30 @@ export async function getStudentPerformance(workspaceId: string, userId?: string
         .limit(1)
         .single()
 
+      // Get last task completion
+      const { data: lastTask } = await supabase
+        .from('tasks')
+        .select('updated_at, project:projects!inner(workspace_id)')
+        .eq('assigned_to', member.user_id)
+        .eq('status', 'completed')
+        .eq('project.workspace_id', workspaceId)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .single()
+
+      // Use most recent activity (contribution or task completion)
+      const lastActive = lastContrib?.created_at || lastTask?.updated_at
+
       const completionRate = userAnalytics.totalTasks > 0
         ? Math.round((userAnalytics.completedTasks / userAnalytics.totalTasks) * 100)
         : 0
 
-      // Calculate participation score (combination of hours, contributions, and completion)
-      const participationScore = Math.round(
-        (userAnalytics.totalHours * 0.4) +
-        (userAnalytics.totalContributions * 2) +
-        (completionRate * 0.5)
+      // Use unified participation score that combines tasks + contributions
+      const participationScore = userAnalytics.unifiedParticipationScore || Math.round(
+        (userAnalytics.totalUnifiedHours * 0.4) +
+        (userAnalytics.totalUnifiedContributions * 2) +
+        (completionRate * 0.5) +
+        (userAnalytics.completedTasks * 1.0) // Give credit for completed tasks
       )
 
       performanceData.push({
@@ -2421,12 +2794,12 @@ export async function getStudentPerformance(workspaceId: string, userId?: string
         name: member.user?.full_name || 'Unknown',
         avatar: member.user?.avatar_url,
         institution: member.user?.institution,
-        totalHours: userAnalytics.totalHours,
-        contributions: userAnalytics.totalContributions,
+        totalHours: userAnalytics.totalUnifiedHours || userAnalytics.totalHours,
+        contributions: userAnalytics.totalUnifiedContributions || userAnalytics.totalContributions,
         tasksCompleted: userAnalytics.completedTasks,
         tasksAssigned: userAnalytics.totalTasks,
         participationScore,
-        lastActive: lastContrib?.created_at,
+        lastActive: lastActive,
       })
     }
 
@@ -2439,13 +2812,614 @@ export async function getStudentPerformance(workspaceId: string, userId?: string
 }
 
 // =====================================================
+// TASK ASSIGNEE FUNCTIONS
+// =====================================================
+
+export async function getTaskAssignees(taskId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('task_assignees')
+      .select(`
+        id,
+        user_id,
+        assigned_at,
+        assigned_by,
+        user:profiles!user_id(id, full_name, avatar_url)
+      `)
+      .eq('task_id', taskId)
+      .order('assigned_at', { ascending: false })
+
+    if (error) throw error
+    return data || []
+  } catch (error: any) {
+    console.error('getTaskAssignees error:', error?.message || JSON.stringify(error, null, 2))
+    throw error
+  }
+}
+
+export async function addTaskAssignees(taskId: string, userIds: string[], assignedBy: string) {
+  try {
+    // Get current assignees to avoid duplicates
+    const { data: existing } = await supabase
+      .from('task_assignees')
+      .select('user_id')
+      .eq('task_id', taskId)
+
+    const existingUserIds = new Set(existing?.map((a: any) => a.user_id) || [])
+    const newUserIds = userIds.filter(id => !existingUserIds.has(id))
+
+    if (newUserIds.length === 0) {
+      return []
+    }
+
+    const { data, error } = await supabase
+      .from('task_assignees')
+      .insert(
+        newUserIds.map(userId => ({
+          task_id: taskId,
+          user_id: userId,
+          assigned_by: assignedBy,
+        }))
+      )
+      .select(`
+        id,
+        user_id,
+        assigned_at,
+        assigned_by,
+        user:profiles!user_id(id, full_name, avatar_url)
+      `)
+
+    if (error) throw error
+
+    // Log activity
+    const { data: task } = await supabase
+      .from('tasks')
+      .select('project:projects!inner(workspace_id), title')
+      .eq('id', taskId)
+      .single()
+
+    if (task && (task as any).project?.workspace_id) {
+      const { data: users } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .in('id', newUserIds)
+
+      const userNames = users?.map((u: any) => u.full_name).join(', ') || 'users'
+
+      // Get project name for notifications
+      const { data: project } = await supabase
+        .from('projects')
+        .select('name')
+        .eq('id', (task as any).project_id)
+        .single()
+
+      const projectName = project?.name
+
+      // Log activity
+      await logActivity({
+        workspace_id: (task as any).project.workspace_id,
+        user_id: assignedBy,
+        action_type: 'assigned_task',
+        entity_type: 'task',
+        entity_id: taskId,
+        metadata: {
+          assignee_ids: newUserIds,
+          assignee_names: userNames,
+          task_title: (task as any).title,
+        },
+      })
+
+      // Create notifications for newly assigned users
+      await Promise.all(
+        newUserIds.map(userId =>
+          createTaskAssignmentNotification(
+            userId,
+            (task as any).title,
+            taskId,
+            assignedBy,
+            projectName
+          )
+        )
+      )
+    }
+
+    return data || []
+  } catch (error: any) {
+    console.error('addTaskAssignees error:', error?.message || JSON.stringify(error, null, 2))
+    throw error
+  }
+}
+
+export async function removeTaskAssignee(taskId: string, userId: string, removedBy: string) {
+  try {
+    const { data: attachment, error } = await supabase
+      .from('task_assignees')
+      .delete()
+      .eq('task_id', taskId)
+      .eq('user_id', userId)
+      .select()
+      .single()
+
+    if (error) throw error
+
+    // Log activity
+    const { data: task } = await supabase
+      .from('tasks')
+      .select('project:projects!inner(workspace_id), title')
+      .eq('id', taskId)
+      .single()
+
+    if (task && (task as any).project?.workspace_id) {
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', userId)
+        .single()
+
+      await logActivity({
+        workspace_id: (task as any).project.workspace_id,
+        user_id: removedBy,
+        action_type: 'unassigned_task',
+        entity_type: 'task',
+        entity_id: taskId,
+        metadata: {
+          assignee_id: userId,
+          assignee_name: userProfile?.full_name || 'someone',
+          task_title: (task as any).title,
+        },
+      })
+    }
+
+    return true
+  } catch (error: any) {
+    console.error('removeTaskAssignee error:', error?.message || JSON.stringify(error, null, 2))
+    throw error
+  }
+}
+
+// =====================================================
+// TASK ATTACHMENT FUNCTIONS
+// =====================================================
+
+export async function getTaskAttachments(taskId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('task_attachments')
+      .select(`
+        *,
+        user:profiles!user_id(id, full_name, avatar_url)
+      `)
+      .eq('task_id', taskId)
+      .order('uploaded_at', { ascending: false })
+
+    if (error) throw error
+    return data || []
+  } catch (error: any) {
+    console.error('getTaskAttachments error:', error?.message || JSON.stringify(error, null, 2))
+    throw error
+  }
+}
+
+export async function uploadTaskAttachment(
+  taskId: string,
+  userId: string,
+  file: File
+): Promise<any> {
+  try {
+    // Create unique filename
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
+    const filePath = `${taskId}/${fileName}`
+
+    // Upload to Supabase Storage
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('task-attachments')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      })
+
+    if (uploadError) throw uploadError
+
+    // Get file URL
+    const { data: urlData } = supabase.storage
+      .from('task-attachments')
+      .getPublicUrl(filePath)
+
+    // Create attachment record
+    const { data: attachment, error: dbError } = await supabase
+      .from('task_attachments')
+      .insert({
+        task_id: taskId,
+        user_id: userId,
+        file_name: file.name,
+        file_path: filePath,
+        file_size: file.size,
+        file_type: file.type,
+        external_url: null,
+      })
+      .select(`
+        *,
+        user:profiles!user_id(id, full_name, avatar_url)
+      `)
+      .single()
+
+    if (dbError) {
+      // If DB insert fails, try to delete the uploaded file
+      await supabase.storage.from('task-attachments').remove([filePath])
+      throw dbError
+    }
+
+    // Log activity
+    const { data: task } = await supabase
+      .from('tasks')
+      .select('project:projects!inner(workspace_id)')
+      .eq('id', taskId)
+      .single()
+
+    if (task && (task as any).project?.workspace_id) {
+      await logActivity({
+        workspace_id: (task as any).project.workspace_id,
+        user_id: userId,
+        action_type: 'added_attachment',
+        entity_type: 'task',
+        entity_id: taskId,
+        metadata: { file_name: file.name, file_size: file.size, type: 'upload' },
+      })
+    }
+
+    return { ...attachment, url: urlData.publicUrl }
+  } catch (error: any) {
+    console.error('uploadTaskAttachment error:', error?.message || JSON.stringify(error, null, 2))
+    throw error
+  }
+}
+
+export async function addTaskAttachmentLink(
+  taskId: string,
+  userId: string,
+  url: string,
+  fileName?: string
+): Promise<any> {
+  try {
+    // Validate URL
+    try {
+      new URL(url)
+    } catch {
+      throw new Error('Invalid URL format')
+    }
+
+    // Extract filename from URL if not provided
+    let attachmentName = fileName || 'External Link'
+    if (!fileName) {
+      try {
+        const urlObj = new URL(url)
+        const pathParts = urlObj.pathname.split('/').filter(Boolean)
+        if (pathParts.length > 0) {
+          attachmentName = pathParts[pathParts.length - 1]
+          // Remove query params if they're in the filename
+          attachmentName = attachmentName.split('?')[0]
+        }
+      } catch {
+        // If URL parsing fails, use default
+        attachmentName = 'External Link'
+      }
+    }
+
+    // Create attachment record with external URL
+    const { data: attachment, error: dbError } = await supabase
+      .from('task_attachments')
+      .insert({
+        task_id: taskId,
+        user_id: userId,
+        file_name: attachmentName,
+        file_path: null,
+        file_size: null,
+        file_type: null,
+        external_url: url,
+      })
+      .select(`
+        *,
+        user:profiles!user_id(id, full_name, avatar_url)
+      `)
+      .single()
+
+    if (dbError) throw dbError
+
+    // Log activity
+    const { data: task } = await supabase
+      .from('tasks')
+      .select('project:projects!inner(workspace_id)')
+      .eq('id', taskId)
+      .single()
+
+    if (task && (task as any).project?.workspace_id) {
+      await logActivity({
+        workspace_id: (task as any).project.workspace_id,
+        user_id: userId,
+        action_type: 'added_attachment',
+        entity_type: 'task',
+        entity_id: taskId,
+        metadata: { file_name: attachmentName, type: 'link', url },
+      })
+    }
+
+    return { ...attachment, url }
+  } catch (error: any) {
+    console.error('addTaskAttachmentLink error:', error?.message || JSON.stringify(error, null, 2))
+    throw error
+  }
+}
+
+export async function deleteTaskAttachment(attachmentId: string, userId: string) {
+  try {
+    // Get attachment info
+    const { data: attachment, error: fetchError } = await supabase
+      .from('task_attachments')
+      .select('*')
+      .eq('id', attachmentId)
+      .single()
+
+    if (fetchError) throw fetchError
+    if (!attachment) throw new Error('Attachment not found')
+
+    // Check permission (user owns it or is team leader)
+    if (attachment.user_id !== userId) {
+      // Check if user is team leader
+      const { data: task } = await supabase
+        .from('tasks')
+        .select('project:projects!inner(team_id)')
+        .eq('id', attachment.task_id)
+        .single()
+
+      if (task && (task as any).project?.team_id) {
+        const { data: teamMember } = await supabase
+          .from('team_members')
+          .select('role')
+          .eq('team_id', (task as any).project.team_id)
+          .eq('user_id', userId)
+          .single()
+
+        if (teamMember?.role !== 'leader') {
+          throw new Error('You do not have permission to delete this attachment')
+        }
+      } else {
+        throw new Error('You do not have permission to delete this attachment')
+      }
+    }
+
+    // Delete from storage only if it's a file upload (not external URL)
+    if (attachment.file_path) {
+      const { error: storageError } = await supabase.storage
+        .from('task-attachments')
+        .remove([attachment.file_path])
+
+      if (storageError) {
+        console.warn('Storage delete error (file may not exist):', storageError)
+        // Continue with DB deletion even if storage delete fails
+      }
+    }
+
+    // Delete from database
+    const { error: dbError } = await supabase
+      .from('task_attachments')
+      .delete()
+      .eq('id', attachmentId)
+
+    if (dbError) throw dbError
+
+    // Log activity
+    const { data: task } = await supabase
+      .from('tasks')
+      .select('project:projects!inner(workspace_id)')
+      .eq('id', attachment.task_id)
+      .single()
+
+    if (task && (task as any).project?.workspace_id) {
+      await logActivity({
+        workspace_id: (task as any).project.workspace_id,
+        user_id: userId,
+        action_type: 'removed_attachment',
+        entity_type: 'task',
+        entity_id: attachment.task_id,
+        metadata: { file_name: attachment.file_name },
+      })
+    }
+
+    return true
+  } catch (error: any) {
+    console.error('deleteTaskAttachment error:', error?.message || JSON.stringify(error, null, 2))
+    throw error
+  }
+}
+
+// =====================================================
+// TASK SUBTASK FUNCTIONS
+// =====================================================
+
+export async function getTaskSubtasks(taskId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('task_subtasks')
+      .select('*')
+      .eq('task_id', taskId)
+      .order('position', { ascending: true })
+      .order('created_at', { ascending: true })
+
+    if (error) throw error
+    return data || []
+  } catch (error: any) {
+    console.error('getTaskSubtasks error:', error?.message || JSON.stringify(error, null, 2))
+    throw error
+  }
+}
+
+export async function createTaskSubtask(
+  taskId: string,
+  title: string,
+  userId: string,
+  position?: number
+) {
+  try {
+    // Get max position if not provided
+    if (position === undefined) {
+      const { data: existing } = await supabase
+        .from('task_subtasks')
+        .select('position')
+        .eq('task_id', taskId)
+        .order('position', { ascending: false })
+        .limit(1)
+        .single()
+
+      position = existing ? (existing as any).position + 1 : 0
+    }
+
+    const { data, error } = await supabase
+      .from('task_subtasks')
+      .insert({
+        task_id: taskId,
+        title: title.trim(),
+        created_by: userId,
+        position: position,
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+
+    // Log activity
+    const { data: task } = await supabase
+      .from('tasks')
+      .select('project:projects!inner(workspace_id), title')
+      .eq('id', taskId)
+      .single()
+
+    if (task && (task as any).project?.workspace_id) {
+      await logActivity({
+        workspace_id: (task as any).project.workspace_id,
+        user_id: userId,
+        action_type: 'added_subtask',
+        entity_type: 'task',
+        entity_id: taskId,
+        metadata: { subtask_title: title.trim(), task_title: (task as any).title },
+      })
+    }
+
+    return data
+  } catch (error: any) {
+    console.error('createTaskSubtask error:', error?.message || JSON.stringify(error, null, 2))
+    throw error
+  }
+}
+
+export async function updateTaskSubtask(
+  subtaskId: string,
+  updates: { title?: string; completed?: boolean; position?: number }
+) {
+  try {
+    const { data, error } = await supabase
+      .from('task_subtasks')
+      .update(updates)
+      .eq('id', subtaskId)
+      .select()
+      .single()
+
+    if (error) throw error
+
+    // Log activity if completed status changed
+    if (updates.completed !== undefined) {
+      const { data: subtask } = await supabase
+        .from('task_subtasks')
+        .select('task_id')
+        .eq('id', subtaskId)
+        .single()
+
+      if (subtask) {
+        const { data: task } = await supabase
+          .from('tasks')
+          .select('project:projects!inner(workspace_id), title')
+          .eq('id', subtask.task_id)
+          .single()
+
+        if (task && (task as any).project?.workspace_id) {
+          const { data: { user: authUser } } = await supabase.auth.getUser()
+          if (authUser) {
+            await logActivity({
+              workspace_id: (task as any).project.workspace_id,
+              user_id: authUser.id,
+              action_type: updates.completed ? 'completed_subtask' : 'uncompleted_subtask',
+              entity_type: 'task',
+              entity_id: subtask.task_id,
+              metadata: { task_title: (task as any).title },
+            })
+          }
+        }
+      }
+    }
+
+    return data
+  } catch (error: any) {
+    console.error('updateTaskSubtask error:', error?.message || JSON.stringify(error, null, 2))
+    throw error
+  }
+}
+
+export async function deleteTaskSubtask(subtaskId: string) {
+  try {
+    const { data: subtask } = await supabase
+      .from('task_subtasks')
+      .select('task_id, title')
+      .eq('id', subtaskId)
+      .single()
+
+    if (!subtask) throw new Error('Subtask not found')
+
+    const { error } = await supabase
+      .from('task_subtasks')
+      .delete()
+      .eq('id', subtaskId)
+
+    if (error) throw error
+
+    // Log activity
+    const { data: task } = await supabase
+      .from('tasks')
+      .select('project:projects!inner(workspace_id), title')
+      .eq('id', (subtask as any).task_id)
+      .single()
+
+    if (task && (task as any).project?.workspace_id) {
+      const { data: { user: authUser } } = await supabase.auth.getUser()
+      if (authUser) {
+        await logActivity({
+          workspace_id: (task as any).project.workspace_id,
+          user_id: authUser.id,
+          action_type: 'removed_subtask',
+          entity_type: 'task',
+          entity_id: (subtask as any).task_id,
+          metadata: {
+            subtask_title: (subtask as any).title,
+            task_title: (task as any).title,
+          },
+        })
+      }
+    }
+
+    return true
+  } catch (error: any) {
+    console.error('deleteTaskSubtask error:', error?.message || JSON.stringify(error, null, 2))
+    throw error
+  }
+}
+
+// =====================================================
 // NOTIFICATION FUNCTIONS
 // =====================================================
 
 export interface Notification {
   id: string
   user_id: string
-  type: 'team_assignment' | 'team_invitation' | 'join_request' | 'role_change' | 'team_update'
+  type: 'team_assignment' | 'team_invitation' | 'join_request' | 'role_change' | 'team_update' | 'task_assignment' | 'task_completed' | 'task_status_changed' | 'project_update' | 'project_created' | 'project_completed' | 'contribution_logged' | 'milestone_achieved'
   title: string
   message: string
   data?: Record<string, any>
@@ -2465,6 +3439,12 @@ export async function createNotification(notification: {
   data?: Record<string, any>
 }) {
   try {
+    console.log('Creating notification:', {
+      user_id: notification.user_id,
+      type: notification.type,
+      title: notification.title,
+    })
+    
     const { data, error } = await supabase
       .from('notifications')
       .insert({
@@ -2478,11 +3458,29 @@ export async function createNotification(notification: {
       .select()
       .single()
 
-    if (error) throw error
+    if (error) {
+      console.error('Notification insert error:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      })
+      throw error
+    }
+    
+    console.log('Notification created successfully:', data?.id)
     return data
   } catch (error: any) {
-    console.error('createNotification error:', error?.message || JSON.stringify(error, null, 2))
-    throw error
+    console.error('createNotification error:', {
+      message: error?.message,
+      details: error?.details,
+      hint: error?.hint,
+      code: error?.code,
+      fullError: JSON.stringify(error, null, 2)
+    })
+    // Don't throw - just log the error so task assignment doesn't fail
+    // This way tasks can still be assigned even if notifications fail
+    return null
   }
 }
 
@@ -2647,6 +3645,58 @@ export async function createTeamInvitationNotification(
 }
 
 /**
+ * Create task assignment notification
+ */
+export async function createTaskAssignmentNotification(
+  userId: string,
+  taskTitle: string,
+  taskId: string,
+  assignedBy: string,
+  projectName?: string
+) {
+  try {
+    console.log('createTaskAssignmentNotification called:', {
+      userId,
+      taskTitle,
+      taskId,
+      assignedBy,
+      projectName
+    })
+    
+    // Get assigned by user name
+    const { data: assignedByUser } = await supabase
+      .from('profiles')
+      .select('full_name')
+      .eq('id', assignedBy)
+      .single()
+
+    const assignedByName = assignedByUser?.full_name || 'someone'
+
+    const result = await createNotification({
+      user_id: userId,
+      type: 'task_assignment',
+      title: 'New Task Assignment',
+      message: projectName
+        ? `${assignedByName} assigned you to "${taskTitle}" in ${projectName}`
+        : `${assignedByName} assigned you to "${taskTitle}"`,
+      data: {
+        task_id: taskId,
+        task_title: taskTitle,
+        assigned_by: assignedBy,
+        assigned_by_name: assignedByName,
+        project_name: projectName
+      }
+    })
+    
+    console.log('Task assignment notification result:', result)
+    return result
+  } catch (error: any) {
+    console.error('createTaskAssignmentNotification error:', error)
+    return null
+  }
+}
+
+/**
  * Create join request notification
  */
 export async function createJoinRequestNotification(
@@ -2670,6 +3720,172 @@ export async function createJoinRequestNotification(
       team_name: teamName,
       requester_name: requesterName,
       status: status
+    }
+  })
+}
+
+/**
+ * Create task completion notification
+ */
+export async function createTaskCompletedNotification(
+  userId: string,
+  taskTitle: string,
+  taskId: string,
+  completedBy: string,
+  projectName?: string
+) {
+  const { data: completedByUser } = await supabase
+    .from('profiles')
+    .select('full_name')
+    .eq('id', completedBy)
+    .single()
+
+  const completedByName = completedByUser?.full_name || 'someone'
+
+  return createNotification({
+    user_id: userId,
+    type: 'task_completed',
+    title: 'Task Completed! 🎉',
+    message: projectName
+      ? `"${taskTitle}" in ${projectName} has been completed by ${completedByName}`
+      : `"${taskTitle}" has been completed by ${completedByName}`,
+    data: {
+      task_id: taskId,
+      task_title: taskTitle,
+      completed_by: completedBy,
+      completed_by_name: completedByName,
+      project_name: projectName
+    }
+  })
+}
+
+/**
+ * Create project update notification
+ */
+export async function createProjectUpdateNotification(
+  userIds: string[],
+  projectName: string,
+  projectId: string,
+  updateType: 'created' | 'updated' | 'completed' | 'milestone',
+  updatedBy: string,
+  message?: string
+) {
+  const { data: updatedByUser } = await supabase
+    .from('profiles')
+    .select('full_name')
+    .eq('id', updatedBy)
+    .single()
+
+  const updatedByName = updatedByUser?.full_name || 'someone'
+
+  const titles = {
+    created: 'New Project Created 🚀',
+    updated: 'Project Updated 📝',
+    completed: 'Project Completed! 🎊',
+    milestone: 'Project Milestone Achieved! 🏆'
+  }
+
+  const defaultMessages = {
+    created: `${updatedByName} created a new project "${projectName}"`,
+    updated: `${updatedByName} updated project "${projectName}"`,
+    completed: `Project "${projectName}" has been completed!`,
+    milestone: `Project "${projectName}" reached a new milestone!`
+  }
+
+  const notificationType = updateType === 'created' ? 'project_created' :
+                          updateType === 'completed' ? 'project_completed' :
+                          updateType === 'milestone' ? 'milestone_achieved' : 'project_update'
+
+  return Promise.all(
+    userIds.map(userId =>
+      createNotification({
+        user_id: userId,
+        type: notificationType,
+        title: titles[updateType],
+        message: message || defaultMessages[updateType],
+        data: {
+          project_id: projectId,
+          project_name: projectName,
+          update_type: updateType,
+          updated_by: updatedBy,
+          updated_by_name: updatedByName
+        }
+      })
+    )
+  )
+}
+
+/**
+ * Create contribution logged notification
+ */
+export async function createContributionLoggedNotification(
+  userId: string,
+  contributionType: string,
+  hours: number,
+  loggedBy: string
+) {
+  const { data: loggedByUser } = await supabase
+    .from('profiles')
+    .select('full_name')
+    .eq('id', loggedBy)
+    .single()
+
+  const loggedByName = loggedByUser?.full_name || 'someone'
+
+  return createNotification({
+    user_id: userId,
+    type: 'contribution_logged',
+    title: 'Contribution Logged 📊',
+    message: `${loggedByName} logged ${hours} hour${hours !== 1 ? 's' : ''} of ${contributionType} contribution`,
+    data: {
+      contribution_type: contributionType,
+      hours: hours,
+      logged_by: loggedBy,
+      logged_by_name: loggedByName
+    }
+  })
+}
+
+/**
+ * Create task status changed notification
+ */
+export async function createTaskStatusChangedNotification(
+  userId: string,
+  taskTitle: string,
+  taskId: string,
+  oldStatus: string,
+  newStatus: string,
+  changedBy: string,
+  projectName?: string
+) {
+  const { data: changedByUser } = await supabase
+    .from('profiles')
+    .select('full_name')
+    .eq('id', changedBy)
+    .single()
+
+  const changedByName = changedByUser?.full_name || 'someone'
+  const statusEmojis: Record<string, string> = {
+    todo: '📋',
+    in_progress: '⚡',
+    completed: '✅'
+  }
+
+  return createNotification({
+    user_id: userId,
+    type: 'task_status_changed',
+    title: `Task Status Changed ${statusEmojis[newStatus] || '📝'}`,
+    message: projectName
+      ? `${changedByName} changed "${taskTitle}" from ${oldStatus} to ${newStatus} in ${projectName}`
+      : `${changedByName} changed "${taskTitle}" from ${oldStatus} to ${newStatus}`,
+    data: {
+      task_id: taskId,
+      task_title: taskTitle,
+      old_status: oldStatus,
+      new_status: newStatus,
+      changed_by: changedBy,
+      changed_by_name: changedByName,
+      project_name: projectName
     }
   })
 }

@@ -210,6 +210,34 @@ export interface Contribution {
   updated_at: string
 }
 
+export interface TaskAttachment {
+  id: string
+  task_id: string
+  user_id: string | null
+  file_name: string | null
+  file_path: string | null
+  file_size: number | null
+  file_type: string | null
+  external_url: string | null
+  uploaded_at: string
+  user?: {
+    id: string
+    full_name: string
+    avatar_url?: string
+  }
+}
+
+export interface TaskSubtask {
+  id: string
+  task_id: string
+  title: string
+  completed: boolean
+  position: number
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
 export interface ActivityLog {
   id: string
   workspace_id: string

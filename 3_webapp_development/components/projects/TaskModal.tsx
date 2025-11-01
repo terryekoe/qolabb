@@ -13,7 +13,7 @@ import {
   Plus,
 } from 'lucide-react';
 import { Button } from '@/components/Button';
-import { createTask, getTeamMembers } from '@/lib/db/queries';
+import { createTask, getTeamMembers, addTaskAssignees } from '@/lib/db/queries';
 import { supabase } from '@/lib/supabase';
 import type { TaskPriority, TaskStatus } from '@/lib/types/database';
 
@@ -35,6 +35,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [assignedTo, setAssignedTo] = useState('');
+  const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
   const [status, setStatus] = useState<TaskStatus>('todo');
   const [priority, setPriority] = useState<TaskPriority>('medium');
   const [dueDate, setDueDate] = useState('');
@@ -69,15 +70,20 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      await createTask({
+      const newTask = await createTask({
         project_id: projectId,
         title,
         description: description || null,
-        assigned_to: assignedTo || null,
+        assigned_to: assignedTo || null, // Keep for backward compatibility
         status,
         priority,
         due_date: dueDate || null,
       }, user.id);
+
+      // Add multiple assignees if selected
+      if (selectedAssignees.length > 0) {
+        await addTaskAssignees(newTask.id, selectedAssignees, user.id);
+      }
 
       onTaskCreated();
       resetForm();
@@ -94,6 +100,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     setTitle('');
     setDescription('');
     setAssignedTo('');
+    setSelectedAssignees([]);
     setStatus('todo');
     setPriority('medium');
     setDueDate('');
@@ -178,14 +185,18 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                 <User size={16} className="mr-2" />
-                Assign To
+                Assignees (Multiple)
               </label>
               <select
-                value={assignedTo}
-                onChange={(e) => setAssignedTo(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                multiple
+                value={selectedAssignees}
+                onChange={(e) => {
+                  const values = Array.from(e.target.selectedOptions, option => option.value);
+                  setSelectedAssignees(values);
+                }}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent min-h-[120px]"
+                size={Math.min(teamMembers.length + 1, 6)}
               >
-                <option value="">Unassigned</option>
                 {teamMembers.map((member) => (
                   <option key={member.user_id} value={member.user_id}>
                     {member.profile?.full_name || member.user_id}
@@ -193,6 +204,9 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                   </option>
                 ))}
               </select>
+              <p className="text-xs text-gray-500 mt-1">
+                Hold Cmd/Ctrl to select multiple assignees
+              </p>
             </div>
 
             {/* Status and Priority */}
