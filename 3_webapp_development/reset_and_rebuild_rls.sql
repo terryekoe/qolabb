@@ -717,23 +717,31 @@ ALTER TABLE activity_log ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "activity_log_select" ON activity_log
 FOR SELECT TO authenticated
 USING (
-  -- Only workspace owner can view activity (no recursion)
+  -- Workspace owners can view all activity
   EXISTS (
     SELECT 1 FROM workspaces w
     WHERE w.id = activity_log.workspace_id
     AND w.owner_id = auth.uid()
   )
+  -- OR workspace members can view activity (using helper function to avoid recursion)
+  OR is_user_workspace_member_safe(activity_log.workspace_id, auth.uid())
+  -- OR user can view their own activity
+  OR activity_log.user_id = auth.uid()
 );
 
 CREATE POLICY "activity_log_insert" ON activity_log
 FOR INSERT TO authenticated
 WITH CHECK (
-  -- Only workspace owner can insert activity (no recursion)
+  -- Workspace owners can log activity
   EXISTS (
     SELECT 1 FROM workspaces w
     WHERE w.id = activity_log.workspace_id
     AND w.owner_id = auth.uid()
   )
+  -- OR workspace members can log activity (using helper function to avoid recursion)
+  OR is_user_workspace_member_safe(activity_log.workspace_id, auth.uid())
+  -- OR user is logging their own activity (user_id matches)
+  OR activity_log.user_id = auth.uid()
 );
 
 -- NOTIFICATIONS: Users can see their own, anyone can create notifications for any user
