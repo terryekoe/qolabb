@@ -482,14 +482,23 @@ export async function getWorkspaceMembers(workspaceId: string) {
     console.log('📊 [CLIENT] Number of members:', data?.length || 0);
 
     // Transform the data to match the expected format (user profile is already nested)
-    const transformedData = (data || []).map((member: any) => ({
-      id: member.id,
-      workspace_id: member.workspace_id,
-      user_id: member.user_id,
-      role: member.role,
-      joined_at: member.joined_at,
-      user: member.user || null // Already nested from the select
-    }));
+    // Normalize user data - handle cases where Supabase returns arrays from joins
+    const transformedData = (data || []).map((member: any) => {
+      let user = member.user;
+      // Handle array response from Supabase join
+      if (Array.isArray(user)) {
+        user = user[0] || null;
+      }
+      
+      return {
+        id: member.id,
+        workspace_id: member.workspace_id,
+        user_id: member.user_id,
+        role: member.role,
+        joined_at: member.joined_at,
+        user: user || null // Normalized user profile
+      };
+    });
 
     return transformedData;
   } catch (error) {
@@ -532,14 +541,40 @@ export async function createTeam(team: TeamInsert, userId: string) {
 
   if (error) throw error
 
-  // Add creator as team leader
-  await supabase
-    .from('team_members')
-    .insert({
-      team_id: (data as any).id,
-      user_id: userId,
-      role: 'leader',
-    } as any)
+  // Check if creator is an instructor - if so, don't auto-add them to the team
+  // Instructors should be able to join/leave teams on their own
+  try {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single()
+
+    const userRole = profile?.role?.toLowerCase()
+    const isInstructor = userRole === 'instructor' || userRole === 'teaching_assistant' || userRole === 'admin'
+
+    // Only auto-add creator as team leader if they're NOT an instructor
+    // Instructors can manually join teams later if they want to participate
+    if (!isInstructor) {
+      await supabase
+        .from('team_members')
+        .insert({
+          team_id: (data as any).id,
+          user_id: userId,
+          role: 'leader',
+        } as any)
+    }
+  } catch (profileError) {
+    // If we can't check the profile, default to adding them (backward compatibility)
+    console.warn('Could not check user role for team creation, defaulting to auto-add:', profileError)
+    await supabase
+      .from('team_members')
+      .insert({
+        team_id: (data as any).id,
+        user_id: userId,
+        role: 'leader',
+      } as any)
+  }
 
   return data as Team
 }

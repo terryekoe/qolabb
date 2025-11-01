@@ -27,7 +27,8 @@ import {
   bulkInviteToTeam,
   bulkAddTeamMembers,
   addTeamMember,
-  getTeamMembers
+  getTeamMembers,
+  getProfile
 } from '@/lib/db/queries'
 import { usePermissions } from '@/lib/hooks/usePermissions'
 import { Profile, Team, TeamMember } from '@/lib/types/database'
@@ -79,10 +80,29 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
         (workspaceMembers || []).map(async (member: any): Promise<WorkspaceMemberWithTeams | null> => {
           // Extract profile data - handle both nested user and direct profile
           // Handle case where user might be an array (Supabase sometimes returns arrays)
-          let profile = member.user || member;
+          let profile = member.user;
+          
+          // Normalize user data - handle array responses from Supabase joins
           if (Array.isArray(profile)) {
-            profile = profile[0] || member;
+            profile = profile[0] || null;
           }
+          
+          // If profile is still null, try to fetch it directly
+          if (!profile && member.user_id) {
+            console.warn('Missing profile data for user:', member.user_id, '- attempting to fetch directly');
+            try {
+              const fetchedProfile = await getProfile(member.user_id);
+              if (fetchedProfile) {
+                profile = fetchedProfile;
+                console.log('✅ Successfully fetched profile for user:', member.user_id);
+              } else {
+                console.warn('⚠️ Profile not found for user:', member.user_id);
+              }
+            } catch (fetchError) {
+              console.error('❌ Error fetching profile for user:', member.user_id, fetchError);
+            }
+          }
+          
           const memberId = member.user_id || member.id || profile?.id;
           
           const memberTeams: string[] = []
@@ -102,17 +122,28 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
             }
           }
           
-          // Ensure we have at least a valid ID and name
-          if (!memberId || !profile) {
-            console.warn('Skipping member with invalid data:', member)
+          // Ensure we have at least a valid ID
+          if (!memberId) {
+            console.warn('Skipping member with invalid ID:', member)
+            return null
+          }
+          
+          // If profile is missing, we still want to show the member but with limited info
+          // This can happen if profile hasn't been created yet
+          const fullName = profile?.full_name || profile?.fullName || null;
+          const email = profile?.email || member.email || null;
+          
+          // Only skip if we have absolutely no way to identify the user
+          if (!fullName && !email && !memberId) {
+            console.warn('Skipping member with no identifying information:', member)
             return null
           }
           
           return {
             id: memberId,
-            full_name: profile?.full_name || profile?.fullName || 'Unknown User',
+            full_name: fullName || 'Unknown User',
             avatar_url: profile?.avatar_url || profile?.avatarUrl || null,
-            email: profile?.email || member.email || '',
+            email: email || 'No email',
             institution: profile?.institution || '',
             role: profile?.role || member.role || 'member',
             current_teams: memberTeams,
