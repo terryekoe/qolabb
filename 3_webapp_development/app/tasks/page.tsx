@@ -174,7 +174,33 @@ function DraggableTaskCard({
           </div>
 
           <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-100">
-            {task.assignee ? (
+            {(task.assignees && task.assignees.length > 0) ? (
+              <div className="flex items-center">
+                {task.assignees.slice(0, 1).map((assigneeItem: any) => {
+                  const assignee = assigneeItem.user || assigneeItem;
+                  const assigneeIsMe = assignee?.id === user?.id || assigneeItem?.user_id === user?.id;
+                  return (
+                    <div key={assigneeItem.id || assigneeItem.user_id} className="flex items-center">
+                      <div
+                        className={`w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold mr-1 ${
+                          assigneeIsMe
+                            ? 'bg-gradient-to-br from-qolabb-navy-600 to-qolabb-navy-400'
+                            : 'bg-gradient-to-br from-gray-400 to-gray-300'
+                        }`}
+                      >
+                        {assignee?.full_name?.charAt(0) || 'U'}
+                      </div>
+                      <span className="truncate max-w-[80px]">
+                        {assigneeIsMe ? 'You' : assignee?.full_name || 'Unknown User'}
+                      </span>
+                      {task.assignees.length > 1 && (
+                        <span className="ml-1 text-gray-400">+{task.assignees.length - 1}</span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : task.assignee ? (
               <div className="flex items-center">
                 <div
                   className={`w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold mr-1 ${
@@ -1244,7 +1270,12 @@ export default function TasksPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredTasks.map((task, index) => {
               const statusConfig = getStatusConfig(task.status);
-              const isMyTask = task.assigned_to === user?.id;
+              // Check if task is assigned to current user (either via old assigned_to or new assignees)
+              const isMyTask = task.assigned_to === user?.id || 
+                (task.assignees && task.assignees.some((a: any) => {
+                  const assignee = a.user || a;
+                  return assignee?.id === user?.id || a?.user_id === user?.id;
+                }));
               
               return (
                 <motion.div
@@ -1310,7 +1341,29 @@ export default function TasksPage() {
 
                   {/* Assignee & Due Date */}
                   <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-100">
-                    {task.assignee ? (
+                    {(task.assignees && task.assignees.length > 0) ? (
+                      <div className="flex items-center">
+                        {task.assignees.slice(0, 1).map((assigneeItem: any) => {
+                          const assignee = assigneeItem.user || assigneeItem;
+                          const assigneeIsMe = assignee?.id === user?.id || assigneeItem?.user_id === user?.id;
+                          return (
+                            <div key={assigneeItem.id || assigneeItem.user_id} className="flex items-center">
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold mr-1.5 ${
+                                assigneeIsMe ? 'bg-gradient-to-br from-qolabb-navy-600 to-qolabb-navy-400' : 'bg-gradient-to-br from-gray-400 to-gray-300'
+                              }`}>
+                                {assignee?.full_name?.charAt(0) || 'U'}
+                              </div>
+                              <span className="truncate max-w-[100px]">
+                                {assigneeIsMe ? 'You' : assignee?.full_name || 'Unknown User'}
+                              </span>
+                              {task.assignees.length > 1 && (
+                                <span className="ml-1 text-gray-400">+{task.assignees.length - 1}</span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : task.assignee ? (
                       <div className="flex items-center">
                         <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold mr-1.5 ${
                           isMyTask ? 'bg-gradient-to-br from-qolabb-navy-600 to-qolabb-navy-400' : 'bg-gradient-to-br from-gray-400 to-gray-300'
