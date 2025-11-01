@@ -1172,20 +1172,6 @@ export async function addTeamMember(
       .eq('user_id', userId)
       .single();
 
-    // Check user's role - instructors should not be added to teams
-    const { data: userProfile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', userId)
-      .single();
-
-    if (userProfile) {
-      const userRole = userProfile.role?.toLowerCase() || '';
-      if (userRole === 'instructor') {
-        throw new Error('Instructors cannot be added as team members. They can only manage teams.');
-      }
-    }
-
     if (memberError || !workspaceMember) {
       // User is not a workspace member, add them first
       console.log('User is not a workspace member, adding them first...');
@@ -2170,6 +2156,130 @@ export async function bulkInviteToTeam(
     }
   } catch (error: any) {
     console.error('bulkInviteToTeam error:', error?.message || JSON.stringify(error, null, 2))
+    throw error
+  }
+}
+
+/**
+ * Bulk add team members directly (for instructors/admins)
+ * This bypasses join requests and directly adds members to the team
+ */
+export async function bulkAddTeamMembers(
+  teamId: string,
+  userIds: string[],
+  role: 'leader' | 'member' = 'member',
+  assignedBy: string
+) {
+  try {
+    // Get team information
+    const { data: team } = await supabase
+      .from('teams')
+      .select('workspace_id, name, settings')
+      .eq('id', teamId)
+      .single()
+
+    if (!team) {
+      throw new Error('Team not found')
+    }
+
+    // Get current team members to check for duplicates
+    const { data: currentMembers } = await supabase
+      .from('team_members')
+      .select('user_id')
+      .eq('team_id', teamId)
+
+    const currentMemberIds = new Set(currentMembers?.map(m => m.user_id) || [])
+
+    // Filter out users who are already members
+    const validUserIds = userIds.filter(userId => {
+      if (currentMemberIds.has(userId)) {
+        console.warn(`User ${userId} is already a member of team ${teamId}`)
+        return false
+      }
+      return true
+    })
+
+    if (validUserIds.length === 0) {
+      throw new Error('No valid users to add - all users are already members')
+    }
+
+    // Check team capacity if max_members is set
+    const teamSettings = (team as any).settings || {}
+    if (teamSettings.max_members) {
+      const currentMemberCount = currentMembers?.length || 0
+      const totalAfterAdd = currentMemberCount + validUserIds.length
+
+      if (totalAfterAdd > teamSettings.max_members) {
+        throw new Error(`Team capacity exceeded. Current: ${currentMemberCount}, Max: ${teamSettings.max_members}, Trying to add: ${validUserIds.length}`)
+      }
+    }
+
+    // Verify all users are workspace members
+    const { data: workspaceMembers } = await supabase
+      .from('workspace_members')
+      .select('user_id')
+      .eq('workspace_id', team.workspace_id)
+      .in('user_id', validUserIds)
+
+    const workspaceMemberIds = new Set(workspaceMembers?.map(m => m.user_id) || [])
+    const finalValidUserIds = validUserIds.filter(userId => {
+      if (!workspaceMemberIds.has(userId)) {
+        console.warn(`User ${userId} is not a member of workspace ${team.workspace_id}`)
+        return false
+      }
+      return true
+    })
+
+    if (finalValidUserIds.length === 0) {
+      throw new Error('No valid users to add - users must be workspace members')
+    }
+
+    // Directly add members to the team
+    const membersToAdd = finalValidUserIds.map(userId => ({
+      team_id: teamId,
+      user_id: userId,
+      role
+    }))
+
+    const { data: addedMembers, error } = await supabase
+      .from('team_members')
+      .insert(membersToAdd)
+      .select(`
+        *,
+        user:profiles!user_id(id, full_name, avatar_url)
+      `)
+
+    if (error) throw error
+
+    // Log activity and create notifications for all added members
+    await Promise.all([
+      ...(addedMembers || []).map(member =>
+        logActivity({
+          workspace_id: team.workspace_id,
+          user_id: member.user_id,
+          action_type: 'joined_team',
+          entity_type: 'team',
+          entity_id: teamId,
+          metadata: { team_name: team.name, role },
+        })
+      ),
+      ...(addedMembers || []).map(member =>
+        createTeamAssignmentNotification(
+          member.user_id,
+          team.name,
+          assignedBy,
+          role
+        )
+      )
+    ])
+
+    return {
+      successful: addedMembers || [],
+      skipped: userIds.length - finalValidUserIds.length,
+      total: userIds.length
+    }
+  } catch (error: any) {
+    console.error('bulkAddTeamMembers error:', error?.message || JSON.stringify(error, null, 2))
     throw error
   }
 }
@@ -3499,6 +3609,7 @@ export interface Notification {
 
 /**
  * Create a new notification
+ * Uses the SQL function create_notification which has SECURITY DEFINER and bypasses RLS
  */
 export async function createNotification(notification: {
   user_id: string
@@ -3514,18 +3625,14 @@ export async function createNotification(notification: {
       title: notification.title,
     })
     
-    const { data, error } = await supabase
-      .from('notifications')
-      .insert({
-        user_id: notification.user_id,
-        type: notification.type,
-        title: notification.title,
-        message: notification.message,
-        data: notification.data || {},
-        read: false
-      })
-      .select()
-      .single()
+    // Use the SQL function instead of direct insert - it has SECURITY DEFINER and bypasses RLS
+    const { data, error } = await supabase.rpc('create_notification', {
+      p_user_id: notification.user_id,
+      p_type: notification.type,
+      p_title: notification.title,
+      p_message: notification.message,
+      p_data: notification.data || {}
+    })
 
     if (error) {
       console.error('Notification insert error:', {
@@ -3537,8 +3644,27 @@ export async function createNotification(notification: {
       throw error
     }
     
-    console.log('Notification created successfully:', data?.id)
-    return data
+    // If the function returns NULL (notification disabled), return null
+    if (!data) {
+      console.log('Notification creation skipped (user preference disabled)')
+      return null
+    }
+    
+    // The SQL function returns the notification ID
+    // We can't fetch the full notification here because RLS only allows users to see their own notifications
+    // But the notification was successfully created, so we return a minimal object with the ID
+    console.log('Notification created successfully with ID:', data)
+    return {
+      id: data,
+      user_id: notification.user_id,
+      type: notification.type,
+      title: notification.title,
+      message: notification.message,
+      data: notification.data || {},
+      read: false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as any
   } catch (error: any) {
     console.error('createNotification error:', {
       message: error?.message,
@@ -3680,17 +3806,43 @@ export async function createTeamAssignmentNotification(
   assignedBy: string,
   role: string = 'member'
 ) {
-  return createNotification({
-    user_id: userId,
-    type: 'team_assignment',
-    title: 'Team Assignment',
-    message: `You have been assigned to team "${teamName}" as a ${role} by ${assignedBy}`,
-    data: {
-      team_name: teamName,
-      assigned_by: assignedBy,
-      role: role
-    }
-  })
+  try {
+    // Get assigned by user name
+    const { data: assignedByUser } = await supabase
+      .from('profiles')
+      .select('full_name')
+      .eq('id', assignedBy)
+      .single()
+
+    const assignedByName = assignedByUser?.full_name || 'someone'
+
+    return await createNotification({
+      user_id: userId,
+      type: 'team_assignment',
+      title: 'Team Assignment',
+      message: `You have been assigned to team "${teamName}" as a ${role} by ${assignedByName}`,
+      data: {
+        team_name: teamName,
+        assigned_by: assignedBy,
+        assigned_by_name: assignedByName,
+        role: role
+      }
+    })
+  } catch (error: any) {
+    console.error('createTeamAssignmentNotification error:', error)
+    // Fallback: create notification with user ID if name fetch fails
+    return await createNotification({
+      user_id: userId,
+      type: 'team_assignment',
+      title: 'Team Assignment',
+      message: `You have been assigned to team "${teamName}" as a ${role}`,
+      data: {
+        team_name: teamName,
+        assigned_by: assignedBy,
+        role: role
+      }
+    })
+  }
 }
 
 /**

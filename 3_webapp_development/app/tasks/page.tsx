@@ -517,7 +517,7 @@ export default function TasksPage() {
       
       // Revert on error by reloading data
       try {
-        await loadData();
+      await loadData();
       } catch (reloadError) {
         console.error('Error reloading data after task update failure:', reloadError);
       }
@@ -878,13 +878,13 @@ export default function TasksPage() {
           <>
             {/* Header with Quick Stats */}
             <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
               <h1 className="text-3xl font-bold text-gray-900">Tasks</h1>
-              <p className="text-gray-600 mt-1">
+            <p className="text-gray-600 mt-1">
                 Manage and track your work across all projects
-              </p>
-            </div>
+            </p>
+          </div>
             {projects.length > 0 && (
               <div className="relative group">
                 <Button
@@ -988,34 +988,34 @@ export default function TasksPage() {
                 {(statusFilter !== 'all' || selectedProject !== 'all') && (
                   <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
                 )}
-              </div>
-
-              {/* View Mode Toggle */}
-              <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg">
-                <button
-                  onClick={() => setViewMode('kanban')}
+            </div>
+            
+            {/* View Mode Toggle */}
+            <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg">
+              <button
+                onClick={() => setViewMode('kanban')}
                   className={`px-4 py-2 rounded font-medium text-sm transition-colors flex items-center gap-2 ${
-                    viewMode === 'kanban'
-                      ? 'bg-white text-qolabb-navy-700 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
+                  viewMode === 'kanban'
+                    ? 'bg-white text-qolabb-navy-700 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
                   title="Board view - Drag tasks between columns to update status"
-                >
+              >
                   <FolderKanban size={16} />
                   <span>Board</span>
-                </button>
-                <button
-                  onClick={() => setViewMode('list')}
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
                   className={`px-4 py-2 rounded font-medium text-sm transition-colors flex items-center gap-2 ${
-                    viewMode === 'list'
-                      ? 'bg-white text-qolabb-navy-700 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
+                  viewMode === 'list'
+                    ? 'bg-white text-qolabb-navy-700 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
                   title="List view - See all tasks in a grid layout"
-                >
+              >
                   <CheckSquare size={16} />
                   <span>Grid</span>
-                </button>
+              </button>
               </div>
             </div>
           </div>
@@ -1028,7 +1028,7 @@ export default function TasksPage() {
               exit={{ opacity: 0, height: 0 }}
               className="border-t border-gray-200 pt-5 space-y-4"
             >
-              {/* Status Filter */}
+            {/* Status Filter */}
               <div>
                 <label className="text-xs font-medium text-gray-700 mb-2 block">Filter by Status</label>
                 <div className="flex items-center space-x-2 overflow-x-auto">
@@ -1041,42 +1041,42 @@ export default function TasksPage() {
                       completed: 'Completed'
                     };
                     return (
-                      <button
-                        key={status}
-                        onClick={() => setStatusFilter(status)}
-                        className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors ${
-                          statusFilter === status
+                <button
+                  key={status}
+                  onClick={() => setStatusFilter(status)}
+                  className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors ${
+                    statusFilter === status
                             ? 'bg-qolabb-navy-600 text-white shadow-sm'
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                      >
+                  }`}
+                >
                         {labels[status]}
-                        <span className="ml-2 opacity-75">({taskCounts[status]})</span>
-                      </button>
+                  <span className="ml-2 opacity-75">({taskCounts[status]})</span>
+                </button>
                     );
                   })}
                 </div>
-              </div>
+            </div>
 
-              {/* Project Filter */}
+            {/* Project Filter */}
               <div>
                 <label htmlFor="project-filter" className="text-xs font-medium text-gray-700 mb-2 block">
                   Filter by Project
                 </label>
-                <select
+            <select
                   id="project-filter"
-                  value={selectedProject}
-                  onChange={(e) => setSelectedProject(e.target.value)}
+              value={selectedProject}
+              onChange={(e) => setSelectedProject(e.target.value)}
                   className="w-full sm:w-auto px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent bg-white"
-                >
+            >
                   <option value="all">All Projects ({projects.length})</option>
-                  {projects.map((project) => (
-                    <option key={project.id} value={project.id}>
-                      {project.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {projects.map((project) => (
+                <option key={project.id} value={project.id}>
+                  {project.name}
+                </option>
+              ))}
+            </select>
+          </div>
             </motion.div>
           )}
         </div>
@@ -1112,18 +1112,18 @@ export default function TasksPage() {
                 : 'Create your first task to begin tracking progress and collaborating with your team.'}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              {projects.length === 0 ? (
-                <Button
+            {projects.length === 0 ? (
+              <Button
                   variant="primary"
                   onClick={() => router.push('/projects')}
                   className="flex items-center space-x-2"
-                >
-                  <FolderKanban size={20} />
-                  <span>Go to Projects</span>
-                </Button>
+              >
+                <FolderKanban size={20} />
+                <span>Go to Projects</span>
+              </Button>
               ) : !searchQuery && statusFilter === 'all' && selectedProject === 'all' ? (
-                <Button
-                  variant="primary"
+              <Button
+                variant="primary"
                   onClick={() => {
                     if (projects.length === 1) {
                       handleCreateTask(projects[0]);
@@ -1132,10 +1132,10 @@ export default function TasksPage() {
                     }
                   }}
                   className="flex items-center space-x-2"
-                >
-                  <Plus size={20} />
+              >
+                <Plus size={20} />
                   <span>Create Your First Task</span>
-                </Button>
+              </Button>
               ) : (
                 <Button
                   variant="secondary"
@@ -1162,13 +1162,13 @@ export default function TasksPage() {
                 </p>
               </div>
             </div>
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCorners}
-              onDragStart={handleDragStart}
-              onDragEnd={handleDragEnd}
-            >
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCorners}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* To Do Column */}
               <KanbanColumn
                 id="todo"
@@ -1241,7 +1241,7 @@ export default function TasksPage() {
                 <p className="text-sm text-gray-600 mt-1">Click any task to view details and manage it</p>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredTasks.map((task, index) => {
               const statusConfig = getStatusConfig(task.status);
               const isMyTask = task.assigned_to === user?.id;

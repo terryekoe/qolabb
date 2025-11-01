@@ -25,9 +25,11 @@ import {
   getWorkspaceMembers,
   getWorkspaceTeams,
   bulkInviteToTeam,
+  bulkAddTeamMembers,
   addTeamMember,
   getTeamMembers
 } from '@/lib/db/queries'
+import { usePermissions } from '@/lib/hooks/usePermissions'
 import { Profile, Team, TeamMember } from '@/lib/types/database'
 import { toast } from 'react-hot-toast'
 
@@ -43,6 +45,7 @@ interface WorkspaceMemberWithTeams extends Profile {
 export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAssignmentProps) {
   const { user } = useAuth()
   const { currentWorkspace } = useWorkspace()
+  const { canAccess, isInstructor } = usePermissions()
   const [members, setMembers] = useState<WorkspaceMemberWithTeams[]>([])
   const [teams, setTeams] = useState<Team[]>([])
   const [loading, setLoading] = useState(true)
@@ -72,8 +75,8 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
 
       // Enhance members with their current team information
       // Transform workspace members to match expected format
-      const enhancedMembers: WorkspaceMemberWithTeams[] = await Promise.all(
-        (workspaceMembers || []).map(async (member: any) => {
+      const enhancedMembersResults = await Promise.all(
+        (workspaceMembers || []).map(async (member: any): Promise<WorkspaceMemberWithTeams | null> => {
           // Extract profile data - handle both nested user and direct profile
           // Handle case where user might be an array (Supabase sometimes returns arrays)
           let profile = member.user || member;
@@ -99,11 +102,17 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
             }
           }
           
+          // Ensure we have at least a valid ID and name
+          if (!memberId || !profile) {
+            console.warn('Skipping member with invalid data:', member)
+            return null
+          }
+          
           return {
             id: memberId,
-            full_name: profile?.full_name || 'Unknown',
-            avatar_url: profile?.avatar_url || null,
-            email: profile?.email || '',
+            full_name: profile?.full_name || profile?.fullName || 'Unknown User',
+            avatar_url: profile?.avatar_url || profile?.avatarUrl || null,
+            email: profile?.email || member.email || '',
             institution: profile?.institution || '',
             role: profile?.role || member.role || 'member',
             current_teams: memberTeams,
@@ -112,11 +121,27 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
         })
       )
 
-      setMembers(enhancedMembers)
+      // Filter out any null members that couldn't be processed
+      const validMembers: WorkspaceMemberWithTeams[] = enhancedMembersResults
+        .filter((m): m is WorkspaceMemberWithTeams => {
+          if (!m) return false
+          // Ensure all required properties exist
+          if (!m.id || !m.full_name) {
+            console.warn('Filtering out invalid member:', m)
+            return false
+          }
+          return true
+        })
+
+      setMembers(validMembers)
       setTeams(workspaceTeams || [])
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading data:', error)
-      toast.error('Failed to load workspace data')
+      const errorMessage = error?.message || 'Failed to load workspace data'
+      toast.error(errorMessage)
+      // Set empty arrays on error to prevent rendering issues
+      setMembers([])
+      setTeams([])
     } finally {
       setLoading(false)
     }
@@ -132,20 +157,53 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
       setProcessing(true)
       const memberIds = Array.from(selectedMembers)
       
-      // Use bulk invite for efficiency with validation
-      const result = await bulkInviteToTeam(selectedTeam, memberIds, user.id, assignmentRole)
+      // Check if user is instructor/admin - they can directly assign, others must invite
+      const canDirectlyAssign = canAccess.instructorFeatures() || isInstructor
       
-      // Handle validation results
-      if (result.successful.length > 0) {
-        toast.success(`Successfully invited ${result.successful.length} members to the team`)
-      }
+      // Check if any selected members are instructors - if so, use invitations for collaboration
+      const selectedMemberProfiles = members.filter(m => memberIds.includes(m.id))
+      const hasInstructors = selectedMemberProfiles.some(m => 
+        m.role?.toLowerCase() === 'instructor' || 
+        m.role?.toLowerCase() === 'both' ||
+        m.role?.toLowerCase() === 'teaching_assistant'
+      )
       
-      if (result.skipped > 0) {
-        toast.error(`${result.skipped} invitations were skipped (already members or pending requests)`, { duration: 6000 })
+      let result
+      if (canDirectlyAssign && !hasInstructors) {
+        // Direct assignment for instructors/admins when assigning students
+        result = await bulkAddTeamMembers(selectedTeam, memberIds, assignmentRole, user.id)
+        
+        // Handle validation results
+        if (result.successful.length > 0) {
+          toast.success(`Successfully assigned ${result.successful.length} members to the team`)
+        }
+        
+        if (result.skipped > 0) {
+          toast.error(`${result.skipped} members were skipped (already members)`, { duration: 6000 })
+        }
+      } else {
+        // Invitation/join request for:
+        // 1. Regular users
+        // 2. Instructors assigning other instructors (for collaboration)
+        // Note: Role will be set when the invitation is approved
+        const invitationMessage = `Join as ${assignmentRole === 'leader' ? 'team leader' : 'member'}`
+        result = await bulkInviteToTeam(selectedTeam, memberIds, user.id, invitationMessage)
+        
+        // Handle validation results
+        if (result.successful.length > 0) {
+          const message = hasInstructors 
+            ? `Successfully sent join requests to ${result.successful.length} members (including instructors)`
+            : `Successfully invited ${result.successful.length} members to the team`
+          toast.success(message)
+        }
+        
+        if (result.skipped > 0) {
+          toast.error(`${result.skipped} invitations were skipped (already members or pending requests)`, { duration: 6000 })
+        }
       }
       
       if (result.successful.length === 0 && result.skipped > 0) {
-        toast.error('No valid invitations could be sent')
+        toast.error('No valid assignments/invitations could be sent')
       }
       
       // Clear selections and reload data
@@ -156,9 +214,9 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
       if (onAssignmentComplete) {
         onAssignmentComplete()
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error in bulk assignment:', error)
-      toast.error('Failed to assign members to team')
+      toast.error(error?.message || 'Failed to assign members to team')
     } finally {
       setProcessing(false)
     }
@@ -185,6 +243,11 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
 
   // Filter members based on search and team filter
   const filteredMembers = members.filter(member => {
+    // Safety check: filter out any invalid members
+    if (!member || !member.id || !member.full_name) {
+      return false
+    }
+    
     const matchesSearch = (member.full_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                          (member.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                          (member.institution || '').toLowerCase().includes(searchQuery.toLowerCase())
@@ -192,11 +255,13 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
     if (!matchesSearch) return false
     
     if (teamFilter === 'all') return true
-    if (teamFilter === 'unassigned') return member.current_teams.length === 0
-    if (teamFilter === 'assigned') return member.current_teams.length > 0
+    const currentTeams = member?.current_teams ?? []
+    
+    if (teamFilter === 'unassigned') return currentTeams.length === 0
+    if (teamFilter === 'assigned') return currentTeams.length > 0
     
     // Specific team filter
-    return member.current_teams.includes(teamFilter)
+    return currentTeams.includes(teamFilter)
   })
 
   if (!currentWorkspace) {
@@ -425,16 +490,36 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
         </motion.div>
       ) : (
         <div className="space-y-3">
-          {filteredMembers.map((member, index) => (
-            <MemberCard
-              key={member.id}
-              member={member}
-              teams={teams}
-              isSelected={selectedMembers.has(member.id)}
-              onToggleSelection={() => toggleMemberSelection(member.id)}
-              index={index}
-            />
-          ))}
+          {filteredMembers
+            .filter((member): member is WorkspaceMemberWithTeams => {
+              if (!member) return false
+              if (typeof member !== 'object') return false
+              if (!('id' in member) || !member.id) return false
+              if (!('full_name' in member) || !member.full_name) return false
+              return true
+            })
+            .map((member, index) => {
+              // Double-check before rendering
+              if (!member || !member.id || !member.full_name) {
+                return null
+              }
+              try {
+                return (
+                  <MemberCard
+                    key={member.id}
+                    member={member}
+                    teams={teams}
+                    isSelected={selectedMembers.has(member.id)}
+                    onToggleSelection={() => toggleMemberSelection(member.id)}
+                    index={index}
+                  />
+                )
+              } catch (error) {
+                console.error('Error rendering MemberCard:', error, member)
+                return null
+              }
+            })
+            .filter(Boolean)}
         </div>
       )}
     </div>
@@ -450,7 +535,28 @@ interface MemberCardProps {
 }
 
 function MemberCard({ member, teams, isSelected, onToggleSelection, index }: MemberCardProps) {
-  const memberTeams = teams.filter(team => member.current_teams.includes(team.id))
+  // Early return with comprehensive null checks
+  if (!member || typeof member !== 'object') {
+    return null
+  }
+  
+  // Check for required properties
+  const memberId = member.id
+  if (!memberId) {
+    return null
+  }
+
+  // Safely extract all values with explicit null checks
+  const fullName = (member && member.full_name) ? member.full_name : 'Unknown User'
+  const email = (member && member.email) ? member.email : 'No email'
+  // Role can be various string values, so we cast it as string for flexibility
+  const role = (member && member.role) ? String(member.role) : 'member'
+  const avatarUrl = (member && member.avatar_url) ? member.avatar_url : null
+  const institution = (member && member.institution) ? member.institution : null
+  const currentTeams = (member && Array.isArray(member.current_teams)) ? member.current_teams : []
+  const teamRoles = (member && member.team_roles && typeof member.team_roles === 'object') ? member.team_roles : {}
+
+  const memberTeams = teams.filter(team => currentTeams.includes(team.id))
 
   return (
     <motion.div
@@ -476,9 +582,9 @@ function MemberCard({ member, teams, isSelected, onToggleSelection, index }: Mem
 
         {/* Member Avatar */}
         <Avatar
-          userId={member.id}
-          name={member.full_name}
-          src={member.avatar_url}
+          userId={memberId}
+          name={fullName}
+          src={avatarUrl}
           size="md"
           square
           className="shadow-sm"
@@ -488,18 +594,18 @@ function MemberCard({ member, teams, isSelected, onToggleSelection, index }: Mem
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <h3 className="font-semibold text-gray-900 truncate">
-              {member.full_name}
+              {fullName}
             </h3>
-            {member.role === 'instructor' && (
+            {(role.toLowerCase() === 'instructor' || role.toLowerCase() === 'teaching_assistant') && (
               <div className="flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
                 <Crown size={10} />
-                Instructor
+                {role.toLowerCase() === 'instructor' ? 'Instructor' : 'TA'}
               </div>
             )}
           </div>
-          <p className="text-sm text-gray-600 truncate">{member.email}</p>
-          {member.institution && (
-            <p className="text-xs text-gray-500 truncate">{member.institution}</p>
+          <p className="text-sm text-gray-600 truncate">{email}</p>
+          {institution && (
+            <p className="text-xs text-gray-500 truncate">{institution}</p>
           )}
         </div>
 
@@ -517,7 +623,7 @@ function MemberCard({ member, teams, isSelected, onToggleSelection, index }: Mem
                     style={{ backgroundColor: team.avatar_color }}
                   />
                   <span className="truncate max-w-[80px]">{team.name}</span>
-                  {member.team_roles[team.id] === 'leader' && (
+                  {teamRoles[team.id] === 'leader' && (
                     <Crown size={10} className="text-yellow-600" />
                   )}
                 </div>

@@ -62,7 +62,7 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({
   useEffect(() => {
     if (isOpen && project) {
       loadTasks();
-    }
+  }
   }, [isOpen, project, loadTasks]);
 
   async function handleUpdateTaskStatus(taskId: string, newStatus: TaskStatus) {

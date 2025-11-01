@@ -41,13 +41,17 @@ CREATE TABLE public.notification_preferences (
   email_notifications boolean DEFAULT false,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  task_assignment boolean DEFAULT true,
+  task_completed boolean DEFAULT true,
+  project_updates boolean DEFAULT true,
+  contribution_logged boolean DEFAULT true,
   CONSTRAINT notification_preferences_pkey PRIMARY KEY (id),
   CONSTRAINT notification_preferences_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );
 CREATE TABLE public.notifications (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL,
-  type text NOT NULL CHECK (type = ANY (ARRAY['team_assignment'::text, 'join_request_approved'::text, 'join_request_rejected'::text, 'team_invitation'::text, 'general'::text])),
+  type text NOT NULL CHECK (type = ANY (ARRAY['team_assignment'::text, 'join_request_approved'::text, 'join_request_rejected'::text, 'team_invitation'::text, 'general'::text, 'task_assignment'::text, 'task_completed'::text, 'task_status_changed'::text, 'project_update'::text, 'project_created'::text, 'project_completed'::text, 'role_change'::text, 'team_update'::text, 'contribution_logged'::text, 'milestone_achieved'::text])),
   title text NOT NULL,
   message text NOT NULL,
   data jsonb DEFAULT '{}'::jsonb,
@@ -85,6 +89,44 @@ CREATE TABLE public.projects (
   CONSTRAINT projects_workspace_id_fkey FOREIGN KEY (workspace_id) REFERENCES public.workspaces(id),
   CONSTRAINT projects_team_id_fkey FOREIGN KEY (team_id) REFERENCES public.teams(id),
   CONSTRAINT projects_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id)
+);
+CREATE TABLE public.task_assignees (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  task_id uuid NOT NULL,
+  user_id uuid NOT NULL,
+  assigned_by uuid,
+  assigned_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT task_assignees_pkey PRIMARY KEY (id),
+  CONSTRAINT task_assignees_task_id_fkey FOREIGN KEY (task_id) REFERENCES public.tasks(id),
+  CONSTRAINT task_assignees_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id),
+  CONSTRAINT task_assignees_assigned_by_fkey FOREIGN KEY (assigned_by) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.task_attachments (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  task_id uuid NOT NULL,
+  user_id uuid,
+  file_name text,
+  file_path text,
+  file_size bigint,
+  file_type text,
+  uploaded_at timestamp with time zone NOT NULL DEFAULT now(),
+  external_url text,
+  CONSTRAINT task_attachments_pkey PRIMARY KEY (id),
+  CONSTRAINT task_attachments_task_id_fkey FOREIGN KEY (task_id) REFERENCES public.tasks(id),
+  CONSTRAINT task_attachments_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.task_subtasks (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  task_id uuid NOT NULL,
+  title text NOT NULL,
+  completed boolean NOT NULL DEFAULT false,
+  position integer NOT NULL DEFAULT 0,
+  created_by uuid,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT task_subtasks_pkey PRIMARY KEY (id),
+  CONSTRAINT task_subtasks_task_id_fkey FOREIGN KEY (task_id) REFERENCES public.tasks(id),
+  CONSTRAINT task_subtasks_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.profiles(id)
 );
 CREATE TABLE public.tasks (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
