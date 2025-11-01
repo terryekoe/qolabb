@@ -31,7 +31,6 @@ import TeamDiscovery from '@/components/teams/TeamDiscovery';
 import JoinRequestManager from '@/components/teams/JoinRequestManager';
 import BulkTeamAssignment from '@/components/teams/BulkTeamAssignment';
 import TeamAuditLog from '@/components/teams/TeamAuditLog';
-import TeamNotifications from '@/components/teams/TeamNotifications';
 
 export default function TeamsPage() {
   const { user } = useAuth();
@@ -48,7 +47,7 @@ export default function TeamsPage() {
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [showTeamDetailsModal, setShowTeamDetailsModal] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<'my-teams' | 'discover' | 'requests' | 'bulk-assign' | 'audit-log' | 'notifications'>('my-teams');
+  const [activeTab, setActiveTab] = useState<'my-teams' | 'discover' | 'requests' | 'bulk-assign' | 'audit-log'>('my-teams');
 
   const colors = [
     { name: 'Navy', value: '#334e68' },
@@ -293,18 +292,6 @@ export default function TeamsPage() {
               <span className="hidden sm:inline">Audit Log</span>
               <span className="sm:hidden">Audit</span>
             </button>
-            <button
-              onClick={() => setActiveTab('notifications')}
-              className={`flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-200 whitespace-nowrap ${
-                activeTab === 'notifications'
-                  ? 'bg-qolabb-navy-500 text-white shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              <Bell size={18} />
-              <span className="hidden sm:inline">Notifications</span>
-              <span className="sm:hidden">Notify</span>
-            </button>
           </div>
         </div>
 
@@ -476,10 +463,6 @@ export default function TeamsPage() {
 
         {activeTab === 'audit-log' && (
           <TeamAuditLog />
-        )}
-
-        {activeTab === 'notifications' && (
-          <TeamNotifications />
         )}
       </div>
 
