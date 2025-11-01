@@ -419,6 +419,22 @@ export async function getUserWorkspacesRPC(userId: string) {
 }
 
 export async function joinWorkspaceByCode(inviteCode: string, userId: string) {
+  // Ensure profile exists before joining workspace
+  // This is important because RLS policies require profiles for visibility
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      // Try to get or create profile
+      await getOrCreateProfile(userId, {
+        full_name: user.user_metadata?.full_name,
+        email: user.email || undefined
+      })
+    }
+  } catch (profileError) {
+    // Log but don't fail - profile might already exist
+    console.warn('Profile check/creation warning:', profileError)
+  }
+
   // Use RPC function to bypass RLS restrictions for joining
   const { data: workspace, error: joinError } = await supabase
     .rpc('join_workspace_by_invite_code', {
