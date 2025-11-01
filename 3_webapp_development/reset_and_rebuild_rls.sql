@@ -151,7 +151,7 @@ BEGIN
         AND ta.user_id = p_user_id
       )
       -- OR user can manage project tasks
-      OR can_manage_project_tasks(p.project_id, p_user_id)
+      OR can_manage_project_tasks(p.id, p_user_id)
     )
   );
 END;
