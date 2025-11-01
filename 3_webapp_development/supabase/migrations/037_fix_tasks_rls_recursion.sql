@@ -61,8 +61,32 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER STABLE
 SET search_path = public;
 
--- Grant execute permission to authenticated users
+-- Helper function to check if user can manage a task (assign people, edit, etc.)
+CREATE OR REPLACE FUNCTION can_manage_task(p_task_id UUID, p_user_id UUID DEFAULT auth.uid())
+RETURNS BOOLEAN AS $$
+DECLARE
+  v_project_id UUID;
+BEGIN
+  -- SECURITY DEFINER functions bypass RLS by default
+  -- Get project_id from task
+  SELECT t.project_id INTO v_project_id
+  FROM tasks t
+  WHERE t.id = p_task_id;
+  
+  -- If task doesn't exist, return false
+  IF v_project_id IS NULL THEN
+    RETURN FALSE;
+  END IF;
+  
+  -- Check if user can manage project tasks
+  RETURN can_manage_project_tasks(v_project_id, p_user_id);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER STABLE
+SET search_path = public;
+
+-- Grant execute permissions to authenticated users
 GRANT EXECUTE ON FUNCTION can_access_task(UUID, UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION can_manage_task(UUID, UUID) TO authenticated;
 
 -- Drop existing policies
 DROP POLICY IF EXISTS "tasks_select" ON tasks;
