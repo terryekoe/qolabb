@@ -25,6 +25,7 @@ import { ProjectDetailModal } from '@/components/projects/ProjectDetailModal';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
 import { useSearchParams } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 import { 
   getWorkspaceProjects, 
   getWorkspaceTeams, 
@@ -77,6 +78,68 @@ function ProjectsPageContent() {
       loadTeams();
     }
   }, [currentWorkspace]);
+
+  // Real-time subscriptions for projects and teams
+  useEffect(() => {
+    if (!currentWorkspace?.id) return;
+
+    // Subscribe to projects changes
+    const projectsChannel = supabase
+      .channel(`projects:workspace:${currentWorkspace.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'projects',
+          filter: `workspace_id=eq.${currentWorkspace.id}`,
+        },
+        () => {
+          loadProjects();
+        }
+      )
+      .subscribe();
+
+    // Subscribe to teams changes
+    const teamsChannel = supabase
+      .channel(`teams:workspace:${currentWorkspace.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'teams',
+          filter: `workspace_id=eq.${currentWorkspace.id}`,
+        },
+        () => {
+          loadTeams();
+        }
+      )
+      .subscribe();
+
+    // Subscribe to team_members changes (affects team counts)
+    const teamMembersChannel = supabase
+      .channel(`team_members:workspace:${currentWorkspace.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'team_members',
+        },
+        () => {
+          // Reload teams to get updated member counts
+          loadTeams();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(projectsChannel);
+      supabase.removeChannel(teamsChannel);
+      supabase.removeChannel(teamMembersChannel);
+    };
+  }, [currentWorkspace?.id]);
 
   async function loadProjects() {
     if (!currentWorkspace) return;

@@ -30,6 +30,7 @@ import { ContributionLogModal } from '@/components/tasks/ContributionLogModal';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
 import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 import { 
   getWorkspaceProjects,
   getProjectTasks,
@@ -422,6 +423,64 @@ export default function TasksPage() {
       loadData();
     }
   }, [currentWorkspace, loadData]);
+
+  // Real-time subscriptions for tasks and task_assignees
+  useEffect(() => {
+    if (!currentWorkspace?.id) return;
+
+    // Subscribe to tasks changes - listen to all tasks in workspace's projects
+    const tasksChannel = supabase
+      .channel(`tasks:workspace:${currentWorkspace.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'tasks',
+        },
+        (payload) => {
+          // Only reload if task belongs to a project in our workspace
+          // We'll check this by reloading (loadData fetches all workspace projects and their tasks)
+          loadData();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'task_assignees',
+        },
+        () => {
+          // Reload tasks when assignees change
+          loadData();
+        }
+      )
+      .subscribe();
+
+    // Subscribe to projects changes (new projects might have tasks)
+    const projectsChannel = supabase
+      .channel(`projects:workspace:${currentWorkspace.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'projects',
+          filter: `workspace_id=eq.${currentWorkspace.id}`,
+        },
+        () => {
+          // Reload data when projects change
+          loadData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(tasksChannel);
+      supabase.removeChannel(projectsChannel);
+    };
+  }, [currentWorkspace?.id, loadData]);
   
   // Keyboard shortcuts
   useEffect(() => {

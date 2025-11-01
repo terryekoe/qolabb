@@ -21,6 +21,7 @@ import Avatar from '@/components/ui/Avatar';
 import { TaskModal } from './TaskModal';
 import { getProjectTasks, updateTask, deleteTask, isTeamLeaderOrInstructor } from '@/lib/db/queries';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { supabase } from '@/lib/supabase';
 import type { Task, TaskStatus } from '@/lib/types/database';
 
 interface ProjectDetailModalProps {
@@ -62,8 +63,45 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({
   useEffect(() => {
     if (isOpen && project) {
       loadTasks();
-  }
+    }
   }, [isOpen, project, loadTasks]);
+
+  // Real-time subscription for tasks in this project
+  useEffect(() => {
+    if (!isOpen || !project?.id) return;
+
+    const tasksChannel = supabase
+      .channel(`project_tasks:${project.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'tasks',
+          filter: `project_id=eq.${project.id}`,
+        },
+        () => {
+          loadTasks();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'task_assignees',
+        },
+        () => {
+          // Reload tasks when assignees change
+          loadTasks();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(tasksChannel);
+    };
+  }, [isOpen, project?.id, loadTasks]);
 
   async function handleUpdateTaskStatus(taskId: string, newStatus: TaskStatus) {
     try {

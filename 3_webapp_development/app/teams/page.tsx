@@ -24,6 +24,7 @@ import { AvatarGroup } from '@/components/ui/Avatar';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
 import { createTeam, getWorkspaceTeams } from '@/lib/db/queries';
+import { supabase } from '@/lib/supabase';
 import AddMemberModal from '@/components/teams/AddMemberModal';
 import TeamDetailsModal from '@/components/teams/TeamDetailsModal';
 import TeamDiscovery from '@/components/teams/TeamDiscovery';
@@ -63,6 +64,68 @@ export default function TeamsPage() {
       loadTeams();
     }
   }, [currentWorkspace]);
+
+  // Real-time subscriptions for teams and team_members
+  useEffect(() => {
+    if (!currentWorkspace?.id) return;
+
+    // Subscribe to teams changes
+    const teamsChannel = supabase
+      .channel(`teams:workspace:${currentWorkspace.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'teams',
+          filter: `workspace_id=eq.${currentWorkspace.id}`,
+        },
+        () => {
+          loadTeams();
+        }
+      )
+      .subscribe();
+
+    // Subscribe to team_members changes (affects team counts and membership)
+    const teamMembersChannel = supabase
+      .channel(`team_members:workspace:${currentWorkspace.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'team_members',
+        },
+        () => {
+          // Reload teams to get updated member counts and membership
+          loadTeams();
+        }
+      )
+      .subscribe();
+
+    // Subscribe to team_join_requests changes
+    const joinRequestsChannel = supabase
+      .channel(`team_join_requests:workspace:${currentWorkspace.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'team_join_requests',
+        },
+        () => {
+          // Reload teams as join requests might affect discoverable teams
+          loadTeams();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(teamsChannel);
+      supabase.removeChannel(teamMembersChannel);
+      supabase.removeChannel(joinRequestsChannel);
+    };
+  }, [currentWorkspace?.id]);
 
   async function loadTeams() {
     if (!currentWorkspace) return;
