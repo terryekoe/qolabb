@@ -194,17 +194,17 @@ export function TaskTimeTracker({
       </div>
 
       {/* Time Display */}
-      <div className="bg-gradient-to-br from-qolabb-navy-50 to-qolabb-navy-100 rounded-lg p-4 border border-qolabb-navy-200">
+      <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <p className="text-xs font-medium text-qolabb-navy-700 uppercase tracking-wide mb-1">
+            <p className="text-xs font-medium text-blue-700 uppercase tracking-wide mb-1">
               Total Time Spent
             </p>
-            <p className="text-2xl font-bold text-qolabb-navy-900">
+            <p className="text-2xl font-bold text-blue-900">
               {displayHours.toFixed(2)}h
             </p>
             {isTracking && (
-              <p className="text-xs text-qolabb-navy-600 mt-1">
+              <p className="text-xs text-blue-600 mt-1">
                 Tracking: {formatTime(elapsedSeconds)}
               </p>
             )}
@@ -273,7 +273,7 @@ export function TaskTimeTracker({
                 placeholder="0"
                 min="0"
                 step="0.5"
-                className="w-20 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500"
+                className="w-20 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                 onBlur={() => setIsEditingEstimate(false)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
@@ -287,7 +287,7 @@ export function TaskTimeTracker({
           ) : (
             <button
               onClick={() => setIsEditingEstimate(true)}
-              className="text-sm text-gray-600 hover:text-qolabb-navy-600 font-medium"
+              className="text-sm text-gray-600 hover:text-blue-600 font-medium"
             >
               {estimated > 0 ? `${estimated}h` : 'Set estimate'}
             </button>
@@ -371,7 +371,7 @@ export function TaskTimeTracker({
             placeholder="0.5"
             min="0"
             step="0.25"
-            className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500"
+            className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             id="manual-hours-input"
           />
           <span className="text-sm text-gray-500">h</span>

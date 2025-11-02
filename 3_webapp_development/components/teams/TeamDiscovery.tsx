@@ -152,7 +152,7 @@ export default function TeamDiscovery({ onTeamJoined }: TeamDiscoveryProps) {
               placeholder="Search teams..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
           
@@ -162,7 +162,7 @@ export default function TeamDiscovery({ onTeamJoined }: TeamDiscoveryProps) {
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value as 'all' | 'public' | 'joinable')}
-              className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+              className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="all">All Teams</option>
               <option value="public">Public Teams</option>
@@ -330,7 +330,7 @@ function TeamCard({ team, joinRequest, onJoinRequest, isRequesting }: TeamCardPr
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-qolabb-navy-200 transition-all duration-200"
+      className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-blue-200 transition-all duration-200"
     >
       {/* Team Header */}
       <div className="flex items-start justify-between mb-4">

@@ -97,17 +97,17 @@ export function TAAnalyticsView() {
     : null;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-qolabb-navy-600 to-qolabb-beige-600 rounded-2xl p-8 text-white">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Workspace Analytics</h1>
-            <p className="text-white/80">Monitor team performance and student participation</p>
+      <div className="bg-gradient-to-r from-blue-600 to-qolabb-beige-600 rounded-2xl p-4 sm:p-8 text-white">
+        <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+          <div className="flex-1">
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2">Workspace Analytics</h1>
+            <p className="text-sm sm:text-base text-white/80">Monitor team performance and student participation</p>
           </div>
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-            <div className="text-sm text-white/80 mb-1">Role</div>
-            <div className="text-xl font-bold">Teaching Assistant</div>
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 sm:p-4">
+            <div className="text-xs sm:text-sm text-white/80 mb-1">Role</div>
+            <div className="text-lg sm:text-xl font-bold">Teaching Assistant</div>
           </div>
         </div>
       </div>
@@ -149,8 +149,8 @@ export function TAAnalyticsView() {
       </div>
 
       {/* Tabs */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex space-x-4 border-b border-gray-200 mb-6">
+      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
+        <div className="flex space-x-2 sm:space-x-4 border-b border-gray-200 mb-4 sm:mb-6 overflow-x-auto scrollbar-hide">
           {[
             { id: 'overview', label: 'Overview', icon: BarChart3 },
             { id: 'teams', label: 'Teams', icon: Users },
@@ -160,14 +160,14 @@ export function TAAnalyticsView() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
               className={cn(
-                'flex items-center space-x-2 px-4 py-2 border-b-2 transition-colors',
+                'flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 border-b-2 transition-colors whitespace-nowrap flex-shrink-0',
                 activeTab === tab.id
-                  ? 'border-qolabb-navy-600 text-qolabb-navy-600 font-semibold'
+                  ? 'border-blue-600 text-blue-600 font-semibold'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
               )}
             >
-              <tab.icon size={18} />
-              <span>{tab.label}</span>
+              <tab.icon size={16} className="sm:w-[18px] sm:h-[18px]" />
+              <span className="text-sm sm:text-base">{tab.label}</span>
             </button>
           ))}
         </div>
@@ -180,10 +180,10 @@ export function TAAnalyticsView() {
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Team Comparison</h3>
               <div className="space-y-3">
                 {teamStats.slice(0, 5).map((team: any) => (
-                  <div key={team.team.id} className="bg-gray-50 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-semibold text-gray-900">{team.team.name}</h4>
-                      <div className="flex items-center space-x-4 text-sm">
+                  <div key={team.team.id} className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 space-y-1 sm:space-y-0">
+                      <h4 className="font-semibold text-gray-900 text-sm sm:text-base">{team.team.name}</h4>
+                      <div className="flex items-center flex-wrap gap-2 sm:space-x-4 text-xs sm:text-sm">
                         <span className="text-gray-600">{team.totalHours}h total</span>
                         <span className={cn(
                           'font-semibold',
@@ -196,7 +196,7 @@ export function TAAnalyticsView() {
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div
-                        className="bg-qolabb-navy-600 h-2 rounded-full transition-all"
+                        className="bg-blue-600 h-2 rounded-full transition-all"
                         style={{
                           width: `${workspaceStats.totalHours > 0 
                             ? (team.totalHours / workspaceStats.totalHours) * 100 
@@ -212,7 +212,7 @@ export function TAAnalyticsView() {
             {/* Participation Distribution */}
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Participation Overview</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                 <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
                   <div className="text-2xl font-bold text-blue-600 mb-1">
                     {workspaceStats.totalContributions || 0}
@@ -249,14 +249,14 @@ export function TAAnalyticsView() {
               teamStats.map((team: any) => (
                 <div
                   key={team.team.id}
-                  className="bg-gray-50 rounded-lg p-6 border border-gray-200 hover:border-qolabb-navy-300 transition-colors cursor-pointer"
+                  className="bg-gray-50 rounded-lg p-4 sm:p-6 border border-gray-200 hover:border-blue-300 transition-colors cursor-pointer"
                   onClick={() => setSelectedTeam(selectedTeam === team.team.id ? null : team.team.id)}
                 >
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-bold text-gray-900">{team.team.name}</h3>
-                    <div className="flex items-center space-x-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 space-y-2 sm:space-y-0">
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-900">{team.team.name}</h3>
+                    <div className="flex items-center space-x-2 sm:space-x-4">
                       <div className={cn(
-                        'px-3 py-1 rounded-full text-sm font-semibold',
+                        'px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-semibold',
                         team.fairnessScore >= 70 ? 'bg-green-100 text-green-700' : 
                         team.fairnessScore >= 50 ? 'bg-yellow-100 text-yellow-700' : 
                         'bg-red-100 text-red-700'
@@ -266,7 +266,7 @@ export function TAAnalyticsView() {
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-4">
                     <div>
                       <div className="text-sm text-gray-600">Members</div>
                       <div className="text-xl font-bold text-gray-900">{team.members.length}</div>
@@ -310,7 +310,7 @@ export function TAAnalyticsView() {
                               </div>
                               <div className="w-full bg-gray-200 rounded-full h-2">
                                 <div
-                                  className="bg-qolabb-navy-600 h-2 rounded-full transition-all"
+                                  className="bg-blue-600 h-2 rounded-full transition-all"
                                   style={{ width: `${memberPercentage}%` }}
                                 />
                               </div>
@@ -335,59 +335,63 @@ export function TAAnalyticsView() {
         {activeTab === 'students' && (
           <div className="space-y-4">
             {studentPerformance.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Student</th>
-                      <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Hours</th>
-                      <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Contributions</th>
-                      <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Tasks</th>
-                      <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Score</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {studentPerformance.map((student) => (
-                      <tr key={student.userId} className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="py-3 px-4">
-                          <div className="flex items-center space-x-3">
-                            <Avatar
-                              userId={student.userId}
-                              name={student.name}
-                              src={student.avatar}
-                              size="sm"
-                            />
-                            <div>
-                              <div className="font-medium text-gray-900">{student.name}</div>
-                              {student.institution && (
-                                <div className="text-xs text-gray-500">{student.institution}</div>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="text-right py-3 px-4 text-sm text-gray-700">
-                          {student.totalHours}h
-                        </td>
-                        <td className="text-right py-3 px-4 text-sm text-gray-700">
-                          {student.contributions}
-                        </td>
-                        <td className="text-right py-3 px-4 text-sm text-gray-700">
-                          {student.tasksCompleted}/{student.tasksAssigned}
-                        </td>
-                        <td className="text-right py-3 px-4">
-                          <span className={cn(
-                            'px-2 py-1 rounded-full text-xs font-semibold',
-                            student.participationScore >= 70 ? 'bg-green-100 text-green-700' : 
-                            student.participationScore >= 50 ? 'bg-yellow-100 text-yellow-700' : 
-                            'bg-red-100 text-red-700'
-                          )}>
-                            {student.participationScore}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="overflow-x-auto -mx-4 sm:mx-0">
+                <div className="inline-block min-w-full align-middle">
+                  <div className="overflow-hidden shadow-sm ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="text-left py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-700">Student</th>
+                          <th className="text-right py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-700">Hours</th>
+                          <th className="text-right py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-700 hidden sm:table-cell">Contributions</th>
+                          <th className="text-right py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-700 hidden md:table-cell">Tasks</th>
+                          <th className="text-right py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-700">Score</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {studentPerformance.map((student) => (
+                          <tr key={student.userId} className="hover:bg-gray-50">
+                            <td className="py-3 px-3 sm:px-4">
+                              <div className="flex items-center space-x-2 sm:space-x-3">
+                                <Avatar
+                                  userId={student.userId}
+                                  name={student.name}
+                                  src={student.avatar}
+                                  size="sm"
+                                />
+                                <div className="min-w-0">
+                                  <div className="font-medium text-gray-900 text-sm sm:text-base truncate">{student.name}</div>
+                                  {student.institution && (
+                                    <div className="text-xs text-gray-500 truncate hidden sm:block">{student.institution}</div>
+                                  )}
+                                </div>
+                              </div>
+                            </td>
+                            <td className="text-right py-3 px-3 sm:px-4 text-xs sm:text-sm text-gray-700">
+                              {student.totalHours}h
+                            </td>
+                            <td className="text-right py-3 px-3 sm:px-4 text-xs sm:text-sm text-gray-700 hidden sm:table-cell">
+                              {student.contributions}
+                            </td>
+                            <td className="text-right py-3 px-3 sm:px-4 text-xs sm:text-sm text-gray-700 hidden md:table-cell">
+                              {student.tasksCompleted}/{student.tasksAssigned}
+                            </td>
+                            <td className="text-right py-3 px-3 sm:px-4">
+                              <span className={cn(
+                                'inline-flex px-2 py-1 rounded-full text-xs font-semibold',
+                                student.participationScore >= 70 ? 'bg-green-100 text-green-700' : 
+                                student.participationScore >= 50 ? 'bg-yellow-100 text-yellow-700' : 
+                                'bg-red-100 text-red-700'
+                              )}>
+                                {student.participationScore}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="text-center py-12">

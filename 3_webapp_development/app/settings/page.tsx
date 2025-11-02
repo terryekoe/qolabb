@@ -48,6 +48,7 @@ import Avatar from "@/components/ui/Avatar";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { useWorkspace } from "@/lib/workspace/WorkspaceContext";
 import { useSearchParams } from "next/navigation";
+import { uploadWorkspaceIcon, removeWorkspaceIcon } from "@/lib/db/queries";
 import {
   getWorkspaceMembers,
   getProfile,
@@ -148,9 +149,11 @@ function SettingsPageContent() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadingIcon, setUploadingIcon] = useState(false);
   const [exportingData, setExportingData] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const workspaceIconInputRef = useRef<HTMLInputElement>(null);
 
   // Check for tab and section parameters and navigate accordingly
   useEffect(() => {
@@ -194,6 +197,7 @@ function SettingsPageContent() {
     inviteCode: "",
     defaultRole: "member",
     allowPublicJoin: false,
+    iconUrl: "",
   });
 
   // Notification settings state
@@ -239,6 +243,7 @@ function SettingsPageContent() {
         inviteCode: currentWorkspace.invite_code || "",
         defaultRole: "member",
         allowPublicJoin: false,
+        iconUrl: currentWorkspace.icon_url || "",
       });
       loadMembers();
     }
@@ -639,6 +644,88 @@ function SettingsPageContent() {
     setTimeout(() => setCopiedCode(false), 2000);
   }
 
+  // Workspace icon upload functions
+  function handleWorkspaceIconSelect() {
+    workspaceIconInputRef.current?.click();
+  }
+
+  function validateWorkspaceIconFile(file: File): string | null {
+    // Check file type (includes SVG and WebP for workspace icons)
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+    if (!allowedTypes.includes(file.type)) {
+      return 'Please select a valid image file (JPG, PNG, GIF, WebP, or SVG)';
+    }
+
+    // Check file size (2MB limit)
+    const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+    if (file.size > maxSize) {
+      return 'File size must be less than 2MB';
+    }
+
+    return null;
+  }
+
+  async function handleWorkspaceIconUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file || !currentWorkspace || !isOwnerOrAdmin) return;
+
+    // Validate file
+    const validationError = validateWorkspaceIconFile(file);
+    if (validationError) {
+      alert(validationError);
+      return;
+    }
+
+    setUploadingIcon(true);
+    try {
+      const iconUrl = await uploadWorkspaceIcon(currentWorkspace.id, file);
+      setWorkspaceSettings({ ...workspaceSettings, iconUrl });
+      await refreshWorkspaces();
+      alert('Workspace icon updated successfully!');
+    } catch (error: any) {
+      console.error('Upload workspace icon error:', error);
+      let errorMessage = 'Failed to upload workspace icon. Please try again.';
+      
+      if (error.message?.includes('bucket')) {
+        errorMessage = 'Storage not configured. Please contact support.';
+      } else if (error.message?.includes('size')) {
+        errorMessage = 'File is too large. Please use an image under 2MB.';
+      } else if (error.message?.includes('type')) {
+        errorMessage = 'Invalid file type. Please use JPG, PNG, GIF, WebP, or SVG.';
+      } else if (error.message) {
+        errorMessage = `Upload failed: ${error.message}`;
+      }
+      
+      alert(errorMessage);
+    } finally {
+      setUploadingIcon(false);
+      if (workspaceIconInputRef.current) {
+        workspaceIconInputRef.current.value = '';
+      }
+    }
+  }
+
+  async function handleRemoveWorkspaceIcon() {
+    if (!currentWorkspace || !isOwnerOrAdmin) return;
+
+    if (!confirm('Are you sure you want to remove the workspace icon?')) {
+      return;
+    }
+
+    setUploadingIcon(true);
+    try {
+      await removeWorkspaceIcon(currentWorkspace.id);
+      setWorkspaceSettings({ ...workspaceSettings, iconUrl: '' });
+      await refreshWorkspaces();
+      alert('Workspace icon removed successfully!');
+    } catch (error: any) {
+      console.error('Remove workspace icon error:', error);
+      alert('Failed to remove workspace icon: ' + error.message);
+    } finally {
+      setUploadingIcon(false);
+    }
+  }
+
   const currentMember = members.find((m) => m.user_id === user?.id);
   const isOwnerOrAdmin =
     currentMember?.role === "owner" || currentMember?.role === "admin";
@@ -657,19 +744,19 @@ function SettingsPageContent() {
   }
 
   const renderProfileSettings = () => (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
           Profile Settings
         </h2>
-        <p className="text-gray-600">
+        <p className="text-sm sm:text-base text-gray-600">
           Manage your personal information and preferences
         </p>
       </div>
 
       {/* Profile Picture */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
           Profile Picture
         </h3>
         <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-6">
@@ -720,7 +807,7 @@ function SettingsPageContent() {
             </p>
             
             {uploading && (
-              <p className="text-sm text-qolabb-navy-600 mt-1">
+              <p className="text-sm text-blue-600 mt-1">
                 Uploading...
               </p>
             )}
@@ -738,8 +825,8 @@ function SettingsPageContent() {
       </div>
 
       {/* Personal Information */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
+        <h3 className="text-base sm:text-base sm:text-lg font-semibold text-gray-900 mb-4">
           Personal Information
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -753,7 +840,7 @@ function SettingsPageContent() {
               onChange={(e) =>
                 setProfileData({ ...profileData, fullName: e.target.value })
               }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
           <div>
@@ -777,7 +864,7 @@ function SettingsPageContent() {
               onChange={(e) =>
                 setProfileData({ ...profileData, phone: e.target.value })
               }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
           <div>
@@ -790,7 +877,7 @@ function SettingsPageContent() {
               onChange={(e) =>
                 setProfileData({ ...profileData, institution: e.target.value })
               }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
           <div>
@@ -802,7 +889,7 @@ function SettingsPageContent() {
               onChange={(e) =>
                 setProfileData({ ...profileData, role: e.target.value })
               }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="">Select Role</option>
               <option value="student">Student</option>
@@ -821,7 +908,7 @@ function SettingsPageContent() {
               onChange={(e) =>
                 setProfileData({ ...profileData, location: e.target.value })
               }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="City, Country"
             />
           </div>
@@ -836,7 +923,7 @@ function SettingsPageContent() {
               setProfileData({ ...profileData, bio: e.target.value })
             }
             rows={3}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="Tell us about yourself..."
           />
         </div>
@@ -862,8 +949,8 @@ function SettingsPageContent() {
                 }}
                 className={`px-4 py-3 rounded-lg border text-sm font-medium transition-colors text-center ${
                   profileData.goals.includes(goal)
-                    ? "bg-qolabb-navy-500 text-white border-qolabb-navy-500"
-                    : "bg-white text-gray-700 border-gray-300 hover:border-qolabb-navy-300"
+                    ? "bg-blue-500 text-white border-blue-500"
+                    : "bg-white text-gray-700 border-gray-300 hover:border-blue-300"
                 }`}
               >
                 {goal}
@@ -876,6 +963,7 @@ function SettingsPageContent() {
             variant="primary"
             onClick={handleSaveProfile}
             disabled={saving}
+            className="w-full sm:w-auto"
           >
             {saving ? "Saving..." : "Save Changes"}
           </Button>
@@ -885,19 +973,19 @@ function SettingsPageContent() {
   );
 
   const renderAccountSettings = () => (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
           Account & Security
         </h2>
-        <p className="text-gray-600">
+        <p className="text-sm sm:text-base text-gray-600">
           Manage your password, authentication, and security settings
         </p>
       </div>
 
       {/* Password */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
           Change Password
         </h3>
         <div className="space-y-4">
@@ -915,7 +1003,7 @@ function SettingsPageContent() {
                     currentPassword: e.target.value,
                   })
                 }
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent pr-12"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12"
               />
               <button
                 type="button"
@@ -939,7 +1027,7 @@ function SettingsPageContent() {
                   newPassword: e.target.value,
                 })
               }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
           <div>
@@ -955,7 +1043,7 @@ function SettingsPageContent() {
                   confirmPassword: e.target.value,
                 })
               }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
           <Button variant="primary" className="w-full">
@@ -965,8 +1053,8 @@ function SettingsPageContent() {
       </div>
 
       {/* Two-Factor Authentication */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
           Two-Factor Authentication
         </h3>
         <div className="flex items-center justify-between">
@@ -988,14 +1076,14 @@ function SettingsPageContent() {
               }
               className="sr-only peer"
             />
-            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-qolabb-navy-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-qolabb-navy-600"></div>
+            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
           </label>
         </div>
       </div>
 
       {/* Session Management */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
           Session Management
         </h3>
         <div className="space-y-4">
@@ -1011,7 +1099,7 @@ function SettingsPageContent() {
                   sessionTimeout: e.target.value,
                 })
               }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="1h">1 hour</option>
               <option value="8h">8 hours</option>
@@ -1029,60 +1117,95 @@ function SettingsPageContent() {
   );
 
   const renderWorkspaceSettings = () => (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
           Workspace Settings
         </h2>
-        <p className="text-gray-600">
+        <p className="text-sm sm:text-base text-gray-600">
           Manage {currentWorkspace?.name || "your workspace"}
         </p>
       </div>
 
-      {/* Debug Information */}
-      <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
-        <h3 className="text-lg font-semibold text-yellow-800 mb-4">
-          🔍 Debug Information
-        </h3>
-        <div className="space-y-3 text-sm">
-          <div>
-            <span className="font-medium text-yellow-800">User:</span>{" "}
-            <span className="text-yellow-700">
-              {user ? `${user.email} (ID: ${user.id})` : "Not authenticated"}
-            </span>
+      {/* Workspace Icon */}
+      {isOwnerOrAdmin && (
+        <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
+            Workspace Icon
+          </h3>
+          <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6">
+            {/* Icon Preview */}
+            <div className="relative flex-shrink-0">
+              {workspaceSettings.iconUrl ? (
+                <img
+                  src={workspaceSettings.iconUrl}
+                  alt={currentWorkspace?.name || 'Workspace'}
+                  className="w-20 h-20 rounded-lg object-cover border-2 border-gray-200"
+                />
+              ) : (
+                <div className="w-20 h-20 rounded-lg bg-blue-100 flex items-center justify-center border-2 border-gray-200">
+                  <Building2 className="text-blue-700" size={32} />
+                </div>
+              )}
+              {uploadingIcon && (
+                <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                </div>
+              )}
+            </div>
+
+            {/* Upload Controls */}
+            <div className="flex-1 w-full sm:w-auto">
+              <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-2 sm:space-y-0 sm:space-x-3">
+                <Button 
+                  variant="ghost" 
+                  className="flex items-center space-x-2 w-full sm:w-auto justify-center"
+                  onClick={handleWorkspaceIconSelect}
+                  disabled={uploadingIcon}
+                >
+                  <Camera size={18} />
+                  <span>{workspaceSettings.iconUrl ? 'Change Icon' : 'Upload Icon'}</span>
+                </Button>
+                
+                {workspaceSettings.iconUrl && (
+                  <Button 
+                    variant="ghost" 
+                    className="flex items-center space-x-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                    onClick={handleRemoveWorkspaceIcon}
+                    disabled={uploadingIcon}
+                  >
+                    <X size={18} />
+                    <span>Remove</span>
+                  </Button>
+                )}
+              </div>
+              
+              <p className="text-sm text-gray-500 mt-2">
+                JPG, PNG, GIF, WebP or SVG. Max size 2MB.
+              </p>
+              
+              {uploadingIcon && (
+                <p className="text-sm text-blue-600 mt-1">
+                  Uploading...
+                </p>
+              )}
+            </div>
           </div>
-          <div>
-            <span className="font-medium text-yellow-800">Current Workspace:</span>{" "}
-            <span className="text-yellow-700">
-              {currentWorkspace ? `${currentWorkspace.name} (ID: ${currentWorkspace.id})` : "No workspace selected"}
-            </span>
-          </div>
-          <div>
-            <span className="font-medium text-yellow-800">Members Count:</span>{" "}
-            <span className="text-yellow-700">{members.length}</span>
-          </div>
-          <div>
-            <span className="font-medium text-yellow-800">Loading State:</span>{" "}
-            <span className="text-yellow-700">{loading ? "Loading..." : "Loaded"}</span>
-          </div>
-          <div>
-            <span className="font-medium text-yellow-800">Profile:</span>{" "}
-            <span className="text-yellow-700">
-              {profileData ? `${profileData.fullName || 'No name'} (Role: ${profileData.role || 'No role'})` : "No profile"}
-            </span>
-          </div>
+
+          {/* Hidden File Input */}
+          <input
+            ref={workspaceIconInputRef}
+            type="file"
+            accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,image/svg+xml"
+            onChange={handleWorkspaceIconUpload}
+            className="hidden"
+          />
         </div>
-        <button
-          onClick={loadMembers}
-          className="mt-4 px-4 py-2 bg-yellow-200 text-yellow-800 rounded-lg hover:bg-yellow-300 transition-colors"
-        >
-          🔄 Reload Members
-        </button>
-      </div>
+      )}
 
       {/* Workspace Info */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
           Workspace Information
         </h3>
 
@@ -1101,7 +1224,7 @@ function SettingsPageContent() {
                 })
               }
               disabled={!isOwnerOrAdmin}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
           </div>
 
@@ -1119,7 +1242,7 @@ function SettingsPageContent() {
               }
               disabled={!isOwnerOrAdmin}
               rows={3}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
               placeholder="Add a description for this workspace..."
             />
           </div>
@@ -1130,6 +1253,7 @@ function SettingsPageContent() {
                 variant="primary"
                 onClick={handleSaveWorkspace}
                 disabled={saving || !workspaceSettings.name.trim()}
+                className="w-full sm:w-auto"
               >
                 {saving ? "Saving..." : "Save Changes"}
               </Button>
@@ -1139,8 +1263,8 @@ function SettingsPageContent() {
       </div>
 
       {/* Invite Code */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
           Invite Code
         </h3>
         <p className="text-gray-600 mb-4">
@@ -1230,7 +1354,7 @@ function SettingsPageContent() {
                 <div className="flex items-center justify-between sm:justify-end space-x-3">
                   <div className="flex items-center space-x-2">
                     {member.role === "owner" && (
-                      <div className="flex items-center space-x-1 bg-qolabb-navy-100 text-qolabb-navy-700 px-3 py-1 rounded-full">
+                      <div className="flex items-center space-x-1 bg-blue-100 text-blue-700 px-3 py-1 rounded-full">
                         <Crown size={14} />
                         <span className="text-sm font-semibold">Owner</span>
                       </div>
@@ -1262,35 +1386,66 @@ function SettingsPageContent() {
 
       {/* Danger Zone */}
       {isOwnerOrAdmin && (
-        <div className="bg-red-50 rounded-xl border border-red-200 p-6">
-          <h3 className="text-lg font-semibold text-red-900 mb-2">
-            Danger Zone
-          </h3>
-          <p className="text-red-700 text-sm mb-4">
-            Deleting a workspace is permanent and cannot be undone
-          </p>
-          <Button variant="ghost" className="text-red-600 hover:bg-red-100">
-            <Trash2 size={18} className="mr-2" />
-            Delete Workspace
-          </Button>
+        <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-xl border-2 border-red-200 p-6 relative overflow-hidden">
+          {/* Decorative background pattern */}
+          <div className="absolute top-0 right-0 w-32 h-32 opacity-10">
+            <div className="w-full h-full bg-red-500 rounded-full blur-3xl"></div>
+          </div>
+          
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 bg-red-100 rounded-lg">
+                <AlertTriangle className="w-5 h-5 text-red-600" />
+              </div>
+              <h3 className="text-xl font-bold text-red-900">
+                Danger Zone
+              </h3>
+            </div>
+            
+            <p className="text-red-800 text-sm mb-6 ml-12 leading-relaxed">
+              Actions in this section are permanent and cannot be undone. Please proceed with caution.
+            </p>
+            
+            <div className="ml-12 space-y-4">
+              <div className="bg-white rounded-lg border border-red-200 p-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-gray-900 mb-1">
+                      Delete Workspace
+                    </h4>
+                    <p className="text-sm text-gray-600 mb-3">
+                      Permanently delete this workspace and all associated data. This action cannot be reversed.
+                    </p>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    className="text-red-600 hover:text-white hover:bg-red-600 border border-red-300 hover:border-red-600 transition-all duration-200 whitespace-nowrap ml-4"
+                  >
+                    <Trash2 size={18} className="mr-2" />
+                    Delete Workspace
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
   );
 
   const renderNotificationSettings = () => (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
           Notification Settings
         </h2>
-        <p className="text-gray-600">
+        <p className="text-sm sm:text-base text-gray-600">
           Control how and when you receive notifications
         </p>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
           Email Notifications
         </h3>
         <div className="space-y-4">
@@ -1350,15 +1505,15 @@ function SettingsPageContent() {
                   }
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-qolabb-navy-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-qolabb-navy-600"></div>
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
               </label>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
           Push Notifications
         </h3>
         <div className="flex items-center justify-between">
@@ -1380,7 +1535,7 @@ function SettingsPageContent() {
               }
               className="sr-only peer"
             />
-            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-qolabb-navy-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-qolabb-navy-600"></div>
+            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
           </label>
         </div>
       </div>
@@ -1388,18 +1543,18 @@ function SettingsPageContent() {
   );
 
   const renderPrivacySettings = () => (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
           Privacy Settings
         </h2>
-        <p className="text-gray-600">
+        <p className="text-sm sm:text-base text-gray-600">
           Control your data and privacy preferences
         </p>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
           Profile Visibility
         </h3>
         <div className="space-y-4">
@@ -1415,7 +1570,7 @@ function SettingsPageContent() {
                   profileVisibility: e.target.value,
                 })
               }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="public">Everyone</option>
               <option value="workspace">Workspace Members Only</option>
@@ -1465,15 +1620,15 @@ function SettingsPageContent() {
                   }
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-qolabb-navy-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-qolabb-navy-600"></div>
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
               </label>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
           Data & Analytics
         </h3>
         <div className="space-y-4">
@@ -1496,14 +1651,14 @@ function SettingsPageContent() {
                 }
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-qolabb-navy-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-qolabb-navy-600"></div>
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
             </label>
           </div>
 
           <div className="pt-4 border-t border-gray-200">
             <Button
               variant="ghost"
-              className="text-qolabb-navy-600 hover:bg-qolabb-navy-50"
+              className="text-blue-600 hover:bg-blue-50"
               onClick={handleExportData}
               disabled={exportingData}
             >
@@ -1520,19 +1675,19 @@ function SettingsPageContent() {
   );
 
   const renderAppearanceSettings = () => (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
           Appearance Settings
         </h2>
-        <p className="text-gray-600">
+        <p className="text-sm sm:text-base text-gray-600">
           Customize the look and feel of your interface
         </p>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Theme</h3>
-        <div className="grid grid-cols-3 gap-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
+        <h3 className="text-base sm:text-base sm:text-lg font-semibold text-gray-900 mb-4">Theme</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
           {[
             { value: "light", label: "Light", icon: Sun },
             { value: "dark", label: "Dark", icon: Moon },
@@ -1548,7 +1703,7 @@ function SettingsPageContent() {
               }
               className={`p-4 border-2 rounded-lg flex flex-col items-center space-y-2 transition-colors ${
                 appearanceSettings.theme === theme.value
-                  ? "border-qolabb-navy-500 bg-qolabb-navy-50"
+                  ? "border-blue-500 bg-blue-50"
                   : "border-gray-200 hover:border-gray-300"
               }`}
             >
@@ -1559,8 +1714,8 @@ function SettingsPageContent() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
           Language & Region
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1576,7 +1731,7 @@ function SettingsPageContent() {
                   language: e.target.value,
                 })
               }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="en">English</option>
               <option value="es">Español</option>
@@ -1597,7 +1752,7 @@ function SettingsPageContent() {
                   dateFormat: e.target.value,
                 })
               }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="MM/DD/YYYY">MM/DD/YYYY</option>
               <option value="DD/MM/YYYY">DD/MM/YYYY</option>
@@ -1607,8 +1762,8 @@ function SettingsPageContent() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Interface</h3>
+      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Interface</h3>
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1622,7 +1777,7 @@ function SettingsPageContent() {
                   density: e.target.value,
                 })
               }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="compact">Compact</option>
               <option value="comfortable">Comfortable</option>
@@ -1666,7 +1821,7 @@ function SettingsPageContent() {
                   }
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-qolabb-navy-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-qolabb-navy-600"></div>
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
               </label>
             </div>
           ))}
@@ -1683,8 +1838,8 @@ function SettingsPageContent() {
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-        <div className="w-16 h-16 bg-qolabb-navy-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <SettingsIcon size={32} className="text-qolabb-navy-600" />
+        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <SettingsIcon size={32} className="text-blue-600" />
         </div>
         <h3 className="text-xl font-semibold text-gray-900 mb-2">
           Coming Soon
@@ -1734,41 +1889,31 @@ function SettingsPageContent() {
   return (
     <DashboardLayout>
       <div className="min-h-screen bg-gray-50">
-        {/* Settings Header */}
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
+        {/* Settings Navigation Bar */}
+        <div className="bg-white border-b border-gray-200 sticky top-16 z-20">
           <div className="px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-qolabb-navy-100 rounded-lg">
-                  <SettingsIcon size={24} className="text-qolabb-navy-600" />
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-gray-900">Settings</h1>
-                  <p className="text-sm text-gray-500 hidden sm:block">
-                    Manage your account and preferences
-                  </p>
-                </div>
-              </div>
-              
-              {/* Mobile Settings Menu Button */}
+            {/* Mobile: Menu Button Only */}
+            <div className="md:hidden flex justify-center py-3">
               <button
                 onClick={() => setIsMobileSidebarOpen(true)}
-                className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="relative p-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 active:scale-95 transition-all shadow-lg flex items-center gap-2"
+                aria-label="Open settings menu"
               >
-                <Menu size={24} className="text-gray-600" />
+                <Menu size={20} />
+                <span className="text-sm font-semibold">Settings Menu</span>
               </button>
             </div>
 
-            {/* Desktop Horizontal Navigation */}
-            <div className="hidden md:block">
-              <nav className="flex space-x-1 overflow-x-auto pb-4">
+            {/* Desktop: Horizontal Navigation */}
+            <div className="hidden md:block overflow-x-auto">
+              <nav className="flex space-x-1 py-4 min-w-max">
                 {settingsSections.map((section) => (
                   <button
                     key={section.id}
                     onClick={() => setActiveSection(section.id)}
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+                    className={`flex items-center space-x-2 px-3 lg:px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
                       activeSection === section.id
-                        ? "bg-qolabb-navy-100 text-qolabb-navy-700"
+                        ? "bg-blue-100 text-blue-700"
                         : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                     }`}
                   >
@@ -1781,10 +1926,11 @@ function SettingsPageContent() {
           </div>
         </div>
 
-        {/* Mobile Settings Navigation Overlay */}
+        {/* Mobile Bottom Sheet Navigation */}
         <AnimatePresence>
           {isMobileSidebarOpen && (
             <>
+              {/* Backdrop */}
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -1792,53 +1938,124 @@ function SettingsPageContent() {
                 className="fixed inset-0 bg-black bg-opacity-50 z-50 md:hidden"
                 onClick={() => setIsMobileSidebarOpen(false)}
               />
+              
+              {/* Bottom Sheet */}
               <motion.div
-                initial={{ x: "100%" }}
-                animate={{ x: 0 }}
-                exit={{ x: "100%" }}
-                transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                className="fixed top-0 right-0 bottom-0 w-80 bg-white shadow-xl z-50 md:hidden"
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "100%" }}
+                transition={{ type: "spring", damping: 30, stiffness: 300 }}
+                drag="y"
+                dragConstraints={{ top: 0, bottom: 0 }}
+                dragElastic={{ top: 0, bottom: 0.2 }}
+                onDragEnd={(event, info) => {
+                  if (info.offset.y > 100 || info.velocity.y > 500) {
+                    setIsMobileSidebarOpen(false);
+                  }
+                }}
+                className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl z-50 md:hidden max-h-[85vh] overflow-hidden"
+                onClick={(e) => e.stopPropagation()}
               >
-                <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                  <h2 className="text-lg font-semibold text-gray-900">Settings</h2>
-                  <button
-                    onClick={() => setIsMobileSidebarOpen(false)}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                  >
-                    <X size={20} />
-                  </button>
+                {/* Drag Handle */}
+                <div 
+                  className="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing"
+                  onPointerDown={(e) => e.stopPropagation()}
+                >
+                  <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
                 </div>
-                <nav className="p-4 space-y-1">
-                  {settingsSections.map((section) => (
+
+                {/* Header */}
+                <div className="px-6 pb-4 border-b border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900">Settings</h2>
+                      <p className="text-sm text-gray-500 mt-0.5">Choose a category</p>
+                    </div>
                     <button
-                      key={section.id}
-                      onClick={() => {
-                        setActiveSection(section.id);
-                        setIsMobileSidebarOpen(false);
-                      }}
-                      className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${
-                        activeSection === section.id
-                          ? "bg-qolabb-navy-50 text-qolabb-navy-700 border border-qolabb-navy-200"
-                          : "text-gray-700 hover:bg-gray-50"
-                      }`}
+                      onClick={() => setIsMobileSidebarOpen(false)}
+                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                      aria-label="Close settings menu"
                     >
-                      <section.icon size={20} />
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{section.label}</p>
-                        <p className="text-xs text-gray-500 truncate">
-                          {section.description}
-                        </p>
-                      </div>
+                      <X size={20} className="text-gray-600" />
                     </button>
-                  ))}
-                </nav>
+                  </div>
+                </div>
+
+                {/* Navigation Grid */}
+                <div className="overflow-y-auto max-h-[calc(85vh-120px)] pb-6">
+                  <nav className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4">
+                    {settingsSections.map((section) => {
+                      const Icon = section.icon;
+                      const isActive = activeSection === section.id;
+                      
+                      return (
+                        <button
+                          key={section.id}
+                          onClick={() => {
+                            setActiveSection(section.id);
+                            setIsMobileSidebarOpen(false);
+                          }}
+                          className={`
+                            relative p-4 rounded-xl border-2 transition-all duration-200
+                            flex flex-col items-center justify-center space-y-2
+                            min-h-[100px] group
+                            ${
+                              isActive
+                                ? "bg-blue-50 border-blue-300 shadow-md scale-105"
+                                : "bg-white border-gray-200 hover:border-blue-200 hover:shadow-md hover:bg-gray-50 active:scale-95"
+                            }
+                          `}
+                        >
+                          {/* Icon */}
+                          <div
+                            className={`
+                              p-3 rounded-xl transition-colors
+                              ${
+                                isActive
+                                  ? "bg-blue-100 text-blue-700"
+                                  : "bg-gray-100 text-gray-600 group-hover:bg-blue-50 group-hover:text-blue-600"
+                              }
+                            `}
+                          >
+                            <Icon size={24} />
+                          </div>
+                          
+                          {/* Label */}
+                          <div className="text-center">
+                            <p
+                              className={`
+                                text-sm font-semibold leading-tight
+                                ${
+                                  isActive
+                                    ? "text-blue-900"
+                                    : "text-gray-900 group-hover:text-blue-900"
+                                }
+                              `}
+                            >
+                              {section.label}
+                            </p>
+                          </div>
+
+                          {/* Active Indicator */}
+                          {isActive && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              className="absolute top-2 right-2 w-2 h-2 bg-blue-600 rounded-full"
+                            />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </nav>
+                </div>
               </motion.div>
             </>
           )}
         </AnimatePresence>
 
         {/* Main Content */}
-        <div className="px-4 sm:px-6 lg:px-8 py-8">
+        <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
           <div className="max-w-4xl mx-auto">
             <AnimatePresence mode="wait">
               <motion.div
@@ -1863,7 +2080,7 @@ export default function SettingsPage() {
     <Suspense fallback={
       <DashboardLayout>
         <div className="flex items-center justify-center h-96">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-qolabb-navy-600"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>
       </DashboardLayout>
     }>

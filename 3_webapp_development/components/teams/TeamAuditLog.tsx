@@ -270,7 +270,7 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
                 placeholder="Search by user, team, action, or details..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
@@ -302,7 +302,7 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
               <select
                 value={actionFilter}
                 onChange={(e) => setActionFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="all">All Actions</option>
                 <option value="add_member">Add Member</option>
@@ -321,7 +321,7 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
               <select
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="all">All Time</option>
                 <option value="today">Today</option>
@@ -434,7 +434,22 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
                       {/* Details */}
                       {entry.details && typeof entry.details === 'object' && (
                         <p className="text-sm text-gray-600 mb-2">
-                          {JSON.stringify(entry.details)}
+                          {(() => {
+                            const details = entry.details as any;
+                            // If there's a message field, display it
+                            if (details.message) {
+                              return details.message;
+                            }
+                            // If there's a bulk_invite flag, format accordingly
+                            if (details.bulk_invite) {
+                              return `Bulk invitation sent${details.request_id ? ` (Request: ${details.request_id.slice(0, 8)}...)` : ''}`;
+                            }
+                            // For other details, format key-value pairs nicely
+                            return Object.entries(details)
+                              .filter(([key]) => !['request_id', 'bulk_invite'].includes(key))
+                              .map(([key, value]) => `${key}: ${value}`)
+                              .join(', ') || 'No additional details';
+                          })()}
                         </p>
                       )}
 

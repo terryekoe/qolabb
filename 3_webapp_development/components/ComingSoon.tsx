@@ -18,7 +18,7 @@ export const ComingSoon: React.FC = () => {
           transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
           className="inline-block mb-8"
         >
-          <Clock size={80} className="text-qolabb-navy-600" />
+          <Clock size={80} className="text-blue-600" />
         </motion.div>
         
         <h1 className="text-5xl md:text-6xl font-bold mb-4 text-gray-900">

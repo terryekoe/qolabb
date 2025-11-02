@@ -236,7 +236,7 @@ export default function TeamsPage() {
               onClick={() => setActiveTab('my-teams')}
               className={`flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-200 whitespace-nowrap ${
                 activeTab === 'my-teams'
-                  ? 'bg-qolabb-navy-500 text-white shadow-sm'
+                  ? 'bg-blue-500 text-white shadow-sm'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
@@ -248,7 +248,7 @@ export default function TeamsPage() {
               onClick={() => setActiveTab('discover')}
               className={`flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-200 whitespace-nowrap ${
                 activeTab === 'discover'
-                  ? 'bg-qolabb-navy-500 text-white shadow-sm'
+                  ? 'bg-blue-500 text-white shadow-sm'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
@@ -260,7 +260,7 @@ export default function TeamsPage() {
               onClick={() => setActiveTab('requests')}
               className={`flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-200 whitespace-nowrap ${
                 activeTab === 'requests'
-                  ? 'bg-qolabb-navy-500 text-white shadow-sm'
+                  ? 'bg-blue-500 text-white shadow-sm'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
@@ -272,7 +272,7 @@ export default function TeamsPage() {
               onClick={() => setActiveTab('bulk-assign')}
               className={`flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-200 whitespace-nowrap ${
                 activeTab === 'bulk-assign'
-                  ? 'bg-qolabb-navy-500 text-white shadow-sm'
+                  ? 'bg-blue-500 text-white shadow-sm'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
@@ -284,7 +284,7 @@ export default function TeamsPage() {
               onClick={() => setActiveTab('audit-log')}
               className={`flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-200 whitespace-nowrap ${
                 activeTab === 'audit-log'
-                  ? 'bg-qolabb-navy-500 text-white shadow-sm'
+                  ? 'bg-blue-500 text-white shadow-sm'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
@@ -307,7 +307,7 @@ export default function TeamsPage() {
                   placeholder="Search teams..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
             </div>
@@ -358,7 +358,7 @@ export default function TeamsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
                 whileHover={{ y: -6, scale: 1.02 }}
-                className="bg-white rounded-2xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-xl hover:border-qolabb-navy-300 transition-all duration-300 group"
+                className="bg-white rounded-2xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-xl hover:border-blue-300 transition-all duration-300 group"
               >
                 {/* Team Header */}
                 <div
@@ -382,7 +382,7 @@ export default function TeamsPage() {
                       {team.name}
                     </h3>
                     {team.members?.some((m: any) => m.role === 'leader' && m.user_id === user?.id) && (
-                      <div className="flex items-center space-x-1 bg-qolabb-navy-50 text-qolabb-navy-600 px-2 py-1 rounded-full ml-2">
+                      <div className="flex items-center space-x-1 bg-blue-50 text-blue-600 px-2 py-1 rounded-full ml-2">
                         <Crown size={12} />
                         <span className="text-xs font-semibold">Leader</span>
                       </div>
@@ -434,7 +434,7 @@ export default function TeamsPage() {
                     <Button
                       variant="primary"
                       size="sm"
-                      className="flex items-center justify-center space-x-2 bg-gradient-to-r from-qolabb-navy-600 to-qolabb-navy-700 hover:from-qolabb-navy-700 hover:to-qolabb-navy-800 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 border-0"
+                      className="flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 border-0"
                       onClick={() => handleAddMember(team)}
                     >
                       <UserPlus size={16} />
@@ -492,8 +492,8 @@ export default function TeamsPage() {
             >
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center">
-                  <div className="bg-qolabb-navy-100 p-3 rounded-lg mr-4">
-                    <Users className="text-qolabb-navy-700" size={24} />
+                  <div className="bg-blue-100 p-3 rounded-lg mr-4">
+                    <Users className="text-blue-700" size={24} />
                   </div>
                   <h2 className="text-2xl font-bold text-gray-900">Create Team</h2>
                 </div>
@@ -527,7 +527,7 @@ export default function TeamsPage() {
                     value={teamName}
                     onChange={(e) => setTeamName(e.target.value)}
                     placeholder="e.g., Frontend Development Team"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
 
@@ -540,7 +540,7 @@ export default function TeamsPage() {
                     onChange={(e) => setTeamDescription(e.target.value)}
                     placeholder="What does this team do?"
                     rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
 

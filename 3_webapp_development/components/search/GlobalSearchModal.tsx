@@ -232,7 +232,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search tasks, projects, teams, members..."
-                    className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                    className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                   {searchQuery && (
                     <button
@@ -298,7 +298,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                                 onClick={() => handleResultClick(task)}
                                 className={cn(
                                   'w-full px-4 py-3 flex items-start space-x-3 hover:bg-gray-50 transition-colors text-left',
-                                  flatIndex === selectedIndex && 'bg-qolabb-navy-50'
+                                  flatIndex === selectedIndex && 'bg-blue-50'
                                 )}
                               >
                                 <div className="flex-shrink-0 mt-0.5">{getResultIcon('task')}</div>
@@ -345,7 +345,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                                 onClick={() => handleResultClick(project)}
                                 className={cn(
                                   'w-full px-4 py-3 flex items-start space-x-3 hover:bg-gray-50 transition-colors text-left',
-                                  flatIndex === selectedIndex && 'bg-qolabb-navy-50'
+                                  flatIndex === selectedIndex && 'bg-blue-50'
                                 )}
                               >
                                 <div className="flex-shrink-0 mt-0.5">{getResultIcon('project')}</div>
@@ -387,7 +387,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                                 onClick={() => handleResultClick(team)}
                                 className={cn(
                                   'w-full px-4 py-3 flex items-start space-x-3 hover:bg-gray-50 transition-colors text-left',
-                                  flatIndex === selectedIndex && 'bg-qolabb-navy-50'
+                                  flatIndex === selectedIndex && 'bg-blue-50'
                                 )}
                               >
                                 <div className="flex-shrink-0 mt-0.5">{getResultIcon('team')}</div>
@@ -426,7 +426,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                                 onClick={() => handleResultClick(member)}
                                 className={cn(
                                   'w-full px-4 py-3 flex items-start space-x-3 hover:bg-gray-50 transition-colors text-left',
-                                  flatIndex === selectedIndex && 'bg-qolabb-navy-50'
+                                  flatIndex === selectedIndex && 'bg-blue-50'
                                 )}
                               >
                                 <div className="flex-shrink-0">

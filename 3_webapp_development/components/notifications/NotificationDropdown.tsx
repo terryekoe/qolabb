@@ -32,6 +32,7 @@ interface NotificationDropdownProps {
   onMarkAllAsRead?: () => void;
   onDelete?: (notificationId: string) => void;
   unreadCount?: number;
+  buttonRef?: React.RefObject<HTMLElement>;
 }
 
 export function NotificationDropdown({
@@ -41,8 +42,51 @@ export function NotificationDropdown({
   onMarkAllAsRead,
   onDelete,
   unreadCount = 0,
+  buttonRef,
 }: NotificationDropdownProps) {
   const router = useRouter();
+  const [dropdownPosition, setDropdownPosition] = React.useState({ top: 0, right: 0 });
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
+
+  // Calculate position on mount and when window resizes
+  React.useEffect(() => {
+    const updatePosition = () => {
+      // Try to get position from buttonRef first, then fallback to parent
+      const targetElement = buttonRef?.current || dropdownRef.current?.parentElement;
+      if (targetElement) {
+        const rect = targetElement.getBoundingClientRect();
+        // Check if we're on the settings page (has sticky nav bar at top-16)
+        const settingsNavBar = document.querySelector('.sticky.top-16');
+        let topOffset = 8;
+        
+        if (settingsNavBar) {
+          const navRect = settingsNavBar.getBoundingClientRect();
+          // If nav bar exists and is below the header, position dropdown below it
+          if (navRect.bottom > rect.bottom) {
+            topOffset = navRect.bottom - rect.top + 8;
+          } else {
+            topOffset = rect.bottom - rect.top + 8;
+          }
+        } else {
+          topOffset = rect.bottom - rect.top + 8;
+        }
+        
+        setDropdownPosition({
+          top: rect.top + topOffset,
+          right: window.innerWidth - rect.right,
+        });
+      }
+    };
+
+    updatePosition();
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition, true);
+
+    return () => {
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition, true);
+    };
+  }, [buttonRef]);
 
   const getNotificationIcon = (type: Notification['type']) => {
     switch (type) {
@@ -90,7 +134,7 @@ export function NotificationDropdown({
       case 'team_update':
         return 'bg-gray-100 text-gray-700';
       case 'task_assignment':
-        return 'bg-qolabb-navy-100 text-qolabb-navy-700';
+        return 'bg-blue-100 text-blue-700';
       case 'task_completed':
         return 'bg-green-100 text-green-700';
       case 'task_status_changed':
@@ -136,17 +180,22 @@ export function NotificationDropdown({
 
   return (
     <motion.div
+      ref={dropdownRef}
       initial={{ opacity: 0, y: -10, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -10, scale: 0.95 }}
-      className="absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-xl border border-gray-200 z-50 overflow-hidden"
-      style={{ maxHeight: '80vh' }}
+      className="fixed w-[calc(100vw-2rem)] sm:w-96 max-w-md bg-white rounded-xl shadow-2xl border border-gray-200 z-[9999] overflow-hidden"
+      style={{ 
+        maxHeight: '80vh',
+        top: `${dropdownPosition.top}px`,
+        right: `${dropdownPosition.right}px`,
+      }}
     >
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-qolabb-navy-50 to-blue-50">
+      <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-blue-50">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-2">
-            <Bell className="text-qolabb-navy-600" size={20} />
+            <Bell className="text-blue-600" size={20} />
             <h3 className="text-lg font-bold text-gray-900">Notifications</h3>
             {unreadCount > 0 && (
               <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full">
@@ -175,7 +224,7 @@ export function NotificationDropdown({
         {unreadCount > 0 && (
           <button
             onClick={handleMarkAllAsRead}
-            className="text-xs text-qolabb-navy-600 hover:text-qolabb-navy-800 font-medium flex items-center space-x-1"
+            className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center space-x-1"
           >
             <Check size={14} />
             <span>Mark all as read</span>
@@ -288,7 +337,7 @@ export function NotificationDropdown({
               router.push('/settings?tab=notifications');
               onClose();
             }}
-            className="w-full text-sm text-qolabb-navy-600 hover:text-qolabb-navy-800 font-medium flex items-center justify-center space-x-2 py-2 hover:bg-white rounded-lg transition-colors"
+            className="w-full text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center justify-center space-x-2 py-2 hover:bg-white rounded-lg transition-colors"
           >
             <Settings size={16} />
             <span>Manage notification settings</span>

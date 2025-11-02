@@ -318,7 +318,7 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
           </p>
         </div>
         {selectedMembers.size > 0 && (
-          <div className="flex items-center gap-2 px-3 py-1 bg-qolabb-navy-100 text-qolabb-navy-800 rounded-full text-sm font-medium">
+          <div className="flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
             <Users className="w-4 h-4" />
             {selectedMembers.size} selected
           </div>
@@ -338,7 +338,7 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
             <select
               value={selectedTeam}
               onChange={(e) => setSelectedTeam(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="">Select a team...</option>
               {teams.map(team => (
@@ -357,7 +357,7 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
             <select
               value={assignmentRole}
               onChange={(e) => setAssignmentRole(e.target.value as 'member' | 'leader')}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="member">Member</option>
               <option value="leader">Leader</option>
@@ -395,7 +395,7 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
                 placeholder="Search members by name, email, or institution..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
@@ -417,7 +417,7 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
                   <button
                     onClick={() => { setTeamFilter('all'); setShowTeamFilter(false) }}
                     className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
-                      teamFilter === 'all' ? 'bg-qolabb-navy-50 text-qolabb-navy-700' : 'hover:bg-gray-50'
+                      teamFilter === 'all' ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-50'
                     }`}
                   >
                     All Members
@@ -425,7 +425,7 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
                   <button
                     onClick={() => { setTeamFilter('unassigned'); setShowTeamFilter(false) }}
                     className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
-                      teamFilter === 'unassigned' ? 'bg-qolabb-navy-50 text-qolabb-navy-700' : 'hover:bg-gray-50'
+                      teamFilter === 'unassigned' ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-50'
                     }`}
                   >
                     Unassigned Members
@@ -433,7 +433,7 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
                   <button
                     onClick={() => { setTeamFilter('assigned'); setShowTeamFilter(false) }}
                     className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
-                      teamFilter === 'assigned' ? 'bg-qolabb-navy-50 text-qolabb-navy-700' : 'hover:bg-gray-50'
+                      teamFilter === 'assigned' ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-50'
                     }`}
                   >
                     Assigned Members
@@ -444,7 +444,7 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
                       key={team.id}
                       onClick={() => { setTeamFilter(team.id); setShowTeamFilter(false) }}
                       className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
-                        teamFilter === team.id ? 'bg-qolabb-navy-50 text-qolabb-navy-700' : 'hover:bg-gray-50'
+                        teamFilter === team.id ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-50'
                       }`}
                     >
                       {team.name}
@@ -596,8 +596,8 @@ function MemberCard({ member, teams, isSelected, onToggleSelection, index }: Mem
       transition={{ delay: index * 0.02 }}
       className={`bg-white rounded-xl border p-4 transition-all duration-200 cursor-pointer hover:shadow-md ${
         isSelected 
-          ? 'border-qolabb-navy-300 bg-qolabb-navy-50' 
-          : 'border-gray-200 hover:border-qolabb-navy-200'
+          ? 'border-blue-300 bg-blue-50' 
+          : 'border-gray-200 hover:border-blue-200'
       }`}
       onClick={onToggleSelection}
     >
@@ -605,8 +605,8 @@ function MemberCard({ member, teams, isSelected, onToggleSelection, index }: Mem
         {/* Selection Checkbox */}
         <div className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
           isSelected 
-            ? 'bg-qolabb-navy-500 border-qolabb-navy-500' 
-            : 'border-gray-300 hover:border-qolabb-navy-400'
+            ? 'bg-blue-500 border-blue-500' 
+            : 'border-gray-300 hover:border-blue-400'
         }`}>
           {isSelected && <Check size={16} className="text-white" />}
         </div>

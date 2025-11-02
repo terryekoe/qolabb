@@ -143,7 +143,7 @@ export default function OnboardingPage() {
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <motion.div
-              className="bg-qolabb-navy-600 h-2 rounded-full"
+              className="bg-blue-600 h-2 rounded-full"
               initial={{ width: 0 }}
               animate={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
               transition={{ duration: 0.3 }}
@@ -176,7 +176,7 @@ export default function OnboardingPage() {
               <div className="mb-8">
                 {currentStep === 0 && (
                   <div className="space-y-6">
-                    <div className="bg-gradient-to-r from-qolabb-navy-50 to-qolabb-beige-50 rounded-xl p-6">
+                    <div className="bg-gradient-to-r from-blue-50 to-qolabb-beige-50 rounded-xl p-6">
                       <p className="text-lg text-gray-700">
                         Qolabb helps you track contributions, visualize engagement, and promote fair collaboration in team projects.
                       </p>
@@ -184,8 +184,8 @@ export default function OnboardingPage() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       {['Track', 'Analyze', 'Collaborate'].map((feature, i) => (
                         <div key={feature} className="text-center">
-                          <div className="bg-qolabb-navy-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2">
-                            <span className="text-qolabb-navy-700 font-bold">{i + 1}</span>
+                          <div className="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2">
+                            <span className="text-blue-700 font-bold">{i + 1}</span>
                           </div>
                           <p className="font-medium text-gray-700">{feature}</p>
                         </div>
@@ -204,13 +204,13 @@ export default function OnboardingPage() {
                         onClick={() => handleRoleSelect(role.id)}
                         className={`p-6 rounded-xl border-2 transition-all text-left ${
                           formData.role === role.id
-                            ? 'border-qolabb-navy-600 bg-qolabb-navy-50'
+                            ? 'border-blue-600 bg-blue-50'
                             : 'border-gray-200 hover:border-gray-300'
                         }`}
                       >
                         <div className="flex items-center space-x-4">
                           <div className={`p-3 rounded-lg ${
-                            formData.role === role.id ? 'bg-qolabb-navy-600' : 'bg-gray-100'
+                            formData.role === role.id ? 'bg-blue-600' : 'bg-gray-100'
                           }`}>
                             <role.icon className={formData.role === role.id ? 'text-white' : 'text-gray-600'} size={24} />
                           </div>
@@ -219,7 +219,7 @@ export default function OnboardingPage() {
                             <p className="text-gray-600">{role.description}</p>
                           </div>
                           {formData.role === role.id && (
-                            <Check className="text-qolabb-navy-600" size={24} />
+                            <Check className="text-blue-600" size={24} />
                           )}
                         </div>
                       </motion.button>
@@ -243,7 +243,7 @@ export default function OnboardingPage() {
                             ? `Currently: ${profile?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name}` 
                             : "e.g., John Doe"
                         }
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                       {(profile?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name) && (
                         <p className="text-sm text-gray-500 mt-1">
@@ -261,7 +261,7 @@ export default function OnboardingPage() {
                         value={formData.institution}
                         onChange={(e) => setFormData({ ...formData, institution: e.target.value })}
                         placeholder="e.g., MIT, Harvard University"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
                   </div>
@@ -277,14 +277,14 @@ export default function OnboardingPage() {
                         onClick={() => handleGoalToggle(goal)}
                         className={`p-4 rounded-lg border-2 transition-all ${
                           formData.goals.includes(goal)
-                            ? 'border-qolabb-navy-600 bg-qolabb-navy-50'
+                            ? 'border-blue-600 bg-blue-50'
                             : 'border-gray-200 hover:border-gray-300'
                         }`}
                       >
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-medium text-gray-900">{goal}</span>
                           {formData.goals.includes(goal) && (
-                            <Check className="text-qolabb-navy-600" size={18} />
+                            <Check className="text-blue-600" size={18} />
                           )}
                         </div>
                       </motion.button>

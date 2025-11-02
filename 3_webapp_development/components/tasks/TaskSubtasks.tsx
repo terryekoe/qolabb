@@ -227,7 +227,7 @@ export function TaskSubtasks({ taskId, userId }: TaskSubtasksProps) {
                             handleCancelEdit();
                           }
                         }}
-                        className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-qolabb-navy-500"
+                        className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                       />
                       <button
                         onClick={handleSaveEdit}
@@ -296,7 +296,7 @@ export function TaskSubtasks({ taskId, userId }: TaskSubtasksProps) {
                 }
               }}
               placeholder="Add a subtask..."
-              className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+              className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={adding}
             />
             <Button

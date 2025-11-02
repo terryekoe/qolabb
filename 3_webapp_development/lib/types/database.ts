@@ -104,6 +104,8 @@ export interface Profile {
   institution: string | null
   email: string | null
   goals: string[] | null
+  first_tour_completed?: boolean
+  onboarding_completed?: boolean
   created_at: string
   updated_at: string
 }
@@ -114,6 +116,7 @@ export interface Workspace {
   description: string | null
   invite_code: string
   owner_id: string
+  icon_url: string | null
   settings: Json
   created_at: string
   updated_at: string

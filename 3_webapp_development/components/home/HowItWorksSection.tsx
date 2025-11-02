@@ -48,7 +48,7 @@ export const HowItWorksSection: React.FC = () => {
           className="text-center mb-16"
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            How It <span className="text-qolabb-navy-600">Works</span>
+            How It <span className="text-blue-600">Works</span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Get started in minutes with our simple, intuitive process designed for students and educators.
@@ -58,7 +58,7 @@ export const HowItWorksSection: React.FC = () => {
         {/* Steps */}
         <div className="relative">
           {/* Connection Line (Desktop) */}
-          <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-1 bg-gradient-to-r from-qolabb-navy-200 via-qolabb-beige-200 to-qolabb-navy-200 transform -translate-y-1/2 z-0"></div>
+          <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-1 bg-gradient-to-r from-blue-200 via-qolabb-beige-200 to-blue-200 transform -translate-y-1/2 z-0"></div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 relative z-10">
             {steps.map((step, index) => (
@@ -96,7 +96,7 @@ export const HowItWorksSection: React.FC = () => {
                     <motion.div
                       animate={{ y: [0, 5, 0] }}
                       transition={{ duration: 1.5, repeat: Infinity }}
-                      className="text-qolabb-navy-400"
+                      className="text-blue-400"
                     >
                       ↓
                     </motion.div>
@@ -113,7 +113,7 @@ export const HowItWorksSection: React.FC = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="mt-20 bg-gradient-to-br from-qolabb-navy-600 to-qolabb-navy-800 rounded-3xl p-12 text-white text-center"
+          className="mt-20 bg-gradient-to-br from-blue-600 to-blue-800 rounded-3xl p-12 text-white text-center"
         >
           <h3 className="text-3xl md:text-4xl font-bold mb-6">
             See Qolabb in Action
@@ -129,7 +129,7 @@ export const HowItWorksSection: React.FC = () => {
               className="bg-white/20 backdrop-blur-md rounded-full p-6 cursor-pointer hover:bg-white/30 transition-colors"
             >
               <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center">
-                <div className="w-0 h-0 border-t-8 border-t-transparent border-l-12 border-l-qolabb-navy-700 border-b-8 border-b-transparent ml-1"></div>
+                <div className="w-0 h-0 border-t-8 border-t-transparent border-l-12 border-l-blue-700 border-b-8 border-b-transparent ml-1"></div>
               </div>
             </motion.div>
           </div>

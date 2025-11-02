@@ -43,7 +43,7 @@ export const Navigation: React.FC = () => {
               className="text-2xl md:text-3xl font-bold"
             >
               <span className="text-black">Qol</span>
-              <span className="text-qolabb-navy-600">abb</span>
+              <span className="text-blue-600">abb</span>
             </motion.div>
           </Link>
 

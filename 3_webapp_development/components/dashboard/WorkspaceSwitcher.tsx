@@ -72,16 +72,31 @@ export const WorkspaceSwitcher: React.FC<WorkspaceSwitcherProps> = ({ isOpen, on
                       onClick={() => handleSwitch(workspace.id)}
                       className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${
                         isActive
-                          ? 'bg-qolabb-navy-50 border-2 border-qolabb-navy-200'
+                          ? 'bg-blue-50 border-2 border-blue-200'
                           : 'hover:bg-gray-50 border-2 border-transparent'
                       }`}
                     >
+                      {workspace.icon_url ? (
+                        <img
+                          src={workspace.icon_url}
+                          alt={workspace.name}
+                          className={`w-10 h-10 rounded-lg object-cover flex-shrink-0 ${
+                            isActive ? 'ring-2 ring-blue-600' : ''
+                          }`}
+                          onError={(e) => {
+                            // Fallback to Building2 icon if image fails to load
+                            e.currentTarget.style.display = 'none';
+                            const fallback = e.currentTarget.parentElement?.querySelector('.workspace-icon-fallback');
+                            if (fallback) (fallback as HTMLElement).style.display = 'flex';
+                          }}
+                        />
+                      ) : null}
                       <div
                         className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
                           isActive
-                            ? 'bg-qolabb-navy-600'
-                            : 'bg-gradient-to-br from-qolabb-navy-400 to-qolabb-beige-400'
-                        }`}
+                            ? 'bg-blue-600'
+                            : 'bg-gradient-to-br from-blue-400 to-qolabb-beige-400'
+                        } ${workspace.icon_url ? 'hidden workspace-icon-fallback' : ''}`}
                       >
                         <Building2 className="text-white" size={20} />
                       </div>
@@ -95,7 +110,7 @@ export const WorkspaceSwitcher: React.FC<WorkspaceSwitcherProps> = ({ isOpen, on
                         </p>
                       </div>
                       {isActive && (
-                        <Check className="text-qolabb-navy-600 flex-shrink-0" size={20} />
+                        <Check className="text-blue-600 flex-shrink-0" size={20} />
                       )}
                     </motion.button>
                   );
@@ -115,7 +130,7 @@ export const WorkspaceSwitcher: React.FC<WorkspaceSwitcherProps> = ({ isOpen, on
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleCreateNew}
-                  className="w-full flex items-center justify-center space-x-2 p-3 rounded-lg bg-qolabb-navy-600 hover:bg-qolabb-navy-700 text-white font-semibold transition-colors"
+                  className="w-full flex items-center justify-center space-x-2 p-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors"
                 >
                   <Plus size={20} />
                   <span>Create or Join Workspace</span>

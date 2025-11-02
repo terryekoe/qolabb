@@ -51,7 +51,7 @@ export default function LoginPage() {
                 className="text-4xl font-bold mb-2"
               >
                 <span className="text-black">Qol</span>
-                <span className="text-qolabb-navy-600">abb</span>
+                <span className="text-blue-600">abb</span>
               </motion.div>
             </Link>
             <h2 className="mt-6 text-3xl font-bold text-gray-900">
@@ -59,7 +59,7 @@ export default function LoginPage() {
             </h2>
             <p className="mt-2 text-gray-600">
               Don't have an account?{' '}
-              <Link href="/signup" className="text-qolabb-navy-600 font-medium hover:text-qolabb-navy-700">
+              <Link href="/signup" className="text-blue-600 font-medium hover:text-blue-700">
                 Sign up
               </Link>
             </p>
@@ -97,7 +97,7 @@ export default function LoginPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent transition-all"
+                    className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     placeholder="you@example.com"
                   />
                 </div>
@@ -120,7 +120,7 @@ export default function LoginPage() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent transition-all"
+                    className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     placeholder="••••••••"
                   />
                 </div>
@@ -134,14 +134,14 @@ export default function LoginPage() {
                   id="remember-me"
                   name="remember-me"
                   type="checkbox"
-                  className="h-4 w-4 text-qolabb-navy-600 focus:ring-qolabb-navy-500 border-gray-300 rounded"
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
                   Remember me
                 </label>
               </div>
 
-              <Link href="/forgot-password" className="text-sm text-qolabb-navy-600 hover:text-qolabb-navy-700">
+              <Link href="/forgot-password" className="text-sm text-blue-600 hover:text-blue-700">
                 Forgot password?
               </Link>
             </div>
@@ -190,7 +190,7 @@ export default function LoginPage() {
       </div>
 
       {/* Right Side - Branding */}
-      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-qolabb-navy-600 to-qolabb-navy-800 items-center justify-center p-12">
+      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-blue-600 to-blue-800 items-center justify-center p-12">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}

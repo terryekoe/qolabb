@@ -114,7 +114,7 @@ export default function WorkspacePage() {
           className="text-center mb-12"
         >
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
-            Welcome to <span className="text-qolabb-navy-600">Qolabb</span>
+            Welcome to <span className="text-blue-600">Qolabb</span>
           </h1>
           <p className="text-xl text-gray-600">
             Create a workspace or join an existing one to get started
@@ -130,10 +130,10 @@ export default function WorkspacePage() {
             transition={{ delay: 0.1 }}
             whileHover={{ y: -5 }}
             onClick={() => setShowCreateModal(true)}
-            className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all cursor-pointer border-2 border-transparent hover:border-qolabb-navy-200"
+            className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all cursor-pointer border-2 border-transparent hover:border-blue-200"
           >
-            <div className="bg-qolabb-navy-100 w-16 h-16 rounded-xl flex items-center justify-center mb-6">
-              <Plus className="text-qolabb-navy-700" size={32} />
+            <div className="bg-blue-100 w-16 h-16 rounded-xl flex items-center justify-center mb-6">
+              <Plus className="text-blue-700" size={32} />
             </div>
             <h2 className="text-2xl font-bold mb-3 text-gray-900">
               Create Workspace
@@ -141,7 +141,7 @@ export default function WorkspacePage() {
             <p className="text-gray-600 mb-6">
               Start a new workspace for your class, organization, or team projects
             </p>
-            <div className="flex items-center text-qolabb-navy-600 font-semibold">
+            <div className="flex items-center text-blue-600 font-semibold">
               Get Started <ArrowRight className="ml-2" size={20} />
             </div>
           </motion.div>
@@ -190,8 +190,8 @@ export default function WorkspacePage() {
                 className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl"
               >
                 <div className="flex items-center mb-6">
-                  <div className="bg-qolabb-navy-100 p-3 rounded-lg mr-4">
-                    <Building2 className="text-qolabb-navy-700" size={24} />
+                  <div className="bg-blue-100 p-3 rounded-lg mr-4">
+                    <Building2 className="text-blue-700" size={24} />
                   </div>
                   <h2 className="text-2xl font-bold text-gray-900">Create Workspace</h2>
                 </div>
@@ -222,7 +222,7 @@ export default function WorkspacePage() {
                       value={workspaceName}
                       onChange={(e) => setWorkspaceName(e.target.value)}
                       placeholder="e.g., CS101 Spring 2025"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
 
@@ -235,7 +235,7 @@ export default function WorkspacePage() {
                       onChange={(e) => setWorkspaceDescription(e.target.value)}
                       placeholder="Brief description of this workspace..."
                       rows={3}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                 </div>

@@ -206,6 +206,12 @@ export async function updateProfile(userId: string, updates: Partial<Profile>) {
     if (updates.goals !== undefined) {
       sanitizedUpdates.goals = updates.goals;
     }
+    if (updates.first_tour_completed !== undefined) {
+      sanitizedUpdates.first_tour_completed = updates.first_tour_completed;
+    }
+    if (updates.onboarding_completed !== undefined) {
+      sanitizedUpdates.onboarding_completed = updates.onboarding_completed;
+    }
 
     const { data, error } = await supabase
       .from('profiles')
@@ -262,6 +268,88 @@ interface WorkspaceRPCResponse {
   workspace_settings: any;
   workspace_created_at: string;
   workspace_updated_at: string;
+}
+
+export async function uploadWorkspaceIcon(workspaceId: string, file: File): Promise<string> {
+  try {
+    // Create unique filename
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${workspaceId}-${Date.now()}.${fileExt}`
+    const filePath = `${workspaceId}/${fileName}`
+
+    // Upload to Supabase Storage
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('workspace-icons')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: true // Allow overwriting
+      })
+
+    if (uploadError) throw uploadError
+
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from('workspace-icons')
+      .getPublicUrl(filePath)
+
+    const iconUrl = urlData.publicUrl
+
+    // Update workspace with icon URL
+    const { error: updateError } = await supabase
+      .from('workspaces')
+      .update({ icon_url: iconUrl })
+      .eq('id', workspaceId)
+
+    if (updateError) throw updateError
+
+    return iconUrl
+  } catch (error: any) {
+    console.error('uploadWorkspaceIcon error:', error?.message || JSON.stringify(error, null, 2))
+    throw error
+  }
+}
+
+export async function removeWorkspaceIcon(workspaceId: string): Promise<void> {
+  try {
+    // Get current icon URL from workspace
+    const { data: workspace, error: fetchError } = await supabase
+      .from('workspaces')
+      .select('icon_url')
+      .eq('id', workspaceId)
+      .single()
+
+    if (fetchError) throw fetchError
+
+    if (workspace?.icon_url) {
+      // Extract file path from URL (workspace-icons/{workspaceId}/filename)
+      const urlParts = workspace.icon_url.split('/')
+      const filePathIndex = urlParts.indexOf('workspace-icons')
+      if (filePathIndex !== -1 && filePathIndex < urlParts.length - 1) {
+        const filePath = urlParts.slice(filePathIndex + 1).join('/')
+        
+        // Delete from storage
+        const { error: storageError } = await supabase.storage
+          .from('workspace-icons')
+          .remove([filePath])
+
+        if (storageError) {
+          console.warn('Storage delete error (file may not exist):', storageError)
+          // Continue with DB update even if storage delete fails
+        }
+      }
+    }
+
+    // Update workspace to remove icon URL
+    const { error: updateError } = await supabase
+      .from('workspaces')
+      .update({ icon_url: null })
+      .eq('id', workspaceId)
+
+    if (updateError) throw updateError
+  } catch (error: any) {
+    console.error('removeWorkspaceIcon error:', error?.message || JSON.stringify(error, null, 2))
+    throw error
+  }
 }
 
 export async function getWorkspace(workspaceId: string) {
@@ -507,11 +595,11 @@ export async function getWorkspaceMembers(workspaceId: string) {
       }
       
       return {
-        id: member.id,
-        workspace_id: member.workspace_id,
-        user_id: member.user_id,
-        role: member.role,
-        joined_at: member.joined_at,
+      id: member.id,
+      workspace_id: member.workspace_id,
+      user_id: member.user_id,
+      role: member.role,
+      joined_at: member.joined_at,
         user: user || null // Normalized user profile
       };
     });
@@ -572,13 +660,13 @@ export async function createTeam(team: TeamInsert, userId: string) {
     // Only auto-add creator as team leader if they're NOT an instructor
     // Instructors can manually join teams later if they want to participate
     if (!isInstructor) {
-      await supabase
-        .from('team_members')
-        .insert({
-          team_id: (data as any).id,
-          user_id: userId,
-          role: 'leader',
-        } as any)
+  await supabase
+    .from('team_members')
+    .insert({
+      team_id: (data as any).id,
+      user_id: userId,
+      role: 'leader',
+    } as any)
     }
   } catch (profileError) {
     // If we can't check the profile, default to adding them (backward compatibility)
@@ -935,12 +1023,12 @@ export async function updateTask(taskId: string, updates: Partial<Task>) {
       .eq('id', taskId)
       .single()
 
-    const { data, error } = await supabase
-      .from('tasks')
-      .update(updates as any)
-      .eq('id', taskId)
-      .select()
-      .single()
+  const { data, error } = await supabase
+    .from('tasks')
+    .update(updates as any)
+    .eq('id', taskId)
+    .select()
+    .single()
 
     if (error) {
       // Provide more context in the error
@@ -1098,7 +1186,7 @@ export async function updateTask(taskId: string, updates: Partial<Task>) {
       }
     }
     
-    return data as Task
+  return data as Task
   } catch (error: any) {
     // Re-throw with additional context
     if (error.message && error.code) {
@@ -3671,9 +3759,9 @@ export async function createNotification(notification: {
 }) {
   try {
     console.log('Creating notification:', {
-      user_id: notification.user_id,
-      type: notification.type,
-      title: notification.title,
+        user_id: notification.user_id,
+        type: notification.type,
+        title: notification.title,
     })
     
     // Use the SQL function instead of direct insert - it has SECURITY DEFINER and bypasses RLS
@@ -3692,7 +3780,7 @@ export async function createNotification(notification: {
         hint: error.hint,
         code: error.code
       })
-      throw error
+    throw error
     }
     
     // If the function returns NULL (notification disabled), return null
@@ -3868,17 +3956,17 @@ export async function createTeamAssignmentNotification(
     const assignedByName = assignedByUser?.full_name || 'someone'
 
     return await createNotification({
-      user_id: userId,
-      type: 'team_assignment',
-      title: 'Team Assignment',
+    user_id: userId,
+    type: 'team_assignment',
+    title: 'Team Assignment',
       message: `You have been assigned to team "${teamName}" as a ${role} by ${assignedByName}`,
-      data: {
-        team_name: teamName,
-        assigned_by: assignedBy,
+    data: {
+      team_name: teamName,
+      assigned_by: assignedBy,
         assigned_by_name: assignedByName,
-        role: role
-      }
-    })
+      role: role
+    }
+  })
   } catch (error: any) {
     console.error('createTeamAssignmentNotification error:', error)
     // Fallback: create notification with user ID if name fetch fails

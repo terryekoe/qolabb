@@ -34,6 +34,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const bellButtonRef = useRef<HTMLButtonElement>(null);
 
   // Load notifications
   const loadNotifications = useCallback(async () => {
@@ -205,6 +206,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           {/* Notifications */}
           <div className="relative" ref={dropdownRef}>
             <motion.button
+              ref={bellButtonRef}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setShowNotifications(!showNotifications)}
@@ -232,6 +234,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                   onMarkAsRead={handleMarkAsRead}
                   onMarkAllAsRead={handleMarkAllAsRead}
                   onDelete={handleDelete}
+                  buttonRef={bellButtonRef}
                 />
               )}
             </AnimatePresence>

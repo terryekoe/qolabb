@@ -320,7 +320,7 @@ function ProjectsPageContent() {
                 placeholder="Search projects..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
 
@@ -333,7 +333,7 @@ function ProjectsPageContent() {
                   onClick={() => setStatusFilter(status)}
                   className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors ${
                     statusFilter === status
-                      ? 'bg-qolabb-navy-600 text-white'
+                      ? 'bg-blue-600 text-white'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
@@ -459,7 +459,7 @@ function ProjectsPageContent() {
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
                           <div
-                            className="bg-qolabb-navy-600 h-2 rounded-full transition-all"
+                            className="bg-blue-600 h-2 rounded-full transition-all"
                             style={{
                               width: `${(project.tasks.filter((t: any) => t.status === 'completed').length / project.tasks.length) * 100}%`
                             }}
@@ -519,8 +519,8 @@ function ProjectsPageContent() {
             >
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center">
-                  <div className="bg-qolabb-navy-100 p-3 rounded-lg mr-4">
-                    <FolderKanban className="text-qolabb-navy-700" size={24} />
+                  <div className="bg-blue-100 p-3 rounded-lg mr-4">
+                    <FolderKanban className="text-blue-700" size={24} />
                   </div>
                   <h2 className="text-2xl font-bold text-gray-900">Create Project</h2>
                 </div>
@@ -551,7 +551,7 @@ function ProjectsPageContent() {
                     value={projectName}
                     onChange={(e) => setProjectName(e.target.value)}
                     placeholder="e.g., Mobile App Redesign"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
 
@@ -562,7 +562,7 @@ function ProjectsPageContent() {
                   <select
                     value={selectedTeam}
                     onChange={(e) => setSelectedTeam(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">Select a team...</option>
                     {teams.map((team) => (
@@ -582,7 +582,7 @@ function ProjectsPageContent() {
                     onChange={(e) => setProjectDescription(e.target.value)}
                     placeholder="Brief description of the project..."
                     rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
 
@@ -594,7 +594,7 @@ function ProjectsPageContent() {
                     type="date"
                     value={dueDate}
                     onChange={(e) => setDueDate(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
               </div>
@@ -644,7 +644,7 @@ export default function ProjectsPage() {
     <Suspense fallback={
       <DashboardLayout>
         <div className="flex items-center justify-center h-96">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-qolabb-navy-600"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>
       </DashboardLayout>
     }>

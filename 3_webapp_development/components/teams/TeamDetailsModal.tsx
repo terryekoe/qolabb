@@ -126,9 +126,9 @@ export default function TeamDetailsModal({
           className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden border border-gray-200"
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-qolabb-navy-50 to-qolabb-beige-50">
+          <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-qolabb-beige-50">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-gradient-to-br from-qolabb-navy-400 to-qolabb-beige-400 rounded-xl shadow-md">
+              <div className="p-3 bg-gradient-to-br from-blue-400 to-qolabb-beige-400 rounded-xl shadow-md">
                 <Users className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -151,7 +151,7 @@ export default function TeamDetailsModal({
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="text-center">
-                  <Loader2 className="w-8 h-8 animate-spin text-qolabb-navy-400 mx-auto mb-3" />
+                  <Loader2 className="w-8 h-8 animate-spin text-blue-400 mx-auto mb-3" />
                   <span className="text-gray-600 font-medium">Loading team members...</span>
                 </div>
               </div>
@@ -187,7 +187,7 @@ export default function TeamDetailsModal({
                 {regularMembers.length > 0 && (
                   <div>
                     <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-3">
-                      <div className="p-2 bg-gradient-to-br from-qolabb-navy-400 to-qolabb-beige-400 rounded-lg shadow-sm">
+                      <div className="p-2 bg-gradient-to-br from-blue-400 to-qolabb-beige-400 rounded-lg shadow-sm">
                         <Users className="w-5 h-5 text-white" />
                       </div>
                       Members ({regularMembers.length})
@@ -294,7 +294,7 @@ function MemberCard({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl hover:shadow-md hover:border-qolabb-navy-200 transition-all duration-200"
+      className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl hover:shadow-md hover:border-blue-200 transition-all duration-200"
     >
       <div className="flex items-center gap-4">
         <Avatar
@@ -314,7 +314,7 @@ function MemberCard({
               </div>
             )}
             {isCurrentUser && (
-              <span className="text-xs bg-qolabb-navy-100 text-qolabb-navy-700 px-2 py-1 rounded-full font-medium">You</span>
+              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">You</span>
             )}
           </div>
           <p className="text-sm text-gray-600">{member.role === 'leader' ? 'Team Leader' : 'Team Member'}</p>
@@ -330,7 +330,7 @@ function MemberCard({
             value={member.role}
             onChange={(e) => onRoleChange(member.user_id, e.target.value as 'leader' | 'member', member.user.full_name)}
             disabled={updatingRole === member.user_id}
-            className="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent bg-white shadow-sm"
+            className="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm"
           >
             <option value="member">Member</option>
             <option value="leader">Leader</option>

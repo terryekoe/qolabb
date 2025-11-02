@@ -75,7 +75,7 @@ export const FeaturesSection: React.FC = () => {
           className="text-center mb-16"
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            Why Choose <span className="text-qolabb-navy-600">Qolabb</span>?
+            Why Choose <span className="text-blue-600">Qolabb</span>?
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Everything you need to promote fair collaboration and accountability
@@ -98,8 +98,8 @@ export const FeaturesSection: React.FC = () => {
               whileHover={{ y: -5, transition: { duration: 0.2 } }}
               className="bg-gray-50 rounded-2xl p-8 hover:shadow-lg transition-shadow"
             >
-              <div className="bg-qolabb-navy-100 w-14 h-14 rounded-xl flex items-center justify-center mb-6">
-                <feature.icon className="text-qolabb-navy-700" size={28} />
+              <div className="bg-blue-100 w-14 h-14 rounded-xl flex items-center justify-center mb-6">
+                <feature.icon className="text-blue-700" size={28} />
               </div>
               <h3 className="text-xl font-bold mb-3 text-gray-900">
                 {feature.title}

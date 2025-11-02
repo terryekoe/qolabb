@@ -356,7 +356,7 @@ export function TeamWorkloadWidget({
   if (loading) {
     return (
       <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-qolabb-navy-600 mx-auto"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
         <p className="text-gray-500 mt-4">Loading team workload...</p>
       </div>
     );
@@ -434,8 +434,8 @@ export function TeamWorkloadWidget({
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div className="flex items-center space-x-3">
-            <div className="bg-qolabb-navy-50 p-2.5 rounded-lg">
-              <Users className="text-qolabb-navy-600" size={24} />
+            <div className="bg-blue-50 p-2.5 rounded-lg">
+              <Users className="text-blue-600" size={24} />
             </div>
             <div>
               <h3 className="text-xl font-bold text-gray-900">Team Workload Analysis</h3>
@@ -451,7 +451,7 @@ export function TeamWorkloadWidget({
                 <select
                   value={selectedTeam}
                   onChange={(e) => setSelectedTeam(e.target.value)}
-                  className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent text-sm bg-white"
+                  className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
                 >
                   <option value="all">All Teams</option>
                   {teamIds.map(teamId => (
@@ -587,7 +587,7 @@ export function TeamWorkloadWidget({
                         <div className="flex items-center space-x-2">
                           <span className={cn(
                             "text-sm font-semibold truncate",
-                            isCurrentUser ? "text-qolabb-navy-700" : "text-gray-900"
+                            isCurrentUser ? "text-blue-700" : "text-gray-900"
                           )}>
                             {isCurrentUser ? 'You' : member.name}
                           </span>
@@ -649,7 +649,7 @@ export function TeamWorkloadWidget({
                       transition={{ duration: 0.5, ease: "easeOut" }}
                       className={cn(
                         "h-4 rounded-full transition-all relative z-0 shadow-sm",
-                        isCurrentUser ? "bg-qolabb-navy-600" :
+                        isCurrentUser ? "bg-blue-600" :
                         isOverloaded ? "bg-gradient-to-r from-orange-500 to-orange-600" :
                         isUnderutilized ? "bg-gradient-to-r from-blue-500 to-blue-600" :
                         "bg-gradient-to-r from-gray-400 to-gray-500"
@@ -695,9 +695,9 @@ export function TeamWorkloadWidget({
                           <div className="flex items-center space-x-2">
                             <p className={cn(
                               "text-base font-semibold truncate",
-                              isCurrentUser ? "text-qolabb-navy-700" : "text-gray-900"
+                              isCurrentUser ? "text-blue-700" : "text-gray-900"
                             )}>
-                              {member.name} {isCurrentUser && <span className="text-qolabb-navy-600">(You)</span>}
+                              {member.name} {isCurrentUser && <span className="text-blue-600">(You)</span>}
                             </p>
                             {member.teamName && teamIds.length > 1 && (
                               <span className="text-xs text-gray-600 bg-white px-2 py-1 rounded-full border border-gray-300">
@@ -752,7 +752,7 @@ export function TeamWorkloadWidget({
                         transition={{ duration: 0.5, ease: "easeOut" }}
                         className={cn(
                           "h-3 rounded-full transition-all relative z-0 shadow-sm",
-                          isCurrentUser ? "bg-qolabb-navy-600" :
+                          isCurrentUser ? "bg-blue-600" :
                           isOverloaded ? "bg-gradient-to-r from-orange-500 to-orange-600" :
                           isUnderutilized ? "bg-gradient-to-r from-blue-500 to-blue-600" :
                           "bg-gradient-to-r from-gray-400 to-gray-500"

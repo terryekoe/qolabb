@@ -18,7 +18,7 @@ export const AboutSection: React.FC = () => {
             transition={{ duration: 0.8 }}
             className="relative"
           >
-            <div className="bg-gradient-to-br from-qolabb-navy-500 to-qolabb-beige-500 rounded-2xl p-12 text-white">
+            <div className="bg-gradient-to-br from-blue-500 to-qolabb-beige-500 rounded-2xl p-12 text-white">
               <h3 className="text-3xl font-bold mb-4">The Problem</h3>
               <p className="text-lg leading-relaxed mb-6">
                 In most student projects, participation is uneven. Some members do most of the work while others contribute very little.
@@ -59,7 +59,7 @@ export const AboutSection: React.FC = () => {
             transition={{ duration: 0.8 }}
           >
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              About <span className="text-qolabb-navy-600">Qolabb</span>
+              About <span className="text-blue-600">Qolabb</span>
             </h2>
             <p className="text-xl text-gray-600 mb-6 leading-relaxed">
               Qolabb is designed to solve this challenge by making team participation transparent, trackable, and fair.
@@ -84,8 +84,8 @@ export const AboutSection: React.FC = () => {
                   transition={{ delay: index * 0.1 }}
                   className="flex items-start space-x-3"
                 >
-                  <div className="bg-qolabb-navy-100 rounded-full p-1 mt-1">
-                    <div className="w-2 h-2 bg-qolabb-navy-600 rounded-full"></div>
+                  <div className="bg-blue-100 rounded-full p-1 mt-1">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
                   </div>
                   <p className="text-gray-700">{point}</p>
                 </motion.div>
@@ -128,7 +128,7 @@ export const AboutSection: React.FC = () => {
               className="bg-white rounded-2xl p-8 shadow-lg"
             >
               <div className="bg-qolabb-beige-100 w-14 h-14 rounded-xl flex items-center justify-center mb-6">
-                <item.icon className="text-qolabb-navy-700" size={28} />
+                <item.icon className="text-blue-700" size={28} />
               </div>
               <h3 className="text-2xl font-bold mb-4 text-gray-900">
                 {item.title}

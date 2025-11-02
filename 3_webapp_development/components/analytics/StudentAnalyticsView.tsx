@@ -92,11 +92,11 @@ export function StudentAnalyticsView() {
     : 0;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-qolabb-navy-600 to-qolabb-navy-800 rounded-2xl p-8 text-white">
-        <h1 className="text-3xl font-bold mb-2">My Analytics</h1>
-        <p className="text-qolabb-navy-100">Track your participation and contributions</p>
+      <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl p-4 sm:p-8 text-white">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2">My Analytics</h1>
+        <p className="text-sm sm:text-base text-blue-100">Track your participation and contributions</p>
       </div>
 
       {/* Stats Grid */}
@@ -145,8 +145,8 @@ export function StudentAnalyticsView() {
       </div>
 
       {/* Tabs */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex space-x-4 border-b border-gray-200 mb-6">
+      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
+        <div className="flex space-x-2 sm:space-x-4 border-b border-gray-200 mb-4 sm:mb-6 overflow-x-auto scrollbar-hide">
           {[
             { id: 'overview', label: 'Overview', icon: BarChart3 },
             { id: 'contributions', label: 'Contributions', icon: FileText },
@@ -156,14 +156,14 @@ export function StudentAnalyticsView() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
               className={cn(
-                'flex items-center space-x-2 px-4 py-2 border-b-2 transition-colors',
+                'flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 border-b-2 transition-colors whitespace-nowrap flex-shrink-0',
                 activeTab === tab.id
-                  ? 'border-qolabb-navy-600 text-qolabb-navy-600 font-semibold'
+                  ? 'border-blue-600 text-blue-600 font-semibold'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
               )}
             >
-              <tab.icon size={18} />
-              <span>{tab.label}</span>
+              <tab.icon size={16} className="sm:w-[18px] sm:h-[18px]" />
+              <span className="text-sm sm:text-base">{tab.label}</span>
             </button>
           ))}
         </div>
@@ -197,16 +197,16 @@ export function StudentAnalyticsView() {
             {/* Contribution Type Breakdown */}
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Contribution Types</h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
                 {Object.entries(userStats.contributionBreakdown || {}).map(([type, count]: [string, any]) => (
                   <div key={type} className="bg-gray-50 rounded-lg p-4">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium text-gray-700 capitalize">{type}</span>
-                      <span className="text-lg font-bold text-qolabb-navy-600">{count}</span>
+                      <span className="text-lg font-bold text-blue-600">{count}</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div
-                        className="bg-qolabb-navy-600 h-2 rounded-full transition-all"
+                        className="bg-blue-600 h-2 rounded-full transition-all"
                         style={{
                           width: `${userStats.totalContributions > 0 
                             ? (count / userStats.totalContributions) * 100 
@@ -254,7 +254,7 @@ export function StudentAnalyticsView() {
                 {userStats.contributions.slice(0, 10).map((contrib: any) => (
                   <div
                     key={contrib.id}
-                    className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-qolabb-navy-300 transition-colors"
+                    className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-blue-300 transition-colors"
                   >
                     <div className="flex items-center justify-between">
                       <div>
@@ -264,7 +264,7 @@ export function StudentAnalyticsView() {
                         </p>
                       </div>
                       <div className="text-right">
-                        <div className="text-lg font-bold text-qolabb-navy-600">
+                        <div className="text-lg font-bold text-blue-600">
                           {contrib.hours_spent || 0}h
                         </div>
                         <div className="text-xs text-gray-500">
@@ -291,16 +291,16 @@ export function StudentAnalyticsView() {
               teamStats.map((team: any) => (
                 <div
                   key={team.team.id}
-                  className="bg-gray-50 rounded-lg p-6 border border-gray-200"
+                  className="bg-gray-50 rounded-lg p-4 sm:p-6 border border-gray-200"
                 >
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-bold text-gray-900">{team.team.name}</h3>
-                    <div className="text-sm text-gray-600">
-                      Fairness Score: <span className="font-semibold text-qolabb-navy-600">{team.fairnessScore}%</span>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 space-y-2 sm:space-y-0">
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-900">{team.team.name}</h3>
+                    <div className="text-xs sm:text-sm text-gray-600">
+                      Fairness Score: <span className="font-semibold text-blue-600">{team.fairnessScore}%</span>
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-4">
                     <div>
                       <div className="text-sm text-gray-600">Total Hours</div>
                       <div className="text-xl font-bold text-gray-900">{team.totalHours || 0}h</div>
@@ -336,7 +336,7 @@ export function StudentAnalyticsView() {
                             <div className="flex items-center justify-between mb-2">
                               <span className={cn(
                                 'text-sm font-medium',
-                                isMe ? 'text-qolabb-navy-600' : 'text-gray-700'
+                                isMe ? 'text-blue-600' : 'text-gray-700'
                               )}>
                                 {member.name} {isMe && '(You)'}
                               </span>
@@ -348,7 +348,7 @@ export function StudentAnalyticsView() {
                               <div
                                 className={cn(
                                   'h-2 rounded-full transition-all',
-                                  isMe ? 'bg-qolabb-navy-600' : 'bg-qolabb-beige-500'
+                                  isMe ? 'bg-blue-600' : 'bg-qolabb-beige-500'
                                 )}
                                 style={{ width: `${memberPercentage}%` }}
                               />

@@ -217,7 +217,7 @@ export default function TeamNotifications({ onNotificationUpdate }: TeamNotifica
                 <input
                   type="checkbox"
                   defaultChecked
-                  className="w-4 h-4 text-qolabb-navy-500 border-gray-300 rounded focus:ring-qolabb-navy-500"
+                  className="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500"
                 />
                 <span className="text-sm text-gray-700">Team assignment notifications</span>
               </label>
@@ -225,7 +225,7 @@ export default function TeamNotifications({ onNotificationUpdate }: TeamNotifica
                 <input
                   type="checkbox"
                   defaultChecked
-                  className="w-4 h-4 text-qolabb-navy-500 border-gray-300 rounded focus:ring-qolabb-navy-500"
+                  className="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500"
                 />
                 <span className="text-sm text-gray-700">Role change notifications</span>
               </label>
@@ -233,7 +233,7 @@ export default function TeamNotifications({ onNotificationUpdate }: TeamNotifica
                 <input
                   type="checkbox"
                   defaultChecked
-                  className="w-4 h-4 text-qolabb-navy-500 border-gray-300 rounded focus:ring-qolabb-navy-500"
+                  className="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500"
                 />
                 <span className="text-sm text-gray-700">Join request updates</span>
               </label>
@@ -241,7 +241,7 @@ export default function TeamNotifications({ onNotificationUpdate }: TeamNotifica
                 <input
                   type="checkbox"
                   defaultChecked
-                  className="w-4 h-4 text-qolabb-navy-500 border-gray-300 rounded focus:ring-qolabb-navy-500"
+                  className="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500"
                 />
                 <span className="text-sm text-gray-700">Email notifications</span>
               </label>
@@ -315,7 +315,7 @@ export default function TeamNotifications({ onNotificationUpdate }: TeamNotifica
               transition={{ delay: index * 0.05 }}
               className={`bg-white rounded-xl border-l-4 p-4 shadow-sm transition-all duration-200 hover:shadow-md ${
                 getNotificationColor(notification.type)
-              } ${!notification.read ? 'border-r-4 border-r-qolabb-navy-200' : ''}`}
+              } ${!notification.read ? 'border-r-4 border-r-blue-200' : ''}`}
             >
               <div className="flex items-start gap-4">
                 {/* Notification Icon */}
@@ -362,7 +362,7 @@ export default function TeamNotifications({ onNotificationUpdate }: TeamNotifica
                       {!notification.read && (
                         <button
                           onClick={() => handleMarkAsRead(notification.id)}
-                          className="p-1 text-gray-400 hover:text-qolabb-navy-600 transition-colors"
+                          className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
                           title="Mark as read"
                         >
                           <Check size={16} />
@@ -382,7 +382,7 @@ export default function TeamNotifications({ onNotificationUpdate }: TeamNotifica
                 {/* Unread Indicator */}
                 {!notification.read && (
                   <div className="flex-shrink-0 mt-2">
-                    <div className="w-2 h-2 bg-qolabb-navy-500 rounded-full"></div>
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                   </div>
                 )}
               </div>

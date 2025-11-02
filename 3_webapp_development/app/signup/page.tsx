@@ -67,7 +67,7 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Branding */}
-      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-qolabb-navy-600 to-qolabb-navy-800 items-center justify-center p-12">
+      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-blue-600 to-blue-800 items-center justify-center p-12">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -120,7 +120,7 @@ export default function SignupPage() {
                 className="text-4xl font-bold mb-2"
               >
                 <span className="text-black">Qol</span>
-                <span className="text-qolabb-navy-600">abb</span>
+                <span className="text-blue-600">abb</span>
               </motion.div>
             </Link>
             <h2 className="mt-6 text-3xl font-bold text-gray-900">
@@ -128,7 +128,7 @@ export default function SignupPage() {
             </h2>
             <p className="mt-2 text-gray-600">
               Already have an account?{' '}
-              <Link href="/login" className="text-qolabb-navy-600 font-medium hover:text-qolabb-navy-700">
+              <Link href="/login" className="text-blue-600 font-medium hover:text-blue-700">
                 Sign in
               </Link>
             </p>
@@ -177,7 +177,7 @@ export default function SignupPage() {
                     required
                     value={formData.fullName}
                     onChange={handleChange}
-                    className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent transition-all"
+                    className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     placeholder="John Doe"
                   />
                 </div>
@@ -200,7 +200,7 @@ export default function SignupPage() {
                     required
                     value={formData.email}
                     onChange={handleChange}
-                    className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent transition-all"
+                    className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     placeholder="you@example.com"
                   />
                 </div>
@@ -223,7 +223,7 @@ export default function SignupPage() {
                     required
                     value={formData.password}
                     onChange={handleChange}
-                    className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent transition-all"
+                    className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     placeholder="••••••••"
                   />
                 </div>
@@ -247,7 +247,7 @@ export default function SignupPage() {
                     required
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent transition-all"
+                    className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     placeholder="••••••••"
                   />
                 </div>
@@ -261,15 +261,15 @@ export default function SignupPage() {
                 name="terms"
                 type="checkbox"
                 required
-                className="h-4 w-4 text-qolabb-navy-600 focus:ring-qolabb-navy-500 border-gray-300 rounded mt-1"
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1"
               />
               <label htmlFor="terms" className="ml-2 block text-sm text-gray-700">
                 I agree to the{' '}
-                <Link href="/terms" className="text-qolabb-navy-600 hover:text-qolabb-navy-700">
+                <Link href="/terms" className="text-blue-600 hover:text-blue-700">
                   Terms of Service
                 </Link>{' '}
                 and{' '}
-                <Link href="/privacy" className="text-qolabb-navy-600 hover:text-qolabb-navy-700">
+                <Link href="/privacy" className="text-blue-600 hover:text-blue-700">
                   Privacy Policy
                 </Link>
               </label>

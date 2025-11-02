@@ -163,16 +163,16 @@ export function ContributionLogModal({
             )}
 
             {/* Task Info */}
-            <div className="bg-qolabb-navy-50 border border-qolabb-navy-200 rounded-lg p-4 mb-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
               <div className="flex items-start space-x-3">
-                <CheckCircle2 className="text-qolabb-navy-600 flex-shrink-0 mt-0.5" size={18} />
+                <CheckCircle2 className="text-blue-600 flex-shrink-0 mt-0.5" size={18} />
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-qolabb-navy-700 uppercase tracking-wide mb-1">
+                  <p className="text-xs font-medium text-blue-700 uppercase tracking-wide mb-1">
                     Completed Task
                   </p>
-                  <p className="text-sm font-semibold text-qolabb-navy-900">{task.title}</p>
+                  <p className="text-sm font-semibold text-blue-900">{task.title}</p>
                   {task.description && (
-                    <p className="text-xs text-qolabb-navy-700 mt-1 line-clamp-2">
+                    <p className="text-xs text-blue-700 mt-1 line-clamp-2">
                       {task.description}
                     </p>
                   )}
@@ -191,7 +191,7 @@ export function ContributionLogModal({
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="What did you accomplish?"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   disabled={loading}
                 />
               </div>
@@ -206,7 +206,7 @@ export function ContributionLogModal({
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Add details about your contribution..."
                   rows={4}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent resize-none"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                   disabled={loading}
                 />
               </div>
@@ -229,7 +229,7 @@ export function ContributionLogModal({
                         className={`
                           p-3 rounded-lg border-2 transition-all text-left
                           ${isSelected
-                            ? 'border-qolabb-navy-500 bg-qolabb-navy-50'
+                            ? 'border-blue-500 bg-blue-50'
                             : 'border-gray-200 bg-white hover:border-gray-300'
                           }
                         `}
@@ -237,11 +237,11 @@ export function ContributionLogModal({
                         <div className="flex items-center space-x-2 mb-1">
                           <Icon
                             size={16}
-                            className={isSelected ? 'text-qolabb-navy-600' : 'text-gray-400'}
+                            className={isSelected ? 'text-blue-600' : 'text-gray-400'}
                           />
                           <span
                             className={`text-sm font-medium ${
-                              isSelected ? 'text-qolabb-navy-900' : 'text-gray-700'
+                              isSelected ? 'text-blue-900' : 'text-gray-700'
                             }`}
                           >
                             {type.label}
@@ -267,7 +267,7 @@ export function ContributionLogModal({
                   placeholder="e.g., 2.5"
                   min="0"
                   step="0.25"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   disabled={loading}
                 />
                 <p className="text-xs text-gray-500 mt-1">

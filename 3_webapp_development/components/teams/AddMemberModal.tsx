@@ -166,9 +166,9 @@ export default function AddMemberModal({
           className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden border border-gray-200"
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-qolabb-navy-50 to-qolabb-beige-50">
+          <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-qolabb-beige-50">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-gradient-to-br from-qolabb-navy-400 to-qolabb-beige-400 rounded-xl shadow-md">
+              <div className="p-3 bg-gradient-to-br from-blue-400 to-qolabb-beige-400 rounded-xl shadow-md">
                 <UserPlus className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -193,7 +193,7 @@ export default function AddMemberModal({
                 placeholder="Search workspace members..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-qolabb-navy-500 focus:border-qolabb-navy-500 transition-all duration-200 bg-gray-50 focus:bg-white"
+                className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 focus:bg-white"
               />
             </div>
           </div>
@@ -202,7 +202,7 @@ export default function AddMemberModal({
           <div className="flex-1 overflow-y-auto p-6">
             {loading ? (
               <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-qolabb-navy-500"></div>
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
               </div>
             ) : filteredMembers.length === 0 ? (
               <div className="text-center py-12">
@@ -226,7 +226,7 @@ export default function AddMemberModal({
                     return (
                       <div
                         key={member.user_id}
-                        className="flex items-center justify-between p-4 border border-gray-200 rounded-xl hover:bg-gradient-to-r hover:from-qolabb-navy-50 hover:to-qolabb-beige-50 hover:border-qolabb-navy-200 transition-all duration-200 group"
+                        className="flex items-center justify-between p-4 border border-gray-200 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-qolabb-beige-50 hover:border-blue-200 transition-all duration-200 group"
                       >
                         <div className="flex items-center gap-4">
                           <Avatar
@@ -237,14 +237,14 @@ export default function AddMemberModal({
                             className="shadow-md"
                           />
                           <div>
-                            <p className="font-semibold text-gray-900 group-hover:text-qolabb-navy-700">{fullName}</p>
+                            <p className="font-semibold text-gray-900 group-hover:text-blue-700">{fullName}</p>
                             <p className="text-sm text-gray-500">{role}</p>
                           </div>
                         </div>
                         <button
                           onClick={() => handleAddMember(member.user_id, fullName)}
                           disabled={addingMember === member.user_id}
-                          className="px-6 py-2.5 bg-gradient-to-r from-qolabb-navy-500 to-qolabb-navy-600 text-white rounded-xl hover:from-qolabb-navy-600 hover:to-qolabb-navy-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-md hover:shadow-lg flex items-center gap-2"
+                          className="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-md hover:shadow-lg flex items-center gap-2"
                         >
                           {addingMember === member.user_id ? (
                             <Loader2 className="w-4 h-4 animate-spin" />

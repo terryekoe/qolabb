@@ -78,7 +78,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
 
   // Check if user can manage attachments (either has canManage permission OR is assigned to the task)
   const canManageAttachments = React.useMemo(() => {
-    if (!user) return false;
+    if (!user || !task) return false;
     // Users with canManage permission can always manage attachments
     if (canManage) return true;
     // Check if user is in the assignees list (new multiple assignees system)
@@ -86,7 +86,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
     // Check if user is the single assignee (old system, for backward compatibility)
     if (task.assigned_to === user.id) return true;
     return false;
-  }, [canManage, user, assignees, task.assigned_to]);
+  }, [canManage, user, assignees, task]);
 
   // Initialize edit fields when task changes
   useEffect(() => {
@@ -298,10 +298,10 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
 
   if (!isOpen || !task) return null;
 
-  const statusConfig = getStatusConfig(task.status);
-  const priorityConfig = getPriorityConfig(task.priority);
-  const isTaskOverdue = isOverdue(task.due_date, task.status);
-  const isMyTask = task.assigned_to === user?.id;
+  const statusConfig = getStatusConfig(task?.status || 'todo');
+  const priorityConfig = getPriorityConfig(task?.priority || 'medium');
+  const isTaskOverdue = isOverdue(task?.due_date, task?.status);
+  const isMyTask = task?.assigned_to === user?.id;
 
   return (
     <AnimatePresence>
@@ -329,7 +329,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                       type="text"
                       value={editTitle}
                       onChange={(e) => setEditTitle(e.target.value)}
-                      className="text-2xl font-bold text-gray-900 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                      className="text-2xl font-bold text-gray-900 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Task title"
                     />
                   ) : (
@@ -443,7 +443,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                         value={editDescription}
                         onChange={(e) => setEditDescription(e.target.value)}
                         rows={6}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="Add a detailed description..."
                       />
                     ) : (
@@ -488,7 +488,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                 {/* Right Column - Metadata */}
                 <div className="space-y-6">
                   {/* Time Tracker - Only show for assigned users */}
-                  {user && task?.project_id && (task.assigned_to === user.id || assignees.some((a: any) => a.user_id === user.id)) && (
+                  {user && task?.project_id && (task?.assigned_to === user.id || assignees.some((a: any) => a.user_id === user.id)) && (
                     <TaskTimeTracker
                       taskId={task.id}
                       projectId={task.project_id}
@@ -508,7 +508,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                       <select
                         value={editStatus}
                         onChange={(e) => setEditStatus(e.target.value as TaskStatus)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       >
                         <option value="todo">To Do</option>
                         <option value="in_progress">In Progress</option>
@@ -529,7 +529,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                       <select
                         value={editPriority}
                         onChange={(e) => setEditPriority(e.target.value as TaskPriority)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       >
                         <option value="low">Low</option>
                         <option value="medium">Medium</option>
@@ -555,7 +555,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                             const values = Array.from(e.target.selectedOptions, option => option.value);
                             setSelectedAssignees(values);
                           }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent min-h-[100px]"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[100px]"
                           size={Math.min(teamMembers.length + 1, 6)}
                         >
                           <option value="">Unassigned</option>
@@ -586,7 +586,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                                 <p className="text-sm font-medium text-gray-900">
                                   {assignee.user?.full_name || 'Unknown User'}
                                   {isMe && (
-                                    <span className="ml-2 text-xs text-qolabb-navy-600">(You)</span>
+                                    <span className="ml-2 text-xs text-blue-600">(You)</span>
                                   )}
                                 </p>
                                 <p className="text-xs text-gray-500">
@@ -612,7 +612,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                             {task.assignee.full_name}
                           </p>
                           {isMyTask && (
-                            <p className="text-xs text-qolabb-navy-600">Assigned to you</p>
+                            <p className="text-xs text-blue-600">Assigned to you</p>
                           )}
                         </div>
                       </div>
@@ -629,7 +629,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                         type="date"
                         value={editDueDate}
                         onChange={(e) => setEditDueDate(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     ) : task.due_date ? (
                       <div className="flex items-center">

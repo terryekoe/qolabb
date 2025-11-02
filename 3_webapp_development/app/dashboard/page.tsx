@@ -11,6 +11,7 @@ import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
 import { getWorkspaceStats, getWorkspaceActivity, getWorkspaceProjects } from '@/lib/db/queries';
 import { useRouter } from 'next/navigation';
+import { FirstRunTour } from '@/components/onboarding/FirstRunTour';
 
 export default function DashboardPage() {
   const { profile } = useAuth();
@@ -22,6 +23,17 @@ export default function DashboardPage() {
   const [recentProjects, setRecentProjects] = useState<any[]>([]);
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showTour, setShowTour] = useState(false);
+
+  // Check if user needs to see first-run tour
+  useEffect(() => {
+    if (profile && currentWorkspace) {
+      // Show tour if user hasn't completed it and has a workspace
+      if (!profile.first_tour_completed) {
+        setShowTour(true);
+      }
+    }
+  }, [profile, currentWorkspace]);
 
   useEffect(() => {
     if (currentWorkspace) {
@@ -71,22 +83,23 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout>
+      {showTour && <FirstRunTour onComplete={() => setShowTour(false)} />}
       {/* Welcome Header */}
-      <div className="bg-white border-b border-gray-200 p-6">
+      <div className="bg-white border-b border-gray-200 p-4 sm:p-6">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
             Welcome back, {userName}! 👋
           </h1>
-          <p className="text-gray-600">
+          <p className="text-sm sm:text-base text-gray-600">
             Here's what's happening in {currentWorkspace.name}
           </p>
         </motion.div>
       </div>
 
-      <div className="p-6 space-y-6">
+      <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[1, 2, 3, 4].map((i) => (
@@ -139,10 +152,10 @@ export default function DashboardPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="bg-gradient-to-r from-qolabb-navy-600 to-qolabb-navy-800 rounded-2xl p-8 text-white"
+              className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl p-4 sm:p-8 text-white"
             >
-              <h2 className="text-2xl font-bold mb-4">Quick Actions</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Quick Actions</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                 <button 
                   onClick={() => router.push('/projects?create=true')}
                   className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-4 text-left transition-colors group"
@@ -177,12 +190,19 @@ export default function DashboardPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
+                className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6"
               >
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-gray-900">Recent Projects</h2>
+                <div className="flex items-center justify-between mb-4 sm:mb-6 gap-2 sm:gap-4">
+                  <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex-shrink-0 min-w-0">Recent Projects</h2>
                   {recentProjects.length > 0 && (
-                    <Button variant="ghost" size="sm">View All</Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="flex-shrink-0 whitespace-nowrap"
+                      onClick={() => router.push('/projects')}
+                    >
+                      View All
+                    </Button>
                   )}
                 </div>
                 
@@ -190,7 +210,11 @@ export default function DashboardPage() {
                   <div className="text-center py-12">
                     <FolderKanban size={48} className="mx-auto text-gray-300 mb-4" />
                     <p className="text-gray-600 mb-4">No projects yet</p>
-                    <Button variant="primary" size="sm">
+                    <Button 
+                      variant="primary" 
+                      size="sm"
+                      onClick={() => router.push('/projects?create=true')}
+                    >
                       <Plus size={16} className="mr-2" />
                       Create First Project
                     </Button>
@@ -200,14 +224,15 @@ export default function DashboardPage() {
                     {recentProjects.map((project) => (
                       <div
                         key={project.id}
-                        className="p-4 rounded-lg border border-gray-200 hover:border-qolabb-navy-300 hover:shadow-sm transition-all cursor-pointer"
+                        onClick={() => router.push(`/projects?id=${project.id}`)}
+                        className="p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all cursor-pointer"
                       >
                         <div className="flex items-center justify-between mb-3">
                           <h3 className="font-semibold text-gray-900">{project.name}</h3>
                           <span className={`flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full ${
                             project.status === 'active' ? 'text-blue-600 bg-blue-50' :
-                            project.status === 'completed' ? 'text-green-600 bg-green-50' :
-                            'text-orange-600 bg-orange-50'
+                            project.status === 'completed' ? 'text-qolabb-green-600 bg-qolabb-green-50' :
+                            'text-qolabb-orange-600 bg-qolabb-orange-50'
                           }`}>
                             <Clock size={14} />
                             {project.status}
@@ -227,12 +252,14 @@ export default function DashboardPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
+                className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6"
               >
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-gray-900">Recent Activity</h2>
+                <div className="flex items-center justify-between mb-4 sm:mb-6 gap-2 sm:gap-4">
+                  <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex-shrink-0 min-w-0">Recent Activity</h2>
                   {recentActivity.length > 0 && (
-                    <Button variant="ghost" size="sm">View All</Button>
+                    <Button variant="ghost" size="sm" className="flex-shrink-0 whitespace-nowrap">
+                      View All
+                    </Button>
                   )}
                 </div>
                 

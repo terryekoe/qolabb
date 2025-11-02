@@ -277,7 +277,7 @@ export function TaskAttachments({ taskId, userId, canManage }: TaskAttachmentsPr
                 className={cn(
                   'px-3 py-1 text-xs font-medium rounded transition-colors',
                   addMode === 'upload'
-                    ? 'bg-white text-qolabb-navy-700 shadow-sm'
+                    ? 'bg-white text-blue-700 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
                 )}
               >
@@ -295,7 +295,7 @@ export function TaskAttachments({ taskId, userId, canManage }: TaskAttachmentsPr
                 className={cn(
                   'px-3 py-1 text-xs font-medium rounded transition-colors',
                   addMode === 'link'
-                    ? 'bg-white text-qolabb-navy-700 shadow-sm'
+                    ? 'bg-white text-blue-700 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
                 )}
               >
@@ -342,7 +342,7 @@ export function TaskAttachments({ taskId, userId, canManage }: TaskAttachmentsPr
               className={cn(
                 'border-2 border-dashed rounded-lg p-6 text-center transition-colors',
                 dragActive
-                  ? 'border-qolabb-navy-400 bg-qolabb-navy-50'
+                  ? 'border-blue-400 bg-blue-50'
                   : 'border-gray-300 bg-gray-50 hover:border-gray-400',
                 uploading && 'opacity-50 cursor-not-allowed'
               )}
@@ -360,7 +360,7 @@ export function TaskAttachments({ taskId, userId, canManage }: TaskAttachmentsPr
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="text-qolabb-navy-600 hover:text-qolabb-navy-800 font-medium"
+                      className="text-blue-600 hover:text-blue-800 font-medium"
                     >
                       browse
                     </button>
@@ -397,7 +397,7 @@ export function TaskAttachments({ taskId, userId, canManage }: TaskAttachmentsPr
                       value={linkUrl}
                       onChange={(e) => setLinkUrl(e.target.value)}
                       placeholder="https://drive.google.com/file/..."
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       disabled={addingLink}
                     />
                   </div>
@@ -410,7 +410,7 @@ export function TaskAttachments({ taskId, userId, canManage }: TaskAttachmentsPr
                       value={linkName}
                       onChange={(e) => setLinkName(e.target.value)}
                       placeholder="e.g., Project Proposal.pdf"
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       disabled={addingLink}
                     />
                   </div>

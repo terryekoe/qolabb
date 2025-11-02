@@ -32,7 +32,7 @@ export const HeroSection: React.FC = () => {
         {backgroundElements.map((element, i) => (
           <motion.div
             key={i}
-            className="absolute bg-qolabb-navy-100 rounded-full opacity-20"
+            className="absolute bg-blue-100 rounded-full opacity-20"
             style={{
               width: element.width,
               height: element.height,
@@ -68,14 +68,14 @@ export const HeroSection: React.FC = () => {
               transition={{ delay: 0.2 }}
               className="inline-block mb-6"
             >
-              <span className="bg-qolabb-navy-100 text-qolabb-navy-800 px-4 py-2 rounded-full text-sm font-semibold">
+              <span className="bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-semibold">
                 ✨ Fair Teamwork Starts Here
               </span>
             </motion.div>
 
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
               <span className="text-gray-900">Make Group Projects</span>{' '}
-              <span className="text-qolabb-navy-600">Fair & Engaging</span>
+              <span className="text-blue-600">Fair & Engaging</span>
             </h1>
 
             <p className="text-xl md:text-2xl text-gray-600 mb-8 leading-relaxed">
@@ -108,7 +108,7 @@ export const HeroSection: React.FC = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 + index * 0.1 }}
                 >
-                  <div className="text-3xl md:text-4xl font-bold text-qolabb-navy-700">
+                  <div className="text-3xl md:text-4xl font-bold text-blue-700">
                     {stat.value}
                   </div>
                   <div className="text-sm text-gray-600 mt-1">{stat.label}</div>
@@ -126,7 +126,7 @@ export const HeroSection: React.FC = () => {
           >
             <div className="relative rounded-2xl overflow-hidden shadow-2xl">
               {/* Student collaboration image */}
-              <div className="aspect-square bg-gradient-to-br from-qolabb-navy-400 to-qolabb-beige-400 flex items-center justify-center relative">
+              <div className="aspect-square bg-gradient-to-br from-blue-400 to-qolabb-beige-400 flex items-center justify-center relative">
                 {!imageError ? (
                   <Image
                     src="/students.jpg"

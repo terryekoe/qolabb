@@ -130,8 +130,8 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         >
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center">
-              <div className="bg-qolabb-navy-100 p-3 rounded-lg mr-4">
-                <CheckCircle2 className="text-qolabb-navy-700" size={24} />
+              <div className="bg-blue-100 p-3 rounded-lg mr-4">
+                <CheckCircle2 className="text-blue-700" size={24} />
               </div>
               <h2 className="text-2xl font-bold text-gray-900">Create Task</h2>
             </div>
@@ -163,7 +163,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g., Design homepage mockup"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
 
@@ -177,7 +177,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Task details and requirements..."
                 rows={3}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
 
@@ -194,7 +194,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                   const values = Array.from(e.target.selectedOptions, option => option.value);
                   setSelectedAssignees(values);
                 }}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent min-h-[120px]"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[120px]"
                 size={Math.min(teamMembers.length + 1, 6)}
               >
                 {teamMembers.map((member) => (
@@ -219,7 +219,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value as TaskStatus)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="todo">To Do</option>
                   <option value="in_progress">In Progress</option>
@@ -235,7 +235,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 <select
                   value={priority}
                   onChange={(e) => setPriority(e.target.value as TaskPriority)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="low">Low</option>
                   <option value="medium">Medium</option>
@@ -254,7 +254,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-navy-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>

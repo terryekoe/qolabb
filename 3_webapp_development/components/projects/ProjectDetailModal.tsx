@@ -228,7 +228,7 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({
               </div>
               <div className="w-full bg-gray-200 rounded-full h-3">
                 <div
-                  className="bg-gradient-to-r from-qolabb-navy-600 to-qolabb-navy-400 h-3 rounded-full transition-all"
+                  className="bg-gradient-to-r from-blue-600 to-blue-400 h-3 rounded-full transition-all"
                   style={{ width: `${completionPercentage}%` }}
                 />
               </div>
@@ -485,7 +485,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
           value={task.status}
           onChange={(e) => onUpdateStatus(task.id, e.target.value as TaskStatus)}
           disabled={!canManage}
-          className="text-xs px-2 py-1 rounded border border-gray-300 focus:outline-none focus:ring-1 focus:ring-qolabb-navy-500"
+          className="text-xs px-2 py-1 rounded border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
         >
           <option value="todo">To Do</option>
           <option value="in_progress">In Progress</option>

@@ -253,7 +253,7 @@ function RequestCard({ request, onApprove, onReject, isProcessing }: RequestCard
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md hover:border-qolabb-navy-200 transition-all duration-200"
+      className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md hover:border-blue-200 transition-all duration-200"
     >
       <div className="flex items-start gap-4">
         {/* User Avatar */}
