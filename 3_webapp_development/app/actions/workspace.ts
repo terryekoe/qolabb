@@ -79,6 +79,7 @@ export async function createTestWorkspace() {
       name: 'Test Workspace',
       description: 'A test workspace for debugging invite codes',
       owner_id: user.id,
+      icon_url: null,
       settings: {}
     }, user.id)
     

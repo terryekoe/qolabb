@@ -33,6 +33,7 @@ export default function WorkspacePage() {
         name: workspaceName,
         description: workspaceDescription || null,
         owner_id: user.id,
+        icon_url: null,
         settings: {},
       }, user.id);
 
