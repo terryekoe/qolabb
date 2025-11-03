@@ -32,7 +32,7 @@ interface NotificationDropdownProps {
   onMarkAllAsRead?: () => void;
   onDelete?: (notificationId: string) => void;
   unreadCount?: number;
-  buttonRef?: React.RefObject<HTMLElement>;
+  buttonRef?: React.RefObject<HTMLElement | HTMLButtonElement | null>;
 }
 
 export function NotificationDropdown({

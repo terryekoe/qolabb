@@ -55,7 +55,7 @@ export function DeadlineNudger({ tasks, onTaskClick, onSnooze }: DeadlineNudgerP
             taskId: task.id,
             taskTitle: task.title,
             dueDate: task.due_date,
-            timeUntilDue,
+            timeUntilDue: hoursUntilDue,
             urgency: 'critical',
             message: `This task is due in ${Math.round(hoursUntilDue)} hour${Math.round(hoursUntilDue) !== 1 ? 's' : ''}.`,
           });
@@ -65,7 +65,7 @@ export function DeadlineNudger({ tasks, onTaskClick, onSnooze }: DeadlineNudgerP
             taskId: task.id,
             taskTitle: task.title,
             dueDate: task.due_date,
-            timeUntilDue,
+            timeUntilDue: hoursUntilDue,
             urgency: 'high',
             message: `This task is due in ${Math.round(hoursUntilDue / 24)} day${Math.round(hoursUntilDue / 24) !== 1 ? 's' : ''}.`,
           });
@@ -75,7 +75,7 @@ export function DeadlineNudger({ tasks, onTaskClick, onSnooze }: DeadlineNudgerP
             taskId: task.id,
             taskTitle: task.title,
             dueDate: task.due_date,
-            timeUntilDue,
+            timeUntilDue: hoursUntilDue,
             urgency: 'medium',
             message: `This task is due in ${Math.round(hoursUntilDue / 24)} day${Math.round(hoursUntilDue / 24) !== 1 ? 's' : ''}.`,
           });

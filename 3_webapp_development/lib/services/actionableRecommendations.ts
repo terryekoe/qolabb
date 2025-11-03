@@ -29,12 +29,14 @@ export async function generateActionableRecommendations(
   const recommendations: ActionableRecommendation[] = [];
 
   // Get team members and their task counts
-  let teamMembersQuery = supabase
-    .from('team_members')
-    .select('user_id, profiles(full_name, id)')
-    .eq('team_id', teamId || '');
-
-  if (!teamId) {
+  let teamMembersQuery;
+  
+  if (teamId) {
+    teamMembersQuery = supabase
+      .from('team_members')
+      .select('user_id, team_id, profiles(full_name, id)')
+      .eq('team_id', teamId);
+  } else {
     // Get all teams in workspace
     const { data: teams } = await supabase.from('teams').select('id').eq('workspace_id', workspaceId);
     if (teams && teams.length > 0) {
@@ -42,6 +44,11 @@ export async function generateActionableRecommendations(
         .from('team_members')
         .select('user_id, team_id, profiles(full_name, id)')
         .in('team_id', teams.map((t) => t.id));
+    } else {
+      teamMembersQuery = supabase
+        .from('team_members')
+        .select('user_id, team_id, profiles(full_name, id)')
+        .limit(0);
     }
   }
 

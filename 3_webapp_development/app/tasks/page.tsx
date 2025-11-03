@@ -1159,11 +1159,11 @@ export default function TasksPage() {
 
                     <div className="mt-4 flex flex-wrap gap-2">
                       {nextAction && (
-                <Button
+                        <Button
                           size="sm"
                   variant="primary"
                           onClick={(event) => {
-                            event.stopPropagation();
+                            event?.stopPropagation();
                             handleUpdateTaskStatus(task.id, nextAction.status);
                           }}
                         >
@@ -1174,7 +1174,7 @@ export default function TasksPage() {
                         size="sm"
                         variant="secondary"
                         onClick={(event) => {
-                          event.stopPropagation();
+                          event?.stopPropagation();
                           openTaskDetail(task);
                         }}
                       >
@@ -1471,7 +1471,7 @@ export default function TasksPage() {
                         <div className="absolute right-0 top-6 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-10 min-w-[150px]">
                           <button
                           onClick={(event) => {
-                            event.stopPropagation();
+                            event?.stopPropagation();
                               handleDeleteTask(task.id);
                             }}
                             className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center"
@@ -1552,11 +1552,19 @@ export default function TasksPage() {
   };
 
   const renderTeamView = () => {
+    if (!currentWorkspace) {
+      return (
+        <div className="text-center py-12">
+          <p className="text-gray-600 dark:text-gray-400">No workspace selected</p>
+        </div>
+      );
+    }
+
     return (
       <div className="space-y-4">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">Team workload</h2>
-          <p className="text-sm text-gray-600">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Team workload</h2>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
             See how tasks are spread across people and projects so the group stays balanced.
           </p>
         </div>
@@ -1873,28 +1881,34 @@ export default function TasksPage() {
         </AnimatePresence>
       </div>
 
-        <TaskModal
-          isOpen={showTaskModal}
-        onClose={() => setShowTaskModal(false)}
-        project={selectedTaskProject}
-        onTaskCreated={handleTaskUpdated}
-      />
+        {selectedTaskProject && (
+          <TaskModal
+            isOpen={showTaskModal}
+            onClose={() => setShowTaskModal(false)}
+            projectId={selectedTaskProject.id}
+            teamId={selectedTaskProject.team_id}
+            onTaskCreated={handleTaskUpdated}
+          />
+        )}
 
         <TaskDetailModal
-        task={selectedTask}
+          task={selectedTask}
           isOpen={showTaskDetail}
           onClose={closeTaskDetail}
           onTaskUpdated={handleTaskUpdated}
           onTaskDeleted={handleTaskDeleted}
-        canManageTasks={canManageTasks}
-      />
+          canManage={canManageTasks}
+        />
 
-      <ContributionLogModal
-        task={taskForContribution}
-        isOpen={showContributionModal}
-        onClose={() => setShowContributionModal(false)}
-        onLogUpdated={loadData}
-      />
+      {taskForContribution && user && (
+        <ContributionLogModal
+          task={taskForContribution}
+          isOpen={showContributionModal}
+          onClose={() => setShowContributionModal(false)}
+          onSuccess={loadData}
+          userId={user.id}
+        />
+      )}
     </DashboardLayout>
   );
 }

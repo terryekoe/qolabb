@@ -143,7 +143,15 @@ export const dynamic = 'force-dynamic';
 function SettingsPageContent() {
   const { user } = useAuth();
   const { currentWorkspace, refreshWorkspaces } = useWorkspace();
-  const { theme, setTheme } = useTheme();
+  let theme: 'light' | 'dark' | 'system' = 'system';
+  let setTheme: (theme: 'light' | 'dark' | 'system') => void = () => {};
+  try {
+    const themeHook = useTheme();
+    theme = themeHook.theme;
+    setTheme = themeHook.setTheme;
+  } catch (e) {
+    // Fallback if ThemeProvider is not available during build
+  }
   const searchParams = useSearchParams();
   const [activeSection, setActiveSection] =
     useState<SettingsCategory>("profile");
