@@ -28,9 +28,15 @@ export default function DashboardPage() {
   // Check if user needs to see first-run tour
   useEffect(() => {
     if (profile && currentWorkspace) {
-      // Show tour if user hasn't completed it and has a workspace
-      if (!profile.first_tour_completed) {
+      // Check both profile flag and localStorage as backup
+      const tourCompletedInProfile = profile.first_tour_completed;
+      const tourCompletedInStorage = typeof window !== 'undefined' && localStorage.getItem('first_tour_completed') === 'true';
+      
+      // Only show tour if not completed in profile AND not dismissed in storage
+      if (!tourCompletedInProfile && !tourCompletedInStorage) {
         setShowTour(true);
+      } else {
+        setShowTour(false);
       }
     }
   }, [profile, currentWorkspace]);
@@ -83,7 +89,13 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout>
-      {showTour && <FirstRunTour onComplete={() => setShowTour(false)} />}
+      {showTour && <FirstRunTour onComplete={() => {
+        setShowTour(false);
+        // Also save to localStorage as backup
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('first_tour_completed', 'true');
+        }
+      }} />}
       {/* Welcome Header */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 sm:p-6">
         <motion.div

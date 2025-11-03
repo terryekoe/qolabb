@@ -121,6 +121,11 @@ export function FirstRunTour({ onComplete }: FirstRunTourProps) {
   };
 
   const handleComplete = async () => {
+    // Save completion to localStorage first
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('first_tour_completed', 'true');
+    }
+    
     if (user) {
       try {
         // Mark tour as completed in profile
@@ -136,7 +141,23 @@ export function FirstRunTour({ onComplete }: FirstRunTourProps) {
     setTimeout(() => onComplete(), 300);
   };
 
-  const handleDismiss = () => {
+  const handleDismiss = async () => {
+    // Save dismissal to localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('first_tour_completed', 'true');
+    }
+    
+    // Also try to update profile if user exists
+    if (user) {
+      try {
+        await updateProfile(user.id, {
+          first_tour_completed: true,
+        });
+      } catch (error) {
+        console.error('Failed to save tour dismissal:', error);
+      }
+    }
+    
     setDismissed(true);
     setTimeout(() => onComplete(), 300);
   };
