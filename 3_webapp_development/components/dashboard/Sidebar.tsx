@@ -82,10 +82,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
           x: collapsed ? -256 : 0,
         }}
         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-        className="fixed left-0 top-0 w-64 bg-blue-500 border-r border-blue-600 h-screen z-50 flex flex-col"
+        className="fixed left-0 top-0 w-64 bg-blue-500 dark:bg-blue-800 border-r border-blue-600 dark:border-blue-900 h-screen z-50 flex flex-col"
       >
       {/* Logo & Workspace */}
-      <div className="p-6 border-b border-blue-400">
+      <div className="p-6 border-b border-blue-400 dark:border-blue-700">
         <div className="flex items-center justify-between mb-4">
           <Link href="/dashboard">
             <div className="text-2xl font-bold">
@@ -97,7 +97,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
           {/* Mobile Close Button */}
           <button
             onClick={onClose}
-            className="md:hidden p-2 hover:bg-blue-600 rounded-lg transition-colors"
+            className="md:hidden p-2 hover:bg-blue-600 dark:hover:bg-blue-700 rounded-lg transition-colors"
           >
             <X size={20} className="text-white" />
           </button>
@@ -106,7 +106,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
         {/* Workspace Switcher */}
         <button 
           onClick={() => setShowWorkspaceSwitcher(true)}
-          className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-blue-600 transition-colors group"
+          className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-blue-600 dark:hover:bg-blue-700 transition-colors group"
         >
           <div className="flex items-center space-x-2 flex-1 min-w-0">
             {currentWorkspace?.icon_url ? (
@@ -122,7 +122,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
                 }}
               />
             ) : null}
-            <div className={`bg-blue-400 p-2 rounded-lg flex-shrink-0 ${currentWorkspace?.icon_url ? 'hidden icon-fallback' : ''}`}>
+            <div className={`bg-blue-400 dark:bg-blue-700 p-2 rounded-lg flex-shrink-0 ${currentWorkspace?.icon_url ? 'hidden icon-fallback' : ''}`}>
               <Building2 size={16} className="text-white" />
             </div>
             <span className="text-sm font-medium text-white truncate">
@@ -150,8 +150,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
                 whileHover={{ x: 4 }}
                 className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
                   active
-                    ? 'bg-blue-600 text-white'
-                    : 'text-white hover:bg-blue-600'
+                    ? 'bg-blue-600 dark:bg-blue-700 text-white'
+                    : 'text-white hover:bg-blue-600 dark:hover:bg-blue-700'
                 }`}
               >
                 <Icon size={20} className="text-white" />
@@ -163,8 +163,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
       </nav>
 
       {/* User Section */}
-      <div className="p-4 border-t border-blue-400">
-        <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-blue-600 cursor-pointer mb-2">
+      <div className="p-4 border-t border-blue-400 dark:border-blue-700">
+        <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-blue-600 dark:hover:bg-blue-700 cursor-pointer mb-2">
           <Avatar
             userId={user?.id || 'current-user'}
             name={profile?.full_name || 'User'}

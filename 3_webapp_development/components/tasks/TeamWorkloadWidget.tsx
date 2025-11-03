@@ -355,7 +355,7 @@ export function TeamWorkloadWidget({
 
   if (loading) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
         <p className="text-gray-500 mt-4">Loading team workload...</p>
       </div>
@@ -364,10 +364,10 @@ export function TeamWorkloadWidget({
 
   if (filteredWorkloads.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center">
         <Users size={48} className="mx-auto text-gray-300 mb-4" />
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">No Team Members Found</h3>
-        <p className="text-gray-600">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">No Team Members Found</h3>
+        <p className="text-gray-600 dark:text-gray-400">
           {selectedTeam === 'all' 
             ? 'Add team members to see workload distribution.'
             : 'No members found for the selected team.'}
@@ -419,27 +419,27 @@ export function TeamWorkloadWidget({
           </p>
         </div>
 
-        <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200">
+        <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-800/50 rounded-xl p-4 border border-gray-200 dark:border-gray-600">
           <div className="flex items-center justify-between mb-2">
-            <BarChart3 className="text-gray-600" size={20} />
-            <span className="text-2xl font-bold text-gray-900">{statistics.avgTasks.toFixed(1)}</span>
+            <BarChart3 className="text-gray-600 dark:text-gray-400" size={20} />
+            <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">{statistics.avgTasks.toFixed(1)}</span>
           </div>
-          <p className="text-xs font-medium text-gray-700">Avg per Member</p>
-          <p className="text-xs text-gray-600 mt-1">{statistics.totalTodo} to do</p>
+                          <p className="text-xs font-medium text-gray-700 dark:text-gray-300">Avg per Member</p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{statistics.totalTodo} to do</p>
         </div>
       </div>
 
       {/* Main Content Card */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div className="flex items-center space-x-3">
-            <div className="bg-blue-50 p-2.5 rounded-lg">
-              <Users className="text-blue-600" size={24} />
+            <div className="bg-blue-50 dark:bg-blue-900/30 p-2.5 rounded-lg">
+              <Users className="text-blue-600 dark:text-blue-400" size={24} />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-gray-900">Team Workload Analysis</h3>
-              <p className="text-sm text-gray-500">Task distribution and participation balance</p>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">Team Workload Analysis</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Task distribution and participation balance</p>
             </div>
           </div>
           
@@ -451,7 +451,7 @@ export function TeamWorkloadWidget({
                 <select
                   value={selectedTeam}
                   onChange={(e) => setSelectedTeam(e.target.value)}
-                  className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
+                  className="pl-9 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                 >
                   <option value="all">All Teams</option>
                   {teamIds.map(teamId => (
@@ -511,7 +511,7 @@ export function TeamWorkloadWidget({
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                   {redistributionSuggestions.map((suggestion, idx) => (
-                    <div key={idx} className="bg-white rounded-lg p-3 border border-blue-200">
+                    <div key={idx} className="bg-white dark:bg-gray-700 rounded-lg p-3 border border-blue-200 dark:border-blue-700">
                       <div className="flex items-center justify-between text-sm">
                         <div className="flex items-center space-x-2 flex-1 min-w-0">
                           <Avatar
@@ -520,7 +520,7 @@ export function TeamWorkloadWidget({
                             src={suggestion.from.avatar}
                             size="xs"
                           />
-                          <span className="font-medium text-gray-700 truncate">
+                          <span className="font-medium text-gray-700 dark:text-gray-300 truncate">
                             {suggestion.from.userId === userId ? 'You' : suggestion.from.name.split(' ')[0]}
                           </span>
                           <ArrowRight size={14} className="text-blue-600 flex-shrink-0" />
@@ -530,7 +530,7 @@ export function TeamWorkloadWidget({
                             src={suggestion.to.avatar}
                             size="xs"
                           />
-                          <span className="font-medium text-gray-700 truncate">
+                          <span className="font-medium text-gray-700 dark:text-gray-300 truncate">
                             {suggestion.to.userId === userId ? 'You' : suggestion.to.name.split(' ')[0]}
                           </span>
                         </div>
@@ -547,18 +547,18 @@ export function TeamWorkloadWidget({
         )}
 
         {/* Visual Distribution Chart */}
-        <div className="mb-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-2">
-              <BarChart3 size={18} className="text-gray-600" />
-              <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wide">
-                Task Distribution Chart
-              </h4>
-            </div>
-            {avgTasks > 0 && (
+          <div className="mb-6 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-800/50 rounded-xl p-5 border border-gray-200 dark:border-gray-600">
+            <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-2">
-                <Info size={14} className="text-gray-400" />
-                <span className="text-xs text-gray-600 font-medium">
+                <BarChart3 size={18} className="text-gray-600 dark:text-gray-400" />
+                <h4 className="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wide">
+                  Task Distribution Chart
+                </h4>
+              </div>
+              {avgTasks > 0 && (
+                <div className="flex items-center space-x-2">
+                  <Info size={14} className="text-gray-400 dark:text-gray-500" />
+                  <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">
                   Average: <span className="font-bold">{avgTasks.toFixed(1)}</span> tasks per member
                 </span>
               </div>
@@ -587,17 +587,17 @@ export function TeamWorkloadWidget({
                         <div className="flex items-center space-x-2">
                           <span className={cn(
                             "text-sm font-semibold truncate",
-                            isCurrentUser ? "text-blue-700" : "text-gray-900"
+                            isCurrentUser ? "text-blue-700 dark:text-blue-400" : "text-gray-900 dark:text-gray-100"
                           )}>
                             {isCurrentUser ? 'You' : member.name}
                           </span>
                           {member.teamName && teamIds.length > 1 && (
-                            <span className="text-xs text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">
+                            <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-600 px-2 py-0.5 rounded-full">
                               {member.teamName}
                             </span>
                           )}
                         </div>
-                        <div className="flex items-center space-x-2 text-xs text-gray-500 mt-0.5">
+                        <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                           <span>{member.todoTasks} to do</span>
                           <span>•</span>
                           <span>{member.inProgressTasks} active</span>
@@ -628,12 +628,12 @@ export function TeamWorkloadWidget({
                           Underutilized
                         </span>
                       )}
-                      <span className="text-lg font-bold text-gray-900 min-w-[2.5rem] text-right">
+                      <span className="text-lg font-bold text-gray-900 dark:text-gray-100 min-w-[2.5rem] text-right">
                         {member.totalTasks}
                       </span>
                     </div>
                   </div>
-                  <div className="relative w-full bg-gray-200 rounded-full h-4 overflow-hidden shadow-inner">
+                  <div className="relative w-full bg-gray-200 dark:bg-gray-600 rounded-full h-4 overflow-hidden shadow-inner">
                     {/* Average line indicator */}
                     {avgTasks > 0 && maxTasks > 0 && (
                       <div
@@ -667,9 +667,9 @@ export function TeamWorkloadWidget({
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
-            className="border-t border-gray-200 pt-6 mt-6"
+            className="border-t border-gray-200 dark:border-gray-700 pt-6 mt-6"
           >
-            <h4 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <h4 className="text-base font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
               <Users size={18} />
               Detailed Member Breakdown
             </h4>
@@ -682,7 +682,7 @@ export function TeamWorkloadWidget({
                 const isCurrentUser = member.userId === userId;
 
                 return (
-                  <div key={member.userId} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div key={member.userId} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center space-x-3 flex-1 min-w-0">
                         <Avatar
@@ -695,17 +695,17 @@ export function TeamWorkloadWidget({
                           <div className="flex items-center space-x-2">
                             <p className={cn(
                               "text-base font-semibold truncate",
-                              isCurrentUser ? "text-blue-700" : "text-gray-900"
+                              isCurrentUser ? "text-blue-700 dark:text-blue-400" : "text-gray-900 dark:text-gray-100"
                             )}>
-                              {member.name} {isCurrentUser && <span className="text-blue-600">(You)</span>}
+                              {member.name} {isCurrentUser && <span className="text-blue-600 dark:text-blue-400">(You)</span>}
                             </p>
                             {member.teamName && teamIds.length > 1 && (
-                              <span className="text-xs text-gray-600 bg-white px-2 py-1 rounded-full border border-gray-300">
+                              <span className="text-xs text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 px-2 py-1 rounded-full border border-gray-300 dark:border-gray-600">
                                 {member.teamName}
                               </span>
                             )}
                           </div>
-                          <div className="flex items-center space-x-3 text-xs text-gray-600 mt-1">
+                          <div className="flex items-center space-x-3 text-xs text-gray-600 dark:text-gray-400 mt-1">
                             <span className="flex items-center gap-1">
                               <div className="w-2 h-2 rounded-full bg-gray-400"></div>
                               {member.todoTasks} to do

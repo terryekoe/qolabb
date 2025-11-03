@@ -133,20 +133,20 @@ export function ContributionLogModal({
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
           onClick={(e) => e.stopPropagation()}
-          className="bg-white rounded-2xl max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-hidden flex flex-col"
+          className="bg-white dark:bg-gray-800 rounded-2xl max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-hidden flex flex-col"
         >
           {/* Header */}
-          <div className="p-6 border-b border-gray-200">
+          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Log Contribution</h2>
-                <p className="text-sm text-gray-600">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Log Contribution</h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Track your work for this completed task to improve participation analytics.
                 </p>
               </div>
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors ml-4"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors ml-4"
               >
                 <X size={20} className="text-gray-500" />
               </button>

@@ -123,36 +123,36 @@ export default function TeamDetailsModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
           onClick={(e) => e.stopPropagation()}
-          className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden border border-gray-200"
+          className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700"
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-qolabb-beige-50">
+          <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-qolabb-beige-50 dark:from-blue-900/20 dark:to-gray-700">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-gradient-to-br from-blue-400 to-qolabb-beige-400 rounded-xl shadow-md">
                 <Users className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-900">{team.name}</h2>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">{team.name}</h2>
                 {team.description && (
-                  <p className="text-sm text-gray-600 mt-1">{team.description}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{team.description}</p>
                 )}
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white/80 rounded-xl transition-all duration-200 group"
+              className="p-2 hover:bg-white/80 dark:hover:bg-gray-700/80 rounded-xl transition-all duration-200 group"
             >
-              <X className="w-5 h-5 text-gray-500 group-hover:text-gray-700" />
+              <X className="w-5 h-5 text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200" />
             </button>
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto p-6 bg-gray-50/50">
+          <div className="flex-1 overflow-y-auto p-6 bg-gray-50/50 dark:bg-gray-900/50">
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="text-center">
                   <Loader2 className="w-8 h-8 animate-spin text-blue-400 mx-auto mb-3" />
-                  <span className="text-gray-600 font-medium">Loading team members...</span>
+                  <span className="text-gray-600 dark:text-gray-400 font-medium">Loading team members...</span>
                 </div>
               </div>
             ) : (
@@ -160,7 +160,7 @@ export default function TeamDetailsModal({
                 {/* Team Leaders */}
                 {leaders.length > 0 && (
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-3">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-3">
                       <div className="p-2 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg shadow-sm">
                         <Crown className="w-5 h-5 text-white" />
                       </div>
@@ -186,7 +186,7 @@ export default function TeamDetailsModal({
                 {/* Team Members */}
                 {regularMembers.length > 0 && (
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-3">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-3">
                       <div className="p-2 bg-gradient-to-br from-blue-400 to-qolabb-beige-400 rounded-lg shadow-sm">
                         <Users className="w-5 h-5 text-white" />
                       </div>
@@ -214,8 +214,8 @@ export default function TeamDetailsModal({
                     <div className="p-4 bg-gray-200 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
                       <Users className="w-10 h-10 text-gray-400" />
                     </div>
-                    <p className="text-gray-600 font-medium text-lg">No team members found</p>
-                    <p className="text-gray-500 text-sm mt-1">Add members to get started</p>
+                    <p className="text-gray-600 dark:text-gray-400 font-medium text-lg">No team members found</p>
+                    <p className="text-gray-500 dark:text-gray-500 text-sm mt-1">Add members to get started</p>
                   </div>
                 )}
               </div>
@@ -228,15 +228,15 @@ export default function TeamDetailsModal({
               <motion.div
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                className="bg-white rounded-2xl p-6 m-4 max-w-sm w-full shadow-2xl border border-gray-200"
+                className="bg-white dark:bg-gray-800 rounded-2xl p-6 m-4 max-w-sm w-full shadow-2xl border border-gray-200 dark:border-gray-700"
               >
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-red-100 rounded-xl">
-                    <AlertTriangle className="w-6 h-6 text-red-600" />
+                  <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-xl">
+                    <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
                   </div>
-                  <h3 className="text-lg font-bold text-gray-900">Remove Member</h3>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Remove Member</h3>
                 </div>
-                <p className="text-gray-600 mb-6 leading-relaxed">
+                <p className="text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
                   Are you sure you want to remove this member from the team? This action cannot be undone.
                 </p>
                 <div className="flex gap-3">

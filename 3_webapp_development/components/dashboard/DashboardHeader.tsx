@@ -166,7 +166,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
   return (
     <header 
-      className="fixed top-0 right-0 left-0 md:left-64 h-16 bg-white border-b border-gray-200 z-30 transition-all duration-300"
+      className="fixed top-0 right-0 left-0 md:left-64 h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 z-30 transition-all duration-300"
       style={{ left: sidebarCollapsed ? '0' : '16rem' }}
     >
       <div className="h-full flex items-center justify-between px-6">
@@ -174,13 +174,13 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         <div className="flex items-center space-x-4">
           <button
             onClick={onToggleSidebar}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors md:hidden"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors md:hidden"
           >
-            <Menu size={24} className="text-gray-600" />
+            <Menu size={24} className="text-gray-600 dark:text-gray-300" />
           </button>
 
           <div className="hidden md:block">
-            <h1 className="text-xl font-bold text-gray-900">
+            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
               {currentWorkspace?.name || 'Dashboard'}
             </h1>
           </div>
@@ -193,12 +193,12 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setShowSearch(true)}
-            className="hidden sm:flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+            className="hidden sm:flex items-center space-x-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
             title="Search (⌘K)"
           >
-            <Search size={18} className="text-gray-500" />
-            <span className="text-sm text-gray-600">Search...</span>
-            <kbd className="hidden lg:inline-flex px-1.5 py-0.5 text-xs font-semibold text-gray-500 bg-white border border-gray-300 rounded">
+            <Search size={18} className="text-gray-500 dark:text-gray-400" />
+            <span className="text-sm text-gray-600 dark:text-gray-300">Search...</span>
+            <kbd className="hidden lg:inline-flex px-1.5 py-0.5 text-xs font-semibold text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded">
               ⌘K
             </kbd>
           </motion.button>
@@ -210,10 +210,10 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setShowNotifications(!showNotifications)}
-              className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
               aria-label="Notifications"
             >
-              <Bell size={22} className="text-gray-600" />
+              <Bell size={22} className="text-gray-600 dark:text-gray-300" />
               {unreadCount > 0 && (
                 <motion.span
                   initial={{ scale: 0 }}

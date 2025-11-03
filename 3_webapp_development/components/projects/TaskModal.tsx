@@ -126,23 +126,23 @@ export const TaskModal: React.FC<TaskModalProps> = ({
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
           onClick={(e) => e.stopPropagation()}
-          className="bg-white rounded-2xl p-8 max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto"
+          className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto"
         >
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center">
-              <div className="bg-blue-100 p-3 rounded-lg mr-4">
-                <CheckCircle2 className="text-blue-700" size={24} />
+              <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-lg mr-4">
+                <CheckCircle2 className="text-blue-700 dark:text-blue-400" size={24} />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900">Create Task</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Create Task</h2>
             </div>
             <button
               onClick={() => {
                 onClose();
                 resetForm();
               }}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
             >
-              <X size={20} className="text-gray-500" />
+              <X size={20} className="text-gray-500 dark:text-gray-400" />
             </button>
           </div>
 

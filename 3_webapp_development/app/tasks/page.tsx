@@ -118,7 +118,7 @@ function DraggableTaskCard({
     <div
       ref={setNodeRef}
       style={style}
-      className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-all group relative cursor-pointer"
+      className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 hover:shadow-md transition-all group relative cursor-pointer"
       onClick={(e) => {
         // Only trigger task click if not dragging (activation distance will prevent this for drags)
         if (!dragStartRef.current && !isDragging) {
@@ -137,16 +137,16 @@ function DraggableTaskCard({
             dragStartRef.current = true;
           }}
         >
-          <GripVertical size={16} className="text-gray-400" />
+          <GripVertical size={16} className="text-gray-400 dark:text-gray-500" />
         </div>
         
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between mb-2">
             <div className="flex-1 min-w-0 pr-2">
-              <h3 className="font-semibold text-gray-900 text-sm mb-1 line-clamp-2">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm mb-1 line-clamp-2">
                 {task.title}
               </h3>
-              <div className="flex items-center text-xs text-gray-500 space-x-1.5">
+              <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 space-x-1.5">
                 <FolderKanban size={10} />
                 <span className="truncate">{task.project_name}</span>
               </div>
@@ -155,13 +155,13 @@ function DraggableTaskCard({
             <div className="relative">
               <button
                 onClick={() => setActiveTaskMenu(activeTaskMenu === task.id ? null : task.id)}
-                className="p-1 hover:bg-gray-100 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded opacity-0 group-hover:opacity-100 transition-opacity"
               >
-                <MoreVertical size={14} className="text-gray-400" />
+                <MoreVertical size={14} className="text-gray-400 dark:text-gray-500" />
               </button>
               
               {activeTaskMenu === task.id && (
-                <div className="absolute right-0 top-6 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-10 min-w-[140px]">
+                <div className="absolute right-0 top-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1 z-10 min-w-[140px]">
                   <button
                     onClick={() => handleDeleteTask(task.id)}
                     className="w-full text-left px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 flex items-center"
@@ -175,7 +175,7 @@ function DraggableTaskCard({
           </div>
 
           {task.description && (
-            <p className="text-xs text-gray-600 mb-2 line-clamp-2">
+            <p className="text-xs text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">
               {task.description}
             </p>
           )}
@@ -184,7 +184,7 @@ function DraggableTaskCard({
             <Flag size={12} className={getPriorityColor(task.priority)} />
           </div>
 
-          <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-100">
+          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 pt-2 border-t border-gray-100 dark:border-gray-700">
             {(task.assignees && task.assignees.length > 0) ? (
               <div className="flex items-center">
                 {task.assignees.slice(0, 1).map((assigneeItem: any) => {
@@ -299,7 +299,7 @@ function KanbanColumn({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           {icon}
-          <h4 className="font-semibold text-gray-900">{title}</h4>
+          <h4 className="font-semibold text-gray-900 dark:text-gray-100">{title}</h4>
         </div>
         <span
           className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
@@ -326,7 +326,7 @@ function KanbanColumn({
             />
           ))}
           {tasks.length === 0 && (
-            <div className="text-center py-8 text-sm text-gray-400 border-2 border-dashed border-gray-300 rounded-lg">
+            <div className="text-center py-8 text-sm text-gray-400 dark:text-gray-500 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
               Drop tasks here
             </div>
           )}
@@ -1052,12 +1052,12 @@ export default function TasksPage() {
               <p className="text-sm sm:text-base text-white/80">
                 Pick the next step from the list. Status words stay simple: <strong>To Start</strong>, <strong>Doing</strong>, <strong>Done</strong>.
               </p>
-            </div>
+          </div>
             <div className="flex flex-col sm:flex-row gap-3">
               <Button
                 variant="secondary"
                 onClick={() => setViewMode('board')}
-                className="flex items-center gap-2 !bg-white !text-blue-600 hover:!bg-white/90"
+                className="flex items-center gap-2 !bg-white dark:!bg-gray-800 !text-blue-600 dark:!text-blue-400 hover:!bg-white/90 dark:hover:!bg-gray-700"
               >
                 <FolderKanban size={18} />
                 Open team board
@@ -1069,18 +1069,18 @@ export default function TasksPage() {
               >
                 Show task options
               </Button>
-            </div>
+        </div>
           </div>
         </div>
 
         <section className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center gap-2">
+          <div>
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                 <Sparkles size={18} className="text-blue-500" />
                 Your next steps
               </h2>
-              <p className="text-sm text-gray-600">Choose one task to start. You can always come back for more.</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Choose one task to start. You can always come back for more.</p>
             </div>
             {hasMyTasks && (
               <span className="text-xs text-gray-500">
@@ -1109,24 +1109,24 @@ export default function TasksPage() {
                 return (
                   <div
                     key={task.id}
-                    className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm transition-all hover:border-blue-200 hover:shadow-md cursor-pointer"
+                    className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm transition-all hover:border-blue-200 dark:hover:border-blue-600 hover:shadow-md cursor-pointer"
                     onClick={() => openTaskDetail(task)}
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
-                        <p className="font-semibold text-gray-900 text-sm sm:text-base line-clamp-2">{task.title}</p>
+                        <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm sm:text-base line-clamp-2">{task.title}</p>
                         <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
                           <FolderKanban size={12} />
                           <span className="truncate">{task.project_name}</span>
-                        </p>
-                      </div>
+            </p>
+          </div>
                       <span
                         className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
                           isOverdue
                             ? 'bg-qolabb-orange-100 text-qolabb-orange-700'
                             : isDueSoon
                             ? 'bg-qolabb-yellow-100 text-qolabb-yellow-700'
-                            : 'bg-gray-100 text-gray-700'
+                            : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                         }`}
                       >
                         <Calendar size={12} />
@@ -1135,7 +1135,7 @@ export default function TasksPage() {
                     </div>
 
                     {task.description && (
-                      <p className="mt-3 text-sm text-gray-600 line-clamp-2">{task.description}</p>
+                      <p className="mt-3 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{task.description}</p>
                     )}
 
                     <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-gray-600">
@@ -1159,9 +1159,9 @@ export default function TasksPage() {
 
                     <div className="mt-4 flex flex-wrap gap-2">
                       {nextAction && (
-                        <Button
+                <Button
                           size="sm"
-                          variant="primary"
+                  variant="primary"
                           onClick={(event) => {
                             event.stopPropagation();
                             handleUpdateTaskStatus(task.id, nextAction.status);
@@ -1186,9 +1186,9 @@ export default function TasksPage() {
               })}
             </div>
           ) : (
-            <div className="bg-white border border-gray-200 rounded-xl p-6 text-center shadow-sm">
-              <p className="text-lg font-semibold text-gray-900 mb-2">You're all caught up!</p>
-              <p className="text-sm text-gray-600 mb-4">
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 text-center shadow-sm">
+              <p className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">You're all caught up!</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                 No tasks are assigned to you yet. Browse the board or create one together.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -1199,16 +1199,16 @@ export default function TasksPage() {
                 {projects.length > 0 && (
                   <Button
                     variant="secondary"
-                    onClick={() => {
-                      if (projects.length === 1) {
-                        handleCreateTask(projects[0]);
+                  onClick={() => {
+                    if (projects.length === 1) {
+                      handleCreateTask(projects[0]);
                       } else {
                         setShowAdvancedTools(true);
-                      }
-                    }}
-                  >
+                    }
+                  }}
+                >
                     Create a task with my team
-                  </Button>
+                </Button>
                 )}
               </div>
             </div>
@@ -1226,16 +1226,16 @@ export default function TasksPage() {
             </p>
             <div className="space-y-2">
               {overdueMyTasks.slice(0, 3).map((task: any) => (
-                <button
+                      <button
                   key={task.id}
                   onClick={() => openTaskDetail(task)}
-                  className="w-full bg-white/80 hover:bg-white border border-red-100 rounded-lg px-3 py-2 flex items-center justify-between text-left transition"
+                  className="w-full bg-white/80 dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-700 border border-red-100 dark:border-red-900/30 rounded-lg px-3 py-2 flex items-center justify-between text-left transition"
                 >
                   <span className="text-sm font-medium text-qolabb-orange-800 truncate pr-3">{task.title}</span>
                   <span className="text-xs text-qolabb-orange-700">{formatDueDate(task.due_date)}</span>
-                </button>
-              ))}
-            </div>
+                      </button>
+                    ))}
+                  </div>
             {overdueMyTasks.length > 3 && (
               <p className="text-xs text-qolabb-orange-700">+{overdueMyTasks.length - 3} more overdue task{overdueMyTasks.length - 3 === 1 ? '' : 's'} on the board</p>
             )}
@@ -1259,34 +1259,34 @@ export default function TasksPage() {
         )}
 
         {recentWins.length > 0 && (
-          <section className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+          <section className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 shadow-sm">
             <div className="flex items-center gap-2 text-qolabb-green-700 font-semibold mb-3">
               <CheckCircle2 size={18} />
               Recent wins
             </div>
             <div className="space-y-2">
               {recentWins.map((task: any) => (
-                <div key={task.id} className="flex items-center justify-between text-sm text-gray-700">
+                <div key={task.id} className="flex items-center justify-between text-sm text-gray-700 dark:text-gray-300">
                   <span className="truncate pr-3">{task.title}</span>
                   <span className="text-xs text-gray-400">{formatDueDate(task.updated_at || task.completed_at || task.created_at)}</span>
-                </div>
+          </div>
               ))}
             </div>
           </section>
         )}
 
-        <section className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+        <section className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 shadow-sm">
           <div className="flex items-start gap-3">
-            <HelpCircle size={18} className="text-blue-500 mt-1" />
+            <HelpCircle size={18} className="text-blue-500 dark:text-blue-400 mt-1" />
             <div className="space-y-2">
-              <h3 className="text-sm font-semibold text-gray-900">Quick tips</h3>
-              <ul className="text-sm text-gray-600 space-y-1">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Quick tips</h3>
+              <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
                 <li>• Start one task at a time. When you finish, log what you contributed so the class can celebrate it.</li>
                 <li>• If something feels unclear, open the task details and leave a comment asking for next steps.</li>
                 <li>• Need more controls? Tap "Show task options" above to reveal filters and advanced tools.</li>
               </ul>
-            </div>
           </div>
+        </div>
         </section>
       </div>
     );
@@ -1297,28 +1297,28 @@ export default function TasksPage() {
       return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {[1, 2, 3].map((column) => (
-            <div key={column} className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
+            <div key={column} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 space-y-3">
               {[1, 2, 3].map((card) => (
                 <div key={card} className="h-24 bg-gray-100 rounded-lg animate-pulse" />
               ))}
-            </div>
-          ))}
-        </div>
+              </div>
+            ))}
+          </div>
       );
     }
 
     if (filteredTasks.length === 0) {
       return (
-        <div className="bg-white rounded-xl p-12 text-center border-2 border-dashed border-gray-300">
-          <FolderKanban size={64} className="mx-auto text-gray-300 mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">No tasks match your filters</h3>
-          <p className="text-gray-600 mb-6 max-w-md mx-auto">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border-2 border-dashed border-gray-300 dark:border-gray-600">
+          <FolderKanban size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">No tasks match your filters</h3>
+          <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
             Clear filters or widen the search to see cards. You can drag between columns to update status at any time.
           </p>
           <Button variant="secondary" onClick={() => resetFilters()} className="flex items-center gap-2 mx-auto">
             <Filter size={16} />
             Clear filters
-          </Button>
+              </Button>
         </div>
       );
     }
@@ -1332,62 +1332,62 @@ export default function TasksPage() {
           </p>
         </div>
         <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <KanbanColumn
-              id="todo"
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <KanbanColumn
+                id="todo"
               title="To Start"
               icon={<AlertCircle size={18} className="text-qolabb-orange-600" />}
-              count={tasksByStatus.todo.length}
-              color="orange"
-              tasks={tasksByStatus.todo}
-              user={user}
-              getStatusConfig={getStatusConfig}
-              getPriorityColor={getPriorityColor}
-              activeTaskMenu={activeTaskMenu}
-              setActiveTaskMenu={setActiveTaskMenu}
-              handleDeleteTask={handleDeleteTask}
-              onTaskClick={openTaskDetail}
-            />
-            <KanbanColumn
-              id="in_progress"
+                count={tasksByStatus.todo.length}
+                color="orange"
+                tasks={tasksByStatus.todo}
+                user={user}
+                getStatusConfig={getStatusConfig}
+                getPriorityColor={getPriorityColor}
+                activeTaskMenu={activeTaskMenu}
+                setActiveTaskMenu={setActiveTaskMenu}
+                handleDeleteTask={handleDeleteTask}
+                onTaskClick={openTaskDetail}
+              />
+              <KanbanColumn
+                id="in_progress"
               title="Doing"
-              icon={<Clock size={18} className="text-blue-600" />}
-              count={tasksByStatus.in_progress.length}
-              color="blue"
-              tasks={tasksByStatus.in_progress}
-              user={user}
-              getStatusConfig={getStatusConfig}
-              getPriorityColor={getPriorityColor}
-              activeTaskMenu={activeTaskMenu}
-              setActiveTaskMenu={setActiveTaskMenu}
-              handleDeleteTask={handleDeleteTask}
-              onTaskClick={openTaskDetail}
-            />
-            <KanbanColumn
-              id="completed"
+                icon={<Clock size={18} className="text-blue-600" />}
+                count={tasksByStatus.in_progress.length}
+                color="blue"
+                tasks={tasksByStatus.in_progress}
+                user={user}
+                getStatusConfig={getStatusConfig}
+                getPriorityColor={getPriorityColor}
+                activeTaskMenu={activeTaskMenu}
+                setActiveTaskMenu={setActiveTaskMenu}
+                handleDeleteTask={handleDeleteTask}
+                onTaskClick={openTaskDetail}
+              />
+              <KanbanColumn
+                id="completed"
               title="Done"
               icon={<CheckCircle2 size={18} className="text-qolabb-green-600" />}
-              count={tasksByStatus.completed.length}
-              color="green"
-              tasks={tasksByStatus.completed}
-              user={user}
-              getStatusConfig={getStatusConfig}
-              getPriorityColor={getPriorityColor}
-              activeTaskMenu={activeTaskMenu}
-              setActiveTaskMenu={setActiveTaskMenu}
-              handleDeleteTask={handleDeleteTask}
-              onTaskClick={openTaskDetail}
-            />
-          </div>
+                count={tasksByStatus.completed.length}
+                color="green"
+                tasks={tasksByStatus.completed}
+                user={user}
+                getStatusConfig={getStatusConfig}
+                getPriorityColor={getPriorityColor}
+                activeTaskMenu={activeTaskMenu}
+                setActiveTaskMenu={setActiveTaskMenu}
+                handleDeleteTask={handleDeleteTask}
+                onTaskClick={openTaskDetail}
+              />
+            </div>
 
-          <DragOverlay>
-            {activeId ? (
+            <DragOverlay>
+              {activeId ? (
               <div className="bg-white border-2 border-blue-500 rounded-xl p-4 shadow-2xl opacity-90">
                 <p className="font-semibold text-gray-900">{filteredTasks.find((t) => t.id === activeId)?.title}</p>
-              </div>
-            ) : null}
-          </DragOverlay>
-        </DndContext>
+                </div>
+              ) : null}
+            </DragOverlay>
+          </DndContext>
       </div>
     );
   };
@@ -1395,7 +1395,7 @@ export default function TasksPage() {
   const renderAllTasksView = () => {
     if (loading) {
       return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div key={i} className="bg-white rounded-xl p-4 border border-gray-200 animate-pulse">
               <div className="h-4 bg-gray-200 rounded mb-3" />
@@ -1437,68 +1437,68 @@ export default function TasksPage() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredTasks.map((task: any, index: number) => {
-            const statusConfig = getStatusConfig(task.status);
+              const statusConfig = getStatusConfig(task.status);
             const isMyTask = isTaskAssignedToUser(task);
-
-            return (
-              <motion.div
-                key={task.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+              
+              return (
+                <motion.div
+                  key={task.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.02 }}
-                className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-all group relative cursor-pointer"
-                onClick={() => openTaskDetail(task)}
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1 min-w-0">
+                  className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-all group relative cursor-pointer"
+                  onClick={() => openTaskDetail(task)}
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2">{task.title}</h3>
-                    <div className="flex items-center text-xs text-gray-500 space-x-2">
-                      <FolderKanban size={12} />
-                      <span className="truncate">{task.project_name}</span>
+                      <div className="flex items-center text-xs text-gray-500 space-x-2">
+                        <FolderKanban size={12} />
+                        <span className="truncate">{task.project_name}</span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="relative ml-2">
-                    <button
+                    <div className="relative ml-2">
+                      <button
                       onClick={(event) => {
                         event.stopPropagation();
                         setActiveTaskMenu(activeTaskMenu === task.id ? null : task.id);
                       }}
-                      className="p-1 hover:bg-gray-100 rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <MoreVertical size={16} className="text-gray-400" />
-                    </button>
-                    {activeTaskMenu === task.id && (
-                      <div className="absolute right-0 top-6 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-10 min-w-[150px]">
-                        <button
+                        className="p-1 hover:bg-gray-100 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <MoreVertical size={16} className="text-gray-400" />
+                      </button>
+                      {activeTaskMenu === task.id && (
+                        <div className="absolute right-0 top-6 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-10 min-w-[150px]">
+                          <button
                           onClick={(event) => {
                             event.stopPropagation();
-                            handleDeleteTask(task.id);
-                          }}
-                          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center"
-                        >
-                          <Trash2 size={14} className="mr-2" />
-                          Delete
-                        </button>
-                      </div>
-                    )}
+                              handleDeleteTask(task.id);
+                            }}
+                            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center"
+                          >
+                            <Trash2 size={14} className="mr-2" />
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
 
-                {task.description && (
+                  {task.description && (
                   <p className="text-sm text-gray-600 mb-3 line-clamp-2">{task.description}</p>
-                )}
+                  )}
 
-                <div className="flex items-center justify-between mb-3">
-                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${statusConfig.color}`}>
-                    {statusConfig.icon}
-                    {statusConfig.label}
-                  </span>
-                  <Flag size={14} className={getPriorityColor(task.priority)} />
-                </div>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${statusConfig.color}`}>
+                      {statusConfig.icon}
+                      {statusConfig.label}
+                    </span>
+                    <Flag size={14} className={getPriorityColor(task.priority)} />
+                  </div>
 
-                <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-100">
+                  <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-100">
                   {task.assignees && task.assignees.length > 0 ? (
-                    <div className="flex items-center">
+                      <div className="flex items-center">
                       {task.assignees.slice(0, 1).map((assigneeItem: any) => {
                         const assignee = assigneeItem.user || assigneeItem;
                         const assigneeIsMe = assignee?.id === user?.id || assigneeItem?.user_id === user?.id;
@@ -1528,24 +1528,24 @@ export default function TasksPage() {
                           isMyTask ? 'bg-gradient-to-br from-blue-600 to-blue-400' : 'bg-gradient-to-br from-gray-400 to-gray-300'
                         }`}
                       >
-                        {task.assignee.full_name?.charAt(0) || 'U'}
-                      </div>
+                          {task.assignee.full_name?.charAt(0) || 'U'}
+                        </div>
                       <span className="truncate max-w-[110px]">{isMyTask ? 'You' : task.assignee.full_name}</span>
-                    </div>
-                  ) : (
-                    <span className="text-gray-400">Unassigned</span>
-                  )}
-
-                  {task.due_date && (
-                    <span className="flex items-center">
-                      <Calendar size={12} className="mr-1" />
+                      </div>
+                    ) : (
+                      <span className="text-gray-400">Unassigned</span>
+                    )}
+                    
+                    {task.due_date && (
+                      <span className="flex items-center">
+                        <Calendar size={12} className="mr-1" />
                       {formatDueDate(task.due_date)}
-                    </span>
-                  )}
-                </div>
-              </motion.div>
-            );
-          })}
+                      </span>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })}
         </div>
       </div>
     );
@@ -1561,7 +1561,7 @@ export default function TasksPage() {
           </p>
         </div>
         {tasks.length > 0 && projects.length > 0 ? (
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
             <TeamWorkloadWidget
               tasks={tasks}
               projects={projects}
@@ -1570,10 +1570,10 @@ export default function TasksPage() {
             />
           </div>
         ) : (
-          <div className="bg-white rounded-xl p-12 text-center border-2 border-dashed border-gray-300">
-            <BarChart3 size={64} className="mx-auto text-gray-300 mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No tasks to analyze yet</h3>
-            <p className="text-gray-600 mb-6 max-w-md mx-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border-2 border-dashed border-gray-300 dark:border-gray-600">
+            <BarChart3 size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">No tasks to analyze yet</h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
               Create tasks with your team, then return here to see how work is shared.
             </p>
             <Button variant="primary" onClick={() => setViewMode('focus')} className="flex items-center gap-2 mx-auto">
@@ -1588,11 +1588,11 @@ export default function TasksPage() {
 
   const renderAdvancedTools = () => {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-6 shadow-sm">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 space-y-6 shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">Task options</h3>
-            <p className="text-sm text-gray-600">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Task options</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Search, filter, and reorder tasks. These controls apply to the board and task library views.
             </p>
           </div>
@@ -1819,7 +1819,7 @@ export default function TasksPage() {
                   className={`w-full rounded-lg px-3 py-3 transition-all text-left border ${
                     isActive
                       ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                      : 'bg-white text-gray-700 border-transparent hover:border-gray-200 hover:bg-gray-50'
+                      : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-transparent hover:border-gray-200 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
                   }`}
                 >
                   <div className="flex items-start gap-3">
@@ -1847,8 +1847,8 @@ export default function TasksPage() {
 
         {/* Advanced Tools Banner */}
         {viewMode !== 'focus' && !showAdvancedTools && (
-          <div className="bg-white border border-gray-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-sm">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-sm">
+            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
               <Lightbulb size={16} className="text-blue-500 flex-shrink-0" />
               <span>Need to search, filter, or reorder tasks? Turn on task options to reveal those controls.</span>
             </div>
@@ -1873,19 +1873,19 @@ export default function TasksPage() {
         </AnimatePresence>
       </div>
 
-      <TaskModal
-        isOpen={showTaskModal}
+        <TaskModal
+          isOpen={showTaskModal}
         onClose={() => setShowTaskModal(false)}
         project={selectedTaskProject}
         onTaskCreated={handleTaskUpdated}
       />
 
-      <TaskDetailModal
+        <TaskDetailModal
         task={selectedTask}
-        isOpen={showTaskDetail}
-        onClose={closeTaskDetail}
-        onTaskUpdated={handleTaskUpdated}
-        onTaskDeleted={handleTaskDeleted}
+          isOpen={showTaskDetail}
+          onClose={closeTaskDetail}
+          onTaskUpdated={handleTaskUpdated}
+          onTaskDeleted={handleTaskDeleted}
         canManageTasks={canManageTasks}
       />
 

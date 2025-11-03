@@ -47,6 +47,7 @@ import { Button } from "@/components/Button";
 import Avatar from "@/components/ui/Avatar";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { useWorkspace } from "@/lib/workspace/WorkspaceContext";
+import { useTheme } from "@/lib/theme/ThemeContext";
 import { useSearchParams } from "next/navigation";
 import { uploadWorkspaceIcon, removeWorkspaceIcon } from "@/lib/db/queries";
 import {
@@ -142,6 +143,7 @@ export const dynamic = 'force-dynamic';
 function SettingsPageContent() {
   const { user } = useAuth();
   const { currentWorkspace, refreshWorkspaces } = useWorkspace();
+  const { theme, setTheme } = useTheme();
   const searchParams = useSearchParams();
   const [activeSection, setActiveSection] =
     useState<SettingsCategory>("profile");
@@ -223,7 +225,7 @@ function SettingsPageContent() {
 
   // Appearance settings state
   const [appearanceSettings, setAppearanceSettings] = useState({
-    theme: "system",
+    theme: theme, // Use theme from context
     language: "en",
     dateFormat: "MM/DD/YYYY",
     timeFormat: "12h",
@@ -231,6 +233,11 @@ function SettingsPageContent() {
     animations: true,
     soundEffects: true,
   });
+
+  // Sync appearanceSettings.theme with theme context
+  useEffect(() => {
+    setAppearanceSettings(prev => ({ ...prev, theme }));
+  }, [theme]);
 
   const [copiedCode, setCopiedCode] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -755,8 +762,8 @@ function SettingsPageContent() {
       </div>
 
       {/* Profile Picture */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
           Profile Picture
         </h3>
         <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-6">
@@ -825,7 +832,7 @@ function SettingsPageContent() {
       </div>
 
       {/* Personal Information */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
         <h3 className="text-base sm:text-base sm:text-lg font-semibold text-gray-900 mb-4">
           Personal Information
         </h3>
@@ -984,8 +991,8 @@ function SettingsPageContent() {
       </div>
 
       {/* Password */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
           Change Password
         </h3>
         <div className="space-y-4">
@@ -1053,8 +1060,8 @@ function SettingsPageContent() {
       </div>
 
       {/* Two-Factor Authentication */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
           Two-Factor Authentication
         </h3>
         <div className="flex items-center justify-between">
@@ -1082,8 +1089,8 @@ function SettingsPageContent() {
       </div>
 
       {/* Session Management */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
           Session Management
         </h3>
         <div className="space-y-4">
@@ -1129,8 +1136,8 @@ function SettingsPageContent() {
 
       {/* Workspace Icon */}
       {isOwnerOrAdmin && (
-        <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
             Workspace Icon
           </h3>
           <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6">
@@ -1204,8 +1211,8 @@ function SettingsPageContent() {
       )}
 
       {/* Workspace Info */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
           Workspace Information
         </h3>
 
@@ -1263,8 +1270,8 @@ function SettingsPageContent() {
       </div>
 
       {/* Invite Code */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
           Invite Code
         </h3>
         <p className="text-gray-600 mb-4">
@@ -1444,8 +1451,8 @@ function SettingsPageContent() {
         </p>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
           Email Notifications
         </h3>
         <div className="space-y-4">
@@ -1512,8 +1519,8 @@ function SettingsPageContent() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
           Push Notifications
         </h3>
         <div className="flex items-center justify-between">
@@ -1553,8 +1560,8 @@ function SettingsPageContent() {
         </p>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
           Profile Visibility
         </h3>
         <div className="space-y-4">
@@ -1627,8 +1634,8 @@ function SettingsPageContent() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
           Data & Analytics
         </h3>
         <div className="space-y-4">
@@ -1685,8 +1692,8 @@ function SettingsPageContent() {
         </p>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-        <h3 className="text-base sm:text-base sm:text-lg font-semibold text-gray-900 mb-4">Theme</h3>
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+        <h3 className="text-base sm:text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Theme</h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
           {[
             { value: "light", label: "Light", icon: Sun },
@@ -1695,27 +1702,29 @@ function SettingsPageContent() {
           ].map((theme) => (
             <button
               key={theme.value}
-              onClick={() =>
+              onClick={() => {
+                const newTheme = theme.value as 'light' | 'dark' | 'system';
+                setTheme(newTheme);
                 setAppearanceSettings({
                   ...appearanceSettings,
-                  theme: theme.value,
-                })
-              }
+                  theme: newTheme,
+                });
+              }}
               className={`p-4 border-2 rounded-lg flex flex-col items-center space-y-2 transition-colors ${
                 appearanceSettings.theme === theme.value
-                  ? "border-blue-500 bg-blue-50"
-                  : "border-gray-200 hover:border-gray-300"
+                  ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-400"
+                  : "border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600"
               }`}
             >
-              <theme.icon size={24} />
-              <span className="font-medium">{theme.label}</span>
+              <theme.icon size={24} className="dark:text-gray-300" />
+              <span className="font-medium dark:text-gray-200">{theme.label}</span>
             </button>
           ))}
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
           Language & Region
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1762,8 +1771,8 @@ function SettingsPageContent() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Interface</h3>
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Interface</h3>
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">

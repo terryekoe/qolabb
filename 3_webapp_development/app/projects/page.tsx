@@ -281,8 +281,8 @@ function ProjectsPageContent() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Projects</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Projects</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
               Manage projects in {currentWorkspace.name}
             </p>
           </div>
@@ -310,7 +310,7 @@ function ProjectsPageContent() {
         </div>
 
         {/* Search and Filters */}
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
           <div className="flex flex-col lg:flex-row gap-4">
             {/* Search */}
             <div className="flex-1 relative">
@@ -334,7 +334,7 @@ function ProjectsPageContent() {
                   className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors ${
                     statusFilter === status
                       ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                   }`}
                 >
                   {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -349,7 +349,7 @@ function ProjectsPageContent() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white rounded-xl p-6 border border-gray-200 animate-pulse">
+              <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 animate-pulse">
                 <div className="h-6 bg-gray-200 rounded mb-4"></div>
                 <div className="h-4 bg-gray-200 rounded mb-2"></div>
                 <div className="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -360,13 +360,13 @@ function ProjectsPageContent() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-xl p-12 text-center border-2 border-dashed border-gray-300"
+            className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border-2 border-dashed border-gray-300 dark:border-gray-600"
           >
-            <FolderKanban size={64} className="mx-auto text-gray-300 mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            <FolderKanban size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
               {searchQuery || statusFilter !== 'all' ? 'No projects found' : 'No projects yet'}
             </h3>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
               {searchQuery || statusFilter !== 'all'
                 ? 'Try adjusting your filters or search query'
                 : teams.length === 0
@@ -406,13 +406,13 @@ function ProjectsPageContent() {
                   transition={{ delay: index * 0.05 }}
                   whileHover={{ y: -4 }}
                   onClick={() => handleProjectClick(project)}
-                  className="bg-white rounded-xl border border-gray-200 hover:shadow-lg transition-all overflow-hidden group cursor-pointer"
+                  className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all overflow-hidden group cursor-pointer"
                 >
                   {/* Project Header */}
                   <div className="p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-bold text-gray-900 mb-1 truncate">
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1 truncate">
                           {project.name}
                         </h3>
                         {project.team && (
@@ -429,7 +429,7 @@ function ProjectsPageContent() {
 
                     {/* Description */}
                     {project.description && (
-                      <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
                         {project.description}
                       </p>
                     )}
@@ -515,14 +515,14 @@ function ProjectsPageContent() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-2xl p-8 max-w-lg w-full shadow-2xl max-h-[90vh] overflow-y-auto"
+              className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-lg w-full shadow-2xl max-h-[90vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center">
-                  <div className="bg-blue-100 p-3 rounded-lg mr-4">
-                    <FolderKanban className="text-blue-700" size={24} />
+                  <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-lg mr-4">
+                    <FolderKanban className="text-blue-700 dark:text-blue-400" size={24} />
                   </div>
-                  <h2 className="text-2xl font-bold text-gray-900">Create Project</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Create Project</h2>
                 </div>
                 <button
                   onClick={() => {

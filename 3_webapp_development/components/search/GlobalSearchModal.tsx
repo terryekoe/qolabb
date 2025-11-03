@@ -218,9 +218,9 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
             transition={{ type: 'spring', duration: 0.3 }}
             className="fixed top-20 left-1/2 -translate-x-1/2 w-full max-w-2xl z-50"
           >
-            <div className="bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
               {/* Search Input */}
-              <div className="p-4 border-b border-gray-200">
+              <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                 <div className="relative">
                   <Search
                     size={20}
@@ -232,7 +232,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search tasks, projects, teams, members..."
-                    className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                   {searchQuery && (
                     <button
@@ -283,8 +283,8 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                       {/* Tasks */}
                       {results.tasks.length > 0 && (
                         <div>
-                          <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
-                            <h3 className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                          <div className="px-4 py-2 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
+                            <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
                               Tasks ({results.tasks.length})
                             </h3>
                           </div>
@@ -304,7 +304,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                                 <div className="flex-shrink-0 mt-0.5">{getResultIcon('task')}</div>
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-2">
-                                    <p className="text-sm font-medium text-gray-900 truncate">
+                                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                                       {task.title}
                                     </p>
                                     {getStatusIcon(task.metadata?.status)}
@@ -330,8 +330,8 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                       {/* Projects */}
                       {results.projects.length > 0 && (
                         <div>
-                          <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
-                            <h3 className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                          <div className="px-4 py-2 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
+                            <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
                               Projects ({results.projects.length})
                             </h3>
                           </div>
@@ -351,7 +351,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                                 <div className="flex-shrink-0 mt-0.5">{getResultIcon('project')}</div>
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-2">
-                                    <p className="text-sm font-medium text-gray-900 truncate">
+                                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                                       {project.title}
                                     </p>
                                     {getStatusIcon(project.metadata?.status)}
@@ -372,8 +372,8 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                       {/* Teams */}
                       {results.teams.length > 0 && (
                         <div>
-                          <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
-                            <h3 className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                          <div className="px-4 py-2 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
+                            <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
                               Teams ({results.teams.length})
                             </h3>
                           </div>
@@ -411,8 +411,8 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                       {/* Members */}
                       {results.members.length > 0 && (
                         <div>
-                          <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
-                            <h3 className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                          <div className="px-4 py-2 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
+                            <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
                               Members ({results.members.length})
                             </h3>
                           </div>

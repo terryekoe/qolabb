@@ -31,8 +31,8 @@ export default function AnalyticsPage() {
       <DashboardLayout>
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Restricted</h2>
-            <p className="text-gray-600">You don't have permission to view analytics.</p>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Access Restricted</h2>
+            <p className="text-gray-600 dark:text-gray-400">You don't have permission to view analytics.</p>
           </div>
         </div>
       </DashboardLayout>

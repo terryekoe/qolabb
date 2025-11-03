@@ -149,8 +149,8 @@ export function TAAnalyticsView() {
       </div>
 
       {/* Tabs */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-        <div className="flex space-x-2 sm:space-x-4 border-b border-gray-200 mb-4 sm:mb-6 overflow-x-auto scrollbar-hide">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+        <div className="flex space-x-2 sm:space-x-4 border-b border-gray-200 dark:border-gray-700 mb-4 sm:mb-6 overflow-x-auto scrollbar-hide">
           {[
             { id: 'overview', label: 'Overview', icon: BarChart3 },
             { id: 'teams', label: 'Teams', icon: Users },
@@ -162,8 +162,8 @@ export function TAAnalyticsView() {
               className={cn(
                 'flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 border-b-2 transition-colors whitespace-nowrap flex-shrink-0',
                 activeTab === tab.id
-                  ? 'border-blue-600 text-blue-600 font-semibold'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
+                  ? 'border-blue-600 dark:border-blue-500 text-blue-600 dark:text-blue-400 font-semibold'
+                  : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
               )}
             >
               <tab.icon size={16} className="sm:w-[18px] sm:h-[18px]" />

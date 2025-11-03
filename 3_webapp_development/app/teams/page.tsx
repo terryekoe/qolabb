@@ -212,8 +212,8 @@ export default function TeamsPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Teams</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Teams</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
               Manage teams in {currentWorkspace.name}
             </p>
           </div>
@@ -230,14 +230,14 @@ export default function TeamsPage() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="bg-white rounded-xl border border-gray-200 p-1 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-1 overflow-hidden">
           <div className="flex space-x-1 overflow-x-auto scrollbar-hide">
             <button
               onClick={() => setActiveTab('my-teams')}
               className={`flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-200 whitespace-nowrap ${
                 activeTab === 'my-teams'
                   ? 'bg-blue-500 text-white shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             >
               <Users size={18} />
@@ -249,7 +249,7 @@ export default function TeamsPage() {
               className={`flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-200 whitespace-nowrap ${
                 activeTab === 'discover'
                   ? 'bg-blue-500 text-white shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             >
               <Compass size={18} />
@@ -261,7 +261,7 @@ export default function TeamsPage() {
               className={`flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-200 whitespace-nowrap ${
                 activeTab === 'requests'
                   ? 'bg-blue-500 text-white shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             >
               <Bell size={18} />
@@ -273,7 +273,7 @@ export default function TeamsPage() {
               className={`flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-200 whitespace-nowrap ${
                 activeTab === 'bulk-assign'
                   ? 'bg-blue-500 text-white shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             >
               <UserCog size={18} />
@@ -285,7 +285,7 @@ export default function TeamsPage() {
               className={`flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-200 whitespace-nowrap ${
                 activeTab === 'audit-log'
                   ? 'bg-blue-500 text-white shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             >
               <History size={18} />
@@ -299,7 +299,7 @@ export default function TeamsPage() {
         {activeTab === 'my-teams' && (
           <>
             {/* Search Bar */}
-            <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <input
@@ -316,7 +316,7 @@ export default function TeamsPage() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white rounded-xl p-6 border border-gray-200 animate-pulse">
+              <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 animate-pulse">
                 <div className="h-12 bg-gray-200 rounded mb-4"></div>
                 <div className="h-4 bg-gray-200 rounded mb-2"></div>
                 <div className="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -327,10 +327,10 @@ export default function TeamsPage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-xl p-12 text-center border-2 border-dashed border-gray-300"
+            className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border-2 border-dashed border-gray-300 dark:border-gray-600"
           >
-            <Users size={64} className="mx-auto text-gray-300 mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            <Users size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
               {searchQuery ? 'No teams found' : 'No teams yet'}
             </h3>
             <p className="text-gray-600 mb-6">
@@ -358,7 +358,7 @@ export default function TeamsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
                 whileHover={{ y: -6, scale: 1.02 }}
-                className="bg-white rounded-2xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-xl hover:border-blue-300 transition-all duration-300 group"
+                className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 group"
               >
                 {/* Team Header */}
                 <div
@@ -378,11 +378,11 @@ export default function TeamsPage() {
                 {/* Team Info */}
                 <div className="p-6 space-y-4">
                   <div className="flex items-start justify-between mb-3">
-                    <h3 className="text-xl font-bold text-gray-900 flex-1">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex-1">
                       {team.name}
                     </h3>
                     {team.members?.some((m: any) => m.role === 'leader' && m.user_id === user?.id) && (
-                      <div className="flex items-center space-x-1 bg-blue-50 text-blue-600 px-2 py-1 rounded-full ml-2">
+                      <div className="flex items-center space-x-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2 py-1 rounded-full ml-2">
                         <Crown size={12} />
                         <span className="text-xs font-semibold">Leader</span>
                       </div>
@@ -390,12 +390,12 @@ export default function TeamsPage() {
                   </div>
                   
                   {team.description && (
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">{team.description}</p>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2">{team.description}</p>
                   )}
 
                   {/* Members Count */}
-                  <div className="flex items-center space-x-2 text-gray-600">
-                    <div className="flex items-center space-x-2 bg-gray-50 rounded-full px-3 py-1">
+                  <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
+                    <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700/50 rounded-full px-3 py-1">
                       <Users size={14} />
                       <span className="text-sm font-medium">
                         {team.members?.length || 0} member{team.members?.length !== 1 ? 's' : ''}
@@ -406,7 +406,7 @@ export default function TeamsPage() {
                   {/* Members Avatars */}
                   {team.members && team.members.length > 0 && (
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-700">Team Members</span>
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Team Members</span>
                       <AvatarGroup
                         users={team.members.map((member: any) => ({
                           userId: member.user?.id || member.user_id || `member-${member.id}`,

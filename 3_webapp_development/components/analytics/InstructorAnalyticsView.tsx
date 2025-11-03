@@ -255,7 +255,7 @@ export function InstructorAnalyticsView() {
       <div className="p-6">
         <div className="text-center py-12">
           <BarChart3 size={48} className="mx-auto text-gray-300 mb-4" />
-          <p className="text-gray-600">No analytics data available yet.</p>
+          <p className="text-gray-600 dark:text-gray-400">No analytics data available yet.</p>
         </div>
       </div>
     );
@@ -284,9 +284,9 @@ export function InstructorAnalyticsView() {
                 onChange={(e) => setTimeRange(e.target.value as any)}
                 className="bg-transparent text-white border-none outline-none cursor-pointer text-sm sm:text-base"
               >
-                <option value="week" className="text-gray-900">This Week</option>
-                <option value="month" className="text-gray-900">This Month</option>
-                <option value="semester" className="text-gray-900">This Semester</option>
+                <option value="week" className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800">This Week</option>
+                <option value="month" className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800">This Month</option>
+                <option value="semester" className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800">This Semester</option>
               </select>
             </div>
             
@@ -389,8 +389,8 @@ export function InstructorAnalyticsView() {
       )}
 
       {/* Tabs */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-        <div className="flex space-x-2 sm:space-x-4 border-b border-gray-200 mb-4 sm:mb-6 overflow-x-auto scrollbar-hide">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+        <div className="flex space-x-2 sm:space-x-4 border-b border-gray-200 dark:border-gray-700 mb-4 sm:mb-6 overflow-x-auto scrollbar-hide">
           {[
             { id: 'overview', label: 'Overview', icon: BarChart3 },
             { id: 'teams', label: 'Teams', icon: Users },
@@ -403,8 +403,8 @@ export function InstructorAnalyticsView() {
               className={cn(
                 'flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 border-b-2 transition-colors whitespace-nowrap flex-shrink-0',
                 activeTab === tab.id
-                  ? 'border-blue-600 text-blue-600 font-semibold'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
+                  ? 'border-blue-600 dark:border-blue-500 text-blue-600 dark:text-blue-400 font-semibold'
+                  : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
               )}
             >
               <tab.icon size={16} className="sm:w-[18px] sm:h-[18px]" />
@@ -422,7 +422,7 @@ export function InstructorAnalyticsView() {
                 <div className="text-2xl font-bold text-blue-600 mb-1">
                   {workspaceStats.totalContributions || 0}
                 </div>
-                <div className="text-sm text-gray-600">Total Contributions</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Total Contributions</div>
               </div>
               <div className="bg-green-50 rounded-lg p-4 border border-green-200">
                 <div className="text-2xl font-bold text-green-600 mb-1">
@@ -446,14 +446,14 @@ export function InstructorAnalyticsView() {
 
             {/* Team Comparison */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Team Performance Comparison</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Team Performance Comparison</h3>
               <div className="space-y-3">
                 {teamStats.slice(0, 10).map((team: any) => (
-                  <div key={team.team.id} className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                  <div key={team.team.id} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 sm:p-4">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 space-y-1 sm:space-y-0">
-                      <h4 className="font-semibold text-gray-900 text-sm sm:text-base">{team.team.name}</h4>
+                      <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-sm sm:text-base">{team.team.name}</h4>
                       <div className="flex items-center flex-wrap gap-2 sm:space-x-4 text-xs sm:text-sm">
-                        <span className="text-gray-600">{team.totalHours}h total</span>
+                        <span className="text-gray-600 dark:text-gray-400">{team.totalHours}h total</span>
                         <span className={cn(
                           'font-semibold',
                           team.fairnessScore >= 70 ? 'text-green-600' : 
@@ -473,7 +473,7 @@ export function InstructorAnalyticsView() {
                         }}
                       />
                     </div>
-                    <div className="flex items-center justify-between text-xs text-gray-600">
+                    <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
                       <span>{team.totalContributions} contributions</span>
                       <span>{team.completedTasks}/{team.totalTasks} tasks completed</span>
                     </div>
@@ -491,11 +491,11 @@ export function InstructorAnalyticsView() {
               teamStats.map((team: any) => (
                 <div
                   key={team.team.id}
-                  className="bg-gray-50 rounded-lg p-4 sm:p-6 border border-gray-200 hover:border-blue-300 transition-colors cursor-pointer"
+                  className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 sm:p-6 border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 transition-colors cursor-pointer"
                   onClick={() => setSelectedTeam(selectedTeam === team.team.id ? null : team.team.id)}
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 space-y-2 sm:space-y-0">
-                    <h3 className="text-lg sm:text-xl font-bold text-gray-900">{team.team.name}</h3>
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">{team.team.name}</h3>
                     <div className="flex items-center space-x-2 sm:space-x-4">
                       <div className={cn(
                         'px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-semibold',
@@ -520,7 +520,7 @@ export function InstructorAnalyticsView() {
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-4">
                     <div>
                       <div className="text-sm text-gray-600">Members</div>
-                      <div className="text-xl font-bold text-gray-900">{team.members.length}</div>
+                      <div className="text-xl font-bold text-gray-900 dark:text-gray-100">{team.members.length}</div>
                     </div>
                     <div>
                       <div className="text-sm text-gray-600">Total Hours</div>
@@ -552,14 +552,14 @@ export function InstructorAnalyticsView() {
                             : 0;
                           
                           return (
-                            <div key={member.userId} className="bg-white rounded-lg p-3">
+                            <div key={member.userId} className="bg-white dark:bg-gray-700 rounded-lg p-3">
                               <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm font-medium text-gray-700">{member.name}</span>
-                                <span className="text-sm font-semibold text-gray-900">
+                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{member.name}</span>
+                                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                                   {member.hours}h ({memberPercentage}%) • {member.contributions} contributions • {member.tasksCompleted}/{member.tasksAssigned} tasks
                                 </span>
                               </div>
-                              <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
                                 <div
                                   className="bg-blue-600 h-2 rounded-full transition-all"
                                   style={{ width: `${memberPercentage}%` }}
@@ -614,17 +614,17 @@ export function InstructorAnalyticsView() {
                 <div className="inline-block min-w-full align-middle">
                   <div className="overflow-hidden shadow-sm ring-1 ring-black ring-opacity-5 sm:rounded-lg">
                     <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
+                      <thead className="bg-gray-50 dark:bg-gray-700/50">
                         <tr>
-                          <th className="text-left py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-700">Student</th>
-                          <th className="text-right py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-700">Hours</th>
-                          <th className="text-right py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-700 hidden sm:table-cell">Contributions</th>
-                          <th className="text-right py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-700 hidden md:table-cell">Tasks</th>
-                          <th className="text-right py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-700">Score</th>
-                          <th className="text-right py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-700 hidden lg:table-cell">Status</th>
+                          <th className="text-left py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">Student</th>
+                          <th className="text-right py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">Hours</th>
+                          <th className="text-right py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 hidden sm:table-cell">Contributions</th>
+                          <th className="text-right py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 hidden md:table-cell">Tasks</th>
+                          <th className="text-right py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">Score</th>
+                          <th className="text-right py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 hidden lg:table-cell">Status</th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
+                      <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                         {filteredStudents.map((student) => {
                           const isAtRisk = student.participationScore < 50;
                           const completionRate = student.tasksAssigned > 0
@@ -632,7 +632,7 @@ export function InstructorAnalyticsView() {
                             : 0;
                           
                           return (
-                            <tr key={student.userId} className="hover:bg-gray-50">
+                            <tr key={student.userId} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                               <td className="py-3 px-3 sm:px-4">
                                 <div className="flex items-center space-x-2 sm:space-x-3">
                                   <Avatar
@@ -719,7 +719,7 @@ export function InstructorAnalyticsView() {
                 </p>
               </div>
 
-              <div className="bg-white rounded-xl p-6 border border-gray-200">
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-900">Gini Coefficient</h3>
                   <BarChart3 className="text-gray-600" size={24} />
@@ -734,7 +734,7 @@ export function InstructorAnalyticsView() {
                 </p>
               </div>
 
-              <div className="bg-white rounded-xl p-6 border border-gray-200">
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-900">Participation Variance</h3>
                   <TrendingUp className="text-gray-600" size={24} />
@@ -748,8 +748,8 @@ export function InstructorAnalyticsView() {
 
             {/* Participation Distribution */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Participation Distribution</h3>
-              <div className="bg-gray-50 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Participation Distribution</h3>
+              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6">
                 <div className="space-y-3">
                     {studentPerformance.slice(0, 10).map((student, index) => {
                     const maxHours = Math.max(...studentPerformance.map(s => s.totalHours || 0));
