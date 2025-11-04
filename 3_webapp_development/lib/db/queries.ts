@@ -1011,6 +1011,57 @@ export async function getUserTasks(userId: string) {
   )
 }
 
+/**
+ * Get count of pending (non-completed) tasks assigned to a user
+ */
+export async function getUserPendingTasksCount(userId: string) {
+  try {
+    // Get tasks where user is assigned via old assigned_to field and status is not completed
+    const { count: countOld, error: error1 } = await supabase
+      .from('tasks')
+      .select('*', { count: 'exact', head: true })
+      .eq('assigned_to', userId)
+      .neq('status', 'completed')
+
+    // Get tasks where user is assigned via task_assignees and status is not completed
+    const { count: countNew, error: error2 } = await supabase
+      .from('task_assignees')
+      .select('task:tasks!inner(id)', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .neq('task.status', 'completed')
+
+    if (error1 || error2) {
+      throw error1 || error2
+    }
+
+    // We need to get unique tasks since a user might be assigned via both methods
+    // Get the actual tasks and deduplicate
+    const { data: tasksByOld } = await supabase
+      .from('tasks')
+      .select('id')
+      .eq('assigned_to', userId)
+      .neq('status', 'completed')
+
+    const { data: tasksByNew } = await supabase
+      .from('task_assignees')
+      .select('task:tasks!inner(id)')
+      .eq('user_id', userId)
+      .neq('task.status', 'completed')
+
+    // Combine and deduplicate task IDs
+    const allTaskIds = new Set<string>()
+    tasksByOld?.forEach((task: any) => allTaskIds.add(task.id))
+    tasksByNew?.forEach((ta: any) => {
+      if (ta.task?.id) allTaskIds.add(ta.task.id)
+    })
+
+    return allTaskIds.size
+  } catch (error: any) {
+    console.error('getUserPendingTasksCount error:', error?.message || JSON.stringify(error, null, 2))
+    return 0
+  }
+}
+
 export async function updateTask(taskId: string, updates: Partial<Task>) {
   try {
     // Get current task to detect changes
@@ -1075,7 +1126,7 @@ export async function updateTask(taskId: string, updates: Partial<Task>) {
         // Get project name for notifications
         const { data: project } = await supabase
           .from('projects')
-          .select('name, team_id')
+          .select('name, team_id, workspace_id')
           .eq('id', data.project_id)
           .single()
 
@@ -1119,6 +1170,24 @@ export async function updateTask(taskId: string, updates: Partial<Task>) {
               )
             )
           )
+
+          // Send motivational message to user who completed the task
+          if (userId && project) {
+            try {
+              const { checkTaskCompletionTriggers } = await import('../services/motivationalMessageTriggers')
+              await checkTaskCompletionTriggers(
+                {
+                  userId,
+                  workspaceId: (project as any).workspace_id,
+                  teamId: project.team_id,
+                },
+                taskId
+              )
+            } catch (error) {
+              // Silently fail - motivational messages are nice-to-have
+              console.error('Error sending motivational message:', error)
+            }
+          }
         } else if (updates.status && currentTask.assigned_to) {
           // Notify assignee about status change
           await createTaskStatusChangedNotification(
@@ -1621,7 +1690,7 @@ export async function createContribution(contribution: ContributionInsert) {
   // Log activity
   const { data: project } = await supabase
     .from('projects')
-    .select('workspace_id')
+    .select('workspace_id, team_id')
     .eq('id', contribution.project_id)
     .single()
 
@@ -1634,6 +1703,22 @@ export async function createContribution(contribution: ContributionInsert) {
       entity_id: (data as any).id,
       metadata: { contribution_type: contribution.contribution_type },
     })
+
+    // Send motivational message
+    try {
+      const { checkContributionTriggers } = await import('../services/motivationalMessageTriggers')
+      await checkContributionTriggers(
+        {
+          userId: contribution.user_id,
+          workspaceId: (project as any).workspace_id,
+          teamId: (project as any).team_id,
+        },
+        (data as any).id
+      )
+    } catch (error) {
+      // Silently fail - motivational messages are nice-to-have
+      console.error('Error sending motivational message:', error)
+    }
   }
 
   return data as Contribution
@@ -1642,7 +1727,11 @@ export async function createContribution(contribution: ContributionInsert) {
 export async function getUserContributions(userId: string, projectId?: string) {
   let query = supabase
     .from('contributions')
-    .select('*')
+    .select(`
+      *,
+      project:projects!project_id(id, name, team_id),
+      task:tasks!task_id(id, title, status)
+    `)
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
 
@@ -1653,7 +1742,7 @@ export async function getUserContributions(userId: string, projectId?: string) {
   const { data, error } = await query
 
   if (error) throw error
-  return data as Contribution[]
+  return data
 }
 
 export async function getProjectContributions(projectId: string) {
@@ -1665,6 +1754,97 @@ export async function getProjectContributions(projectId: string) {
     `)
     .eq('project_id', projectId)
     .order('created_at', { ascending: false })
+
+  if (error) throw error
+  return data
+}
+
+export async function updateContribution(contributionId: string, updates: Partial<Contribution>) {
+  const { data, error } = await supabase
+    .from('contributions')
+    .update({
+      ...updates,
+      updated_at: new Date().toISOString(),
+    } as any)
+    .eq('id', contributionId)
+    .select()
+    .single()
+
+  if (error) throw error
+
+  // Log activity - get workspace_id from project
+  const { data: projectData } = await supabase
+    .from('projects')
+    .select('workspace_id')
+    .eq('id', (data as any).project_id)
+    .single()
+
+  if (projectData?.workspace_id) {
+    await logActivity({
+      workspace_id: projectData.workspace_id,
+      user_id: (data as any).user_id,
+      action_type: 'updated_contribution',
+      entity_type: 'contribution',
+      entity_id: contributionId,
+      metadata: { contribution_type: (data as any).contribution_type },
+    })
+  }
+
+  return data as Contribution
+}
+
+export async function deleteContribution(contributionId: string) {
+  // Get contribution info before deleting for activity log
+  const { data: contribution } = await supabase
+    .from('contributions')
+    .select('*')
+    .eq('id', contributionId)
+    .single()
+
+  if (!contribution) {
+    throw new Error('Contribution not found')
+  }
+
+  // Get workspace_id from project
+  const { data: projectData } = await supabase
+    .from('projects')
+    .select('workspace_id')
+    .eq('id', (contribution as any).project_id)
+    .single()
+
+  const { error } = await supabase
+    .from('contributions')
+    .delete()
+    .eq('id', contributionId)
+
+  if (error) throw error
+
+  // Log activity
+  if (projectData?.workspace_id) {
+    await logActivity({
+      workspace_id: projectData.workspace_id,
+      user_id: (contribution as any).user_id,
+      action_type: 'deleted_contribution',
+      entity_type: 'contribution',
+      entity_id: contributionId,
+      metadata: { contribution_type: (contribution as any).contribution_type },
+    })
+  }
+
+  return true
+}
+
+export async function getContributionWithDetails(contributionId: string) {
+  const { data, error } = await supabase
+    .from('contributions')
+    .select(`
+      *,
+      project:projects!project_id(id, name, team_id),
+      task:tasks!task_id(id, title),
+      user:profiles!user_id(id, full_name, avatar_url)
+    `)
+    .eq('id', contributionId)
+    .single()
 
   if (error) throw error
   return data
@@ -4442,5 +4622,1658 @@ export async function globalSearch(
   } catch (error: any) {
     console.error('Global search error:', error?.message || JSON.stringify(error, null, 2))
     return { tasks: [], projects: [], teams: [], members: [] }
+  }
+}
+
+// =====================================================
+// MOTIVATIONAL MESSAGES FUNCTIONS
+// =====================================================
+
+export interface MotivationalMessage {
+  id: string
+  user_id: string
+  workspace_id?: string
+  team_id?: string
+  message_type: 'achievement' | 'milestone' | 'encouragement' | 'participation' | 'teamwork' | 'improvement' | 'consistency' | 'leadership' | 'support'
+  title: string
+  message: string
+  emoji?: string
+  trigger_event?: string
+  trigger_data?: Record<string, any>
+  delivery_method: 'in_app' | 'notification' | 'email' | 'all'
+  sent_at: string
+  read_at?: string
+  is_read: boolean
+  priority: 'low' | 'medium' | 'high'
+  created_at: string
+}
+
+/**
+ * Send a motivational message to a user
+ */
+export async function sendMotivationalMessage(params: {
+  userId: string
+  messageType: MotivationalMessage['message_type']
+  title: string
+  message: string
+  emoji?: string
+  triggerEvent?: string
+  triggerData?: Record<string, any>
+  priority?: 'low' | 'medium' | 'high'
+  workspaceId?: string
+  teamId?: string
+}): Promise<string | null> {
+  try {
+    const { data, error } = await supabase.rpc('send_motivational_message', {
+      p_user_id: params.userId,
+      p_message_type: params.messageType,
+      p_title: params.title,
+      p_message: params.message,
+      p_emoji: params.emoji || null,
+      p_trigger_event: params.triggerEvent || null,
+      p_trigger_data: params.triggerData || {},
+      p_priority: params.priority || 'medium',
+      p_workspace_id: params.workspaceId || null,
+      p_team_id: params.teamId || null,
+    })
+
+    if (error) throw error
+    return data
+  } catch (error: any) {
+    console.error('sendMotivationalMessage error:', error?.message || JSON.stringify(error, null, 2))
+    return null
+  }
+}
+
+/**
+ * Get motivational messages for a user
+ */
+export async function getMotivationalMessages(
+  userId: string,
+  options?: {
+    unreadOnly?: boolean
+    limit?: number
+    messageType?: MotivationalMessage['message_type']
+  }
+) {
+  try {
+    let query = supabase
+      .from('motivational_messages')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+
+    if (options?.unreadOnly) {
+      query = query.eq('is_read', false)
+    }
+
+    if (options?.messageType) {
+      query = query.eq('message_type', options.messageType)
+    }
+
+    if (options?.limit) {
+      query = query.limit(options.limit)
+    }
+
+    const { data, error } = await query
+
+    if (error) {
+      // If table doesn't exist yet (migration not run), return empty array
+      if (error.code === '42P01' || error.message?.includes('does not exist')) {
+        console.warn('Motivational messages table not found. Migration may not have been run.')
+        return []
+      }
+      throw error
+    }
+    return data as MotivationalMessage[]
+  } catch (error: any) {
+    // Handle network errors gracefully
+    if (error?.message?.includes('Failed to fetch') || error?.name === 'TypeError') {
+      console.warn('Network error fetching motivational messages:', error)
+      return []
+    }
+    console.error('getMotivationalMessages error:', error?.message || JSON.stringify(error, null, 2))
+    return []
+  }
+}
+
+/**
+ * Get unread message count
+ */
+export async function getUnreadMotivationalMessageCount(userId: string): Promise<number> {
+  try {
+    const { count, error } = await supabase
+      .from('motivational_messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('is_read', false)
+
+    if (error) {
+      // If table doesn't exist yet (migration not run), return 0
+      if (error.code === '42P01' || error.message?.includes('does not exist')) {
+        console.warn('Motivational messages table not found. Migration may not have been run.')
+        return 0
+      }
+      throw error
+    }
+    return count || 0
+  } catch (error: any) {
+    // Handle network errors gracefully
+    if (error?.message?.includes('Failed to fetch') || error?.name === 'TypeError') {
+      console.warn('Network error fetching motivational message count:', error)
+      return 0
+    }
+    console.error('getUnreadMotivationalMessageCount error:', error?.message || JSON.stringify(error, null, 2))
+    return 0
+  }
+}
+
+/**
+ * Mark motivational message as read
+ */
+export async function markMotivationalMessageAsRead(messageId: string, userId: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabase.rpc('mark_motivational_message_read', {
+      p_message_id: messageId,
+      p_user_id: userId,
+    })
+
+    if (error) throw error
+    return data || false
+  } catch (error: any) {
+    console.error('markMotivationalMessageAsRead error:', error?.message || JSON.stringify(error, null, 2))
+    return false
+  }
+}
+
+/**
+ * Mark all motivational messages as read for a user
+ */
+export async function markAllMotivationalMessagesAsRead(userId: string): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from('motivational_messages')
+      .update({ is_read: true, read_at: new Date().toISOString() })
+      .eq('user_id', userId)
+      .eq('is_read', false)
+
+    if (error) throw error
+  } catch (error: any) {
+    console.error('markAllMotivationalMessagesAsRead error:', error?.message || JSON.stringify(error, null, 2))
+  }
+}
+
+// =====================================================
+// PEER EVALUATION FUNCTIONS
+// =====================================================
+
+export interface EvaluationPeriod {
+  id: string
+  team_id: string
+  workspace_id: string
+  period_name: string
+  period_type: 'weekly' | 'mid_term' | 'final' | 'custom'
+  start_date: string
+  end_date: string
+  due_date: string
+  status: 'scheduled' | 'active' | 'closed' | 'cancelled'
+  is_anonymous: boolean
+  allow_self_evaluation: boolean
+  require_all_members: boolean
+  created_by?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface PeerEvaluation {
+  id: string
+  evaluator_id: string
+  evaluatee_id: string
+  team_id: string
+  project_id?: string
+  evaluation_period_id: string
+  contribution_score?: number
+  communication_score?: number
+  collaboration_score?: number
+  reliability_score?: number
+  overall_score?: number
+  strengths?: string
+  areas_for_improvement?: string
+  additional_comments?: string
+  is_anonymous: boolean
+  submitted_at: string
+  created_at: string
+  updated_at: string
+}
+
+export interface EvaluationResponse {
+  id: string
+  evaluation_period_id: string
+  evaluator_id: string
+  evaluatee_id: string
+  peer_evaluation_id?: string
+  status: 'pending' | 'in_progress' | 'submitted' | 'reminded'
+  reminder_sent_at?: string
+  submitted_at?: string
+  created_at: string
+}
+
+/**
+ * Create an evaluation period for a team
+ */
+export async function createEvaluationPeriod(params: {
+  teamId: string
+  workspaceId: string
+  periodName: string
+  periodType: 'weekly' | 'mid_term' | 'final' | 'custom'
+  startDate: string
+  endDate: string
+  dueDate: string
+  isAnonymous?: boolean
+  allowSelfEvaluation?: boolean
+  requireAllMembers?: boolean
+  projectId?: string
+}): Promise<string> {
+  try {
+    const { data, error } = await supabase.rpc('create_evaluation_period_with_responses', {
+      p_team_id: params.teamId,
+      p_workspace_id: params.workspaceId,
+      p_period_name: params.periodName,
+      p_period_type: params.periodType,
+      p_start_date: params.startDate,
+      p_end_date: params.endDate,
+      p_due_date: params.dueDate,
+      p_is_anonymous: params.isAnonymous ?? true,
+      p_created_by: null, // Will use auth.uid() in function
+      p_project_id: params.projectId || null,
+    })
+
+    if (error) throw error
+    return data
+  } catch (error: any) {
+    console.error('createEvaluationPeriod error:', error?.message || JSON.stringify(error, null, 2))
+    throw error
+  }
+}
+
+/**
+ * Submit a peer evaluation
+ */
+export async function submitPeerEvaluation(params: {
+  evaluationPeriodId: string
+  evaluateeId: string
+  teamId: string
+  projectId?: string
+  contributionScore: number
+  communicationScore: number
+  collaborationScore: number
+  reliabilityScore: number
+  strengths?: string
+  areasForImprovement?: string
+  additionalComments?: string
+}): Promise<PeerEvaluation> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('User not authenticated')
+
+    // Insert evaluation
+    const { data: evaluation, error: evalError } = await supabase
+      .from('peer_evaluations')
+      .insert({
+        evaluator_id: user.id,
+        evaluatee_id: params.evaluateeId,
+        team_id: params.teamId,
+        project_id: params.projectId || null,
+        evaluation_period_id: params.evaluationPeriodId,
+        contribution_score: params.contributionScore,
+        communication_score: params.communicationScore,
+        collaboration_score: params.collaborationScore,
+        reliability_score: params.reliabilityScore,
+        strengths: params.strengths || null,
+        areas_for_improvement: params.areasForImprovement || null,
+        additional_comments: params.additionalComments || null,
+      })
+      .select()
+      .single()
+
+    if (evalError) throw evalError
+
+    // Update evaluation response status
+    const { error: responseError } = await supabase
+      .from('evaluation_responses')
+      .update({
+        status: 'submitted',
+        peer_evaluation_id: evaluation.id,
+        submitted_at: new Date().toISOString(),
+      })
+      .eq('evaluation_period_id', params.evaluationPeriodId)
+      .eq('evaluator_id', user.id)
+      .eq('evaluatee_id', params.evaluateeId)
+
+    if (responseError) throw responseError
+
+    return evaluation as PeerEvaluation
+  } catch (error: any) {
+    console.error('submitPeerEvaluation error:', error?.message || JSON.stringify(error, null, 2))
+    throw error
+  }
+}
+
+export interface PendingEvaluationWithDetails extends EvaluationResponse {
+  evaluation_period: {
+    id: string
+    period_name: string
+    period_type: string
+    due_date: string
+    status: string
+    is_anonymous: boolean
+    project_id?: string
+    team: {
+      id: string
+      name: string
+    }
+    project?: {
+      id: string
+      name: string
+    }
+  }
+  evaluatee?: {
+    id: string
+    full_name: string
+    avatar_url?: string
+  }
+}
+
+/**
+ * Get pending evaluations for a user (optionally filtered by workspace)
+ */
+export async function getPendingEvaluations(userId: string, workspaceId?: string): Promise<PendingEvaluationWithDetails[]> {
+  try {
+    // First, get evaluation responses with period and team info
+    let query = supabase
+      .from('evaluation_responses')
+      .select(`
+        *,
+        evaluation_period:evaluation_periods!inner(
+          id,
+          period_name,
+          period_type,
+          due_date,
+          status,
+          is_anonymous,
+          project_id,
+          workspace_id,
+          team:teams!inner(id, name),
+          project:projects(id, name)
+        )
+      `)
+      .eq('evaluator_id', userId)
+      .eq('status', 'pending')
+
+    const { data, error } = await query.order('created_at', { ascending: false })
+
+    if (error) throw error
+
+    let responses = (data || []) as any[]
+    
+    // Filter by workspace if provided (after fetching since we can't filter nested fields directly)
+    if (workspaceId) {
+      responses = responses.filter((r: any) => 
+        r.evaluation_period?.workspace_id === workspaceId
+      )
+    }
+    
+    // Filter out evaluations for instructors/owners/admins - they shouldn't see student evaluations
+    // unless they're actually participating as students
+    if (workspaceId) {
+      try {
+        // Check workspace role
+        const { data: workspaceMember } = await supabase
+          .from('workspace_members')
+          .select('role')
+          .eq('workspace_id', workspaceId)
+          .eq('user_id', userId)
+          .single()
+
+        // Also check user profile role
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('user_id', userId)
+          .single()
+
+        const userRole = profile?.role?.toLowerCase()
+        const workspaceRole = workspaceMember?.role
+
+        // If user is owner/admin in workspace OR is instructor/TA by profile role,
+        // they shouldn't see pending evaluations (they're managing, not participating)
+        const isInstructorOrAdmin = 
+          workspaceRole === 'owner' || 
+          workspaceRole === 'admin' ||
+          userRole === 'instructor' ||
+          userRole === 'teaching_assistant' ||
+          userRole === 'admin'
+
+        if (isInstructorOrAdmin) {
+          return []
+        }
+      } catch (err) {
+        // If we can't check role, continue (don't block)
+        console.warn('Could not check role for evaluation filtering:', err)
+      }
+    }
+    
+    if (responses.length === 0) {
+      return []
+    }
+
+    // Get unique evaluatee IDs for profile lookups
+    const evaluateeIds = [...new Set(responses.map(r => r.evaluatee_id).filter(Boolean))]
+    
+    // Get team IDs from the evaluation periods
+    const teamIds = [...new Set(responses.map(r => r.evaluation_period?.team?.id).filter(Boolean))]
+
+    // Fetch profiles for evaluatees - use team_members approach which has better RLS access
+    let profileMap = new Map()
+    if (evaluateeIds.length > 0 && teamIds.length > 0) {
+      // Fetch team members for all teams, then filter for evaluatees
+      // This approach works better with RLS since team members can see each other
+      try {
+        const teamMembersPromises = teamIds.map(teamId => getTeamMembers(teamId))
+        const teamMembersArrays = await Promise.all(teamMembersPromises)
+        
+        // Flatten and filter for evaluatees
+        const allTeamMembers = teamMembersArrays.flat()
+        allTeamMembers.forEach((member: any) => {
+          if (member.user_id && evaluateeIds.includes(member.user_id)) {
+            // member.user or member.profile should have the profile info
+            const profile = member.user || member.profile
+            if (profile) {
+              profileMap.set(member.user_id, {
+                id: profile.id,
+                full_name: profile.full_name,
+                avatar_url: profile.avatar_url,
+                user_id: member.user_id,
+              })
+            }
+          }
+        })
+      } catch (err) {
+        console.warn('Error fetching team members for profiles:', err)
+      }
+    }
+
+    // Enrich responses with profile data
+    const enrichedResponses = responses.map(response => {
+      const evaluateeProfile = response.evaluatee_id 
+        ? profileMap.get(response.evaluatee_id) 
+        : null
+      
+      if (!evaluateeProfile && response.evaluatee_id) {
+        console.warn('Profile not found for evaluatee_id:', response.evaluatee_id)
+      }
+      
+      return {
+        ...response,
+        evaluatee: evaluateeProfile || null,
+      }
+    })
+
+    return enrichedResponses as PendingEvaluationWithDetails[]
+  } catch (error: any) {
+    console.error('getPendingEvaluations error:', error?.message || JSON.stringify(error, null, 2))
+    return []
+  }
+}
+
+/**
+ * Get evaluation results for a user (aggregated, optionally filtered by workspace)
+ */
+export async function getEvaluationResults(
+  userId: string,
+  workspaceId?: string,
+  evaluationPeriodId?: string
+): Promise<any> {
+  try {
+    // First, get evaluations with period info only
+    let query = supabase
+      .from('peer_evaluations')
+      .select(`
+        *,
+        evaluation_period:evaluation_periods!inner(id, period_name, period_type, due_date, workspace_id)
+      `)
+      .eq('evaluatee_id', userId)
+
+    if (evaluationPeriodId) {
+      query = query.eq('evaluation_period_id', evaluationPeriodId)
+    }
+
+    const { data, error } = await query.order('submitted_at', { ascending: false })
+
+    if (error) throw error
+
+    let evaluations = (data || []) as any[]
+    
+    // Filter by workspace if provided (after fetching since we can't filter nested fields directly)
+    if (workspaceId) {
+      evaluations = evaluations.filter((e: any) => 
+        e.evaluation_period?.workspace_id === workspaceId
+      )
+    }
+    
+    if (evaluations.length === 0) {
+      return {
+        averageScores: {
+          contribution: 0,
+          communication: 0,
+          collaboration: 0,
+          reliability: 0,
+          overall: 0,
+        },
+        totalEvaluations: 0,
+        evaluations: [],
+      }
+    }
+
+    // Get unique user IDs for profile lookups
+    const evaluatorIds = [...new Set(evaluations.map(e => e.evaluator_id))]
+    const evaluateeIds = [...new Set(evaluations.map(e => e.evaluatee_id))]
+
+    // Check if evaluation period is anonymous
+    const isAnonymous = evaluations[0]?.evaluation_period?.is_anonymous ?? true
+
+    // Fetch profiles for evaluators and evaluatees
+    // Only fetch evaluator profiles if not anonymous
+    const userIdsToFetch = isAnonymous 
+      ? evaluateeIds  // Only fetch evaluatee profiles
+      : [...evaluatorIds, ...evaluateeIds]  // Fetch both if not anonymous
+
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, full_name, avatar_url, user_id')
+      .in('user_id', userIdsToFetch)
+
+    // Create a map of user_id -> profile
+    const profileMap = new Map()
+    if (profiles) {
+      profiles.forEach(profile => {
+        profileMap.set(profile.user_id, profile)
+      })
+    }
+
+    // Enrich evaluations with profile data
+    // Hide evaluator info if anonymous
+    const enrichedEvaluations = evaluations.map(evaluation => ({
+      ...evaluation,
+      evaluator: isAnonymous 
+        ? null  // Don't show evaluator if anonymous
+        : (profileMap.get(evaluation.evaluator_id) || null),
+      evaluatee: profileMap.get(evaluation.evaluatee_id) || null,
+    }))
+
+    const totalEvaluations = enrichedEvaluations.length
+    const sumScores = enrichedEvaluations.reduce(
+      (acc, evaluation) => ({
+        contribution: acc.contribution + (evaluation.contribution_score || 0),
+        communication: acc.communication + (evaluation.communication_score || 0),
+        collaboration: acc.collaboration + (evaluation.collaboration_score || 0),
+        reliability: acc.reliability + (evaluation.reliability_score || 0),
+        overall: acc.overall + (evaluation.overall_score || 0),
+      }),
+      { contribution: 0, communication: 0, collaboration: 0, reliability: 0, overall: 0 }
+    )
+
+    return {
+      averageScores: {
+        contribution: sumScores.contribution / totalEvaluations,
+        communication: sumScores.communication / totalEvaluations,
+        collaboration: sumScores.collaboration / totalEvaluations,
+        reliability: sumScores.reliability / totalEvaluations,
+        overall: sumScores.overall / totalEvaluations,
+      },
+      totalEvaluations,
+      evaluations: enrichedEvaluations,
+    }
+  } catch (error: any) {
+    console.error('getEvaluationResults error:', error?.message || JSON.stringify(error, null, 2))
+    return {
+      averageScores: {
+        contribution: 0,
+        communication: 0,
+        collaboration: 0,
+        reliability: 0,
+        overall: 0,
+      },
+      totalEvaluations: 0,
+      evaluations: [],
+    }
+  }
+}
+
+/**
+ * Get evaluation statistics for a team
+ */
+export async function getEvaluationStats(teamId: string, evaluationPeriodId?: string): Promise<any> {
+  try {
+    let query = supabase
+      .from('evaluation_periods')
+      .select(`
+        *,
+        responses:evaluation_responses(count),
+        submitted:evaluation_responses!inner(count),
+        team:teams!inner(id, name)
+      `)
+      .eq('team_id', teamId)
+
+    if (evaluationPeriodId) {
+      query = query.eq('id', evaluationPeriodId)
+    }
+
+    const { data, error } = await query
+
+    if (error) throw error
+    return data || []
+  } catch (error: any) {
+    console.error('getEvaluationStats error:', error?.message || JSON.stringify(error, null, 2))
+    return []
+  }
+}
+
+/**
+ * Get evaluation periods for a team
+ */
+export async function getTeamEvaluationPeriods(teamId: string): Promise<EvaluationPeriod[]> {
+  try {
+    const { data, error } = await supabase
+      .from('evaluation_periods')
+      .select('*')
+      .eq('team_id', teamId)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return (data || []) as EvaluationPeriod[]
+  } catch (error: any) {
+    console.error('getTeamEvaluationPeriods error:', error?.message || JSON.stringify(error, null, 2))
+    return []
+  }
+}
+
+/**
+ * Get all peer evaluations for teams managed by an instructor/team leader
+ * This allows instructors to view student comments and feedback
+ */
+export async function getTeamEvaluationsForInstructor(
+  userId: string,
+  workspaceId: string,
+  teamId?: string,
+  evaluationPeriodId?: string
+): Promise<any[]> {
+  try {
+    // First, get all teams where the user is a leader or instructor
+    const { data: userTeams } = await supabase
+      .from('team_members')
+      .select('team_id, role')
+      .eq('user_id', userId)
+      .in('role', ['leader'])
+
+    if (!userTeams || userTeams.length === 0) {
+      return []
+    }
+
+    const managedTeamIds = teamId 
+      ? [teamId] 
+      : userTeams.map(t => t.team_id)
+
+    // Also check if user is workspace owner/admin
+    const { data: workspaceMember } = await supabase
+      .from('workspace_members')
+      .select('role')
+      .eq('workspace_id', workspaceId)
+      .eq('user_id', userId)
+      .single()
+
+    // If user is workspace owner/admin, they can see all teams in the workspace
+    let allTeamIds = managedTeamIds
+    if (workspaceMember && (workspaceMember.role === 'owner' || workspaceMember.role === 'admin')) {
+      const { data: allWorkspaceTeams } = await supabase
+        .from('teams')
+        .select('id')
+        .eq('workspace_id', workspaceId)
+      
+      if (allWorkspaceTeams) {
+        allTeamIds = [...new Set([...managedTeamIds, ...allWorkspaceTeams.map(t => t.id)])]
+      }
+    }
+
+    if (allTeamIds.length === 0) {
+      return []
+    }
+
+    // Get all peer evaluations for these teams
+    let query = supabase
+      .from('peer_evaluations')
+      .select(`
+        *,
+        evaluation_period:evaluation_periods!inner(
+          id,
+          period_name,
+          period_type,
+          due_date,
+          is_anonymous,
+          workspace_id,
+          team:teams!inner(id, name),
+          project:projects(id, name)
+        )
+      `)
+      .in('team_id', allTeamIds)
+
+    if (evaluationPeriodId) {
+      query = query.eq('evaluation_period_id', evaluationPeriodId)
+    }
+
+    const { data, error } = await query
+      .eq('evaluation_period.workspace_id', workspaceId)
+      .order('submitted_at', { ascending: false })
+
+    if (error) throw error
+
+    let evaluations = (data || []) as any[]
+
+    if (evaluations.length === 0) {
+      return []
+    }
+
+    // Get profiles for evaluators and evaluatees
+    // Use team_members approach for better RLS access (similar to getPendingEvaluations)
+    const evaluatorIds = [...new Set(evaluations.map(e => e.evaluator_id))]
+    const evaluateeIds = [...new Set(evaluations.map(e => e.evaluatee_id))]
+    const allUserIds = [...new Set([...evaluatorIds, ...evaluateeIds])]
+
+    let profileMap = new Map()
+    
+    // Use team_members approach first (better RLS access for instructors)
+    // This is the same approach used in getPendingEvaluations
+    if (allUserIds.length > 0 && allTeamIds.length > 0) {
+      try {
+        const teamMembersPromises = allTeamIds.map(teamId => getTeamMembers(teamId))
+        const teamMembersArrays = await Promise.all(teamMembersPromises)
+        
+        const allTeamMembers = teamMembersArrays.flat()
+        allTeamMembers.forEach((member: any) => {
+          if (member.user_id && allUserIds.includes(member.user_id)) {
+            const profile = member.user || member.profile
+            if (profile) {
+              profileMap.set(member.user_id, {
+                id: profile.id || profile.user_id,
+                full_name: profile.full_name,
+                avatar_url: profile.avatar_url,
+                user_id: member.user_id,
+              })
+            }
+          }
+        })
+      } catch (err) {
+        console.warn('Error fetching team members for profiles:', err)
+      }
+    }
+
+    // Fallback: try fetching profiles directly if we're still missing some
+    const missingUserIds = allUserIds.filter(id => !profileMap.has(id))
+    if (missingUserIds.length > 0) {
+      try {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, full_name, avatar_url, user_id')
+          .in('user_id', missingUserIds)
+
+        if (profiles) {
+          profiles.forEach(profile => {
+            if (!profileMap.has(profile.user_id)) {
+              profileMap.set(profile.user_id, {
+                id: profile.id,
+                full_name: profile.full_name,
+                avatar_url: profile.avatar_url,
+                user_id: profile.user_id,
+              })
+            }
+          })
+        }
+      } catch (err) {
+        console.warn('Error fetching profiles directly:', err)
+      }
+    }
+
+    // Enrich evaluations with profile data
+    // Respect anonymity: if anonymous, don't show evaluator info to students, but instructors can see it
+    const enrichedEvaluations = evaluations.map(evaluation => {
+      const isAnonymous = evaluation.evaluation_period?.is_anonymous ?? true
+      
+      const evaluatorProfile = profileMap.get(evaluation.evaluator_id)
+      const evaluateeProfile = profileMap.get(evaluation.evaluatee_id)
+      
+      // Debug logging to help diagnose missing profiles
+      if (!evaluatorProfile && evaluation.evaluator_id) {
+        console.warn('Profile not found for evaluator_id:', evaluation.evaluator_id)
+      }
+      if (!evaluateeProfile && evaluation.evaluatee_id) {
+        console.warn('Profile not found for evaluatee_id:', evaluation.evaluatee_id, 'Available profile keys:', Array.from(profileMap.keys()))
+      }
+      
+      return {
+        ...evaluation,
+        evaluator: evaluatorProfile || null,
+        evaluatee: evaluateeProfile || null,
+        // For instructors, we can show evaluator info even if anonymous (for their own viewing)
+        isAnonymous,
+      }
+    })
+
+    return enrichedEvaluations
+  } catch (error: any) {
+    console.error('getTeamEvaluationsForInstructor error:', error?.message || JSON.stringify(error, null, 2))
+    return []
+  }
+}
+
+// =====================================================
+// COMMUNICATION CHANNELS - Team Chat
+// =====================================================
+
+export interface TeamChatChannel {
+  id: string
+  team_id: string
+  name: string
+  description?: string
+  is_default: boolean
+  created_by?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface TeamChatMessage {
+  id: string
+  channel_id?: string
+  team_id: string
+  user_id: string
+  message: string
+  created_at: string
+  updated_at: string
+  edited_at?: string
+  is_edited?: boolean
+  reply_to_id?: string
+  attachments?: any[]
+  metadata?: Record<string, any>
+  user?: {
+    id: string
+    full_name: string
+    avatar_url?: string
+  }
+  reply_to?: TeamChatMessage
+}
+
+/**
+ * Get team chat channels
+ */
+export async function getTeamChatChannels(teamId: string): Promise<TeamChatChannel[]> {
+  try {
+    const { data, error } = await supabase
+      .from('team_chat_channels')
+      .select('*')
+      .eq('team_id', teamId)
+      .order('is_default', { ascending: false })
+      .order('created_at', { ascending: true })
+
+    if (error) throw error
+    return (data || []) as TeamChatChannel[]
+  } catch (error: any) {
+    console.error('getTeamChatChannels error:', error?.message || JSON.stringify(error, null, 2))
+    return []
+  }
+}
+
+/**
+ * Get default channel for a team (or create it if it doesn't exist)
+ */
+export async function getOrCreateDefaultChannel(teamId: string): Promise<TeamChatChannel | null> {
+  try {
+    // Try to get default channel
+    const { data: existing, error: fetchError } = await supabase
+      .from('team_chat_channels')
+      .select('*')
+      .eq('team_id', teamId)
+      .eq('is_default', true)
+      .maybeSingle()
+
+    if (fetchError && fetchError.code !== 'PGRST116') throw fetchError
+
+    if (existing) {
+      return existing as TeamChatChannel
+    }
+
+    // Default channel doesn't exist, try to create it
+    // Note: This might fail if user doesn't have permission, that's okay
+    const { data: created, error: createError } = await supabase
+      .from('team_chat_channels')
+      .insert({
+        team_id: teamId,
+        name: 'general',
+        description: 'General team discussion',
+        is_default: true,
+      })
+      .select('*')
+      .single()
+
+    if (createError) {
+      // If creation fails, just return null - the user might need a leader to create channels
+      console.warn('Could not create default channel:', createError.message)
+      return null
+    }
+
+    return created as TeamChatChannel
+  } catch (error: any) {
+    console.error('getOrCreateDefaultChannel error:', error?.message || JSON.stringify(error, null, 2))
+    return null
+  }
+}
+
+/**
+ * Get team chat messages for a channel
+ */
+export async function getTeamChatMessages(
+  teamId: string,
+  channelId?: string,
+  limit: number = 50,
+  before?: string
+): Promise<TeamChatMessage[]> {
+  try {
+    let query = supabase
+      .from('team_chat_messages')
+      .select(`
+        *,
+        user:profiles!user_id(id, full_name, avatar_url),
+        reply_to:team_chat_messages!reply_to_id(id, message, user_id, user:profiles!user_id(id, full_name, avatar_url))
+      `)
+      .eq('team_id', teamId)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    // If channel_id exists in the table, filter by it
+    // Otherwise, if no channel_id column, just use team_id (for backward compatibility)
+    if (channelId) {
+      // Check if channel_id column exists by trying to filter on it
+      // If it fails, we'll catch and fall back to team_id only
+      query = query.eq('channel_id', channelId)
+    }
+
+    if (before) {
+      query = query.lt('created_at', before)
+    }
+
+    const { data, error } = await query
+
+    if (error) {
+      // If error is about channel_id column not existing, try without channel filter
+      if (error.message?.includes('column') && error.message?.includes('channel_id')) {
+        // Fall back to team_id only
+        let fallbackQuery = supabase
+          .from('team_chat_messages')
+          .select(`
+            *,
+            user:profiles!user_id(id, full_name, avatar_url),
+            reply_to:team_chat_messages!reply_to_id(id, message, user_id, user:profiles!user_id(id, full_name, avatar_url))
+          `)
+          .eq('team_id', teamId)
+          .order('created_at', { ascending: false })
+          .limit(limit)
+
+        if (before) {
+          fallbackQuery = fallbackQuery.lt('created_at', before)
+        }
+
+        const { data: fallbackData, error: fallbackError } = await fallbackQuery
+        if (fallbackError) throw fallbackError
+        return (fallbackData || []).reverse() as TeamChatMessage[]
+      }
+      throw error
+    }
+
+    return (data || []).reverse() as TeamChatMessage[] // Reverse to show oldest first
+  } catch (error: any) {
+    console.error('getTeamChatMessages error:', error?.message || JSON.stringify(error, null, 2))
+    return []
+  }
+}
+
+/**
+ * Send a team chat message
+ */
+export async function sendTeamChatMessage(
+  teamId: string,
+  userId: string,
+  message: string,
+  channelId?: string,
+  replyToId?: string,
+  attachments?: any[]
+): Promise<TeamChatMessage | null> {
+  try {
+    // If channelId is not provided, try to get or create default channel
+    let finalChannelId = channelId
+    if (!finalChannelId) {
+      const defaultChannel = await getOrCreateDefaultChannel(teamId)
+      if (!defaultChannel) {
+        throw new Error('No channel available. Please contact your team leader to create a channel.')
+      }
+      finalChannelId = defaultChannel.id
+    }
+
+    // Build insert object - handle both schemas
+    const insertData: any = {
+      team_id: teamId,
+      user_id: userId,
+      message: message.trim(),
+      reply_to_id: replyToId || null,
+    }
+
+    // Only add channel_id if the column exists (check by trying to insert it)
+    // We'll let the database tell us if channel_id is required
+    if (finalChannelId) {
+      insertData.channel_id = finalChannelId
+    }
+
+    // Add optional fields if they exist in schema
+    if (attachments) {
+      insertData.attachments = attachments
+    }
+
+    const { data, error } = await supabase
+      .from('team_chat_messages')
+      .insert(insertData)
+      .select(`
+        *,
+        user:profiles!user_id(id, full_name, avatar_url),
+        reply_to:team_chat_messages!reply_to_id(id, message, user_id, user:profiles!user_id(id, full_name, avatar_url))
+      `)
+      .single()
+
+    if (error) {
+      // If error is about channel_id being required, try to get default channel
+      if (error.message?.includes('channel_id') && !finalChannelId) {
+        const defaultChannel = await getOrCreateDefaultChannel(teamId)
+        if (defaultChannel) {
+          insertData.channel_id = defaultChannel.id
+          const { data: retryData, error: retryError } = await supabase
+            .from('team_chat_messages')
+            .insert(insertData)
+            .select(`
+              *,
+              user:profiles!user_id(id, full_name, avatar_url),
+              reply_to:team_chat_messages!reply_to_id(id, message, user_id, user:profiles!user_id(id, full_name, avatar_url))
+            `)
+            .single()
+          if (retryError) throw retryError
+          return retryData as TeamChatMessage
+        }
+      }
+      throw error
+    }
+
+    return data as TeamChatMessage
+  } catch (error: any) {
+    console.error('sendTeamChatMessage error:', error?.message || JSON.stringify(error, null, 2))
+    throw error
+  }
+}
+
+/**
+ * Update a team chat message
+ */
+export async function updateTeamChatMessage(
+  messageId: string,
+  userId: string,
+  newMessage: string
+): Promise<TeamChatMessage | null> {
+  try {
+    const { data, error } = await supabase
+      .from('team_chat_messages')
+      .update({
+        message: newMessage.trim(),
+      })
+      .eq('id', messageId)
+      .eq('user_id', userId)
+      .select(`
+        *,
+        user:profiles!user_id(id, full_name, avatar_url),
+        reply_to:team_chat_messages!reply_to_id(id, message, user_id, user:profiles!user_id(id, full_name, avatar_url))
+      `)
+      .single()
+
+    if (error) throw error
+    return data as TeamChatMessage
+  } catch (error: any) {
+    console.error('updateTeamChatMessage error:', error?.message || JSON.stringify(error, null, 2))
+    throw error
+  }
+}
+
+/**
+ * Delete a team chat message
+ */
+export async function deleteTeamChatMessage(messageId: string, userId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('team_chat_messages')
+      .delete()
+      .eq('id', messageId)
+      .eq('user_id', userId)
+
+    if (error) throw error
+    return true
+  } catch (error: any) {
+    console.error('deleteTeamChatMessage error:', error?.message || JSON.stringify(error, null, 2))
+    throw error
+  }
+}
+
+/**
+ * Mark team chat messages as read
+ */
+export async function markTeamChatMessagesAsRead(
+  messageIds: string[],
+  userId: string
+): Promise<void> {
+  try {
+    if (messageIds.length === 0) return
+
+    const readStatuses = messageIds.map(messageId => ({
+      message_id: messageId,
+      user_id: userId,
+    }))
+
+    const { error } = await supabase
+      .from('team_chat_read_status')
+      .upsert(readStatuses, { onConflict: 'message_id,user_id' })
+
+    if (error) throw error
+  } catch (error: any) {
+    console.error('markTeamChatMessagesAsRead error:', error?.message || JSON.stringify(error, null, 2))
+  }
+}
+
+// =====================================================
+// COMMUNICATION CHANNELS - Project Discussions
+// =====================================================
+
+export interface ProjectDiscussion {
+  id: string
+  project_id: string
+  user_id: string
+  title: string
+  content: string
+  is_pinned: boolean
+  is_locked: boolean
+  created_at: string
+  updated_at: string
+  last_activity_at: string
+  tags?: string[]
+  metadata?: Record<string, any>
+  user?: {
+    id: string
+    full_name: string
+    avatar_url?: string
+  }
+  comment_count?: number
+}
+
+export interface ProjectDiscussionComment {
+  id: string
+  discussion_id: string
+  user_id: string
+  content: string
+  created_at: string
+  updated_at: string
+  edited_at?: string
+  is_edited: boolean
+  parent_comment_id?: string
+  metadata?: Record<string, any>
+  user?: {
+    id: string
+    full_name: string
+    avatar_url?: string
+  }
+  replies?: ProjectDiscussionComment[]
+}
+
+/**
+ * Get project discussions
+ */
+export async function getProjectDiscussions(
+  projectId: string,
+  limit: number = 20
+): Promise<ProjectDiscussion[]> {
+  try {
+    // Get discussions with comment counts
+    const { data: discussions, error: discussionsError } = await supabase
+      .from('project_discussions')
+      .select(`
+        *,
+        user:profiles!user_id(id, full_name, avatar_url)
+      `)
+      .eq('project_id', projectId)
+      .order('is_pinned', { ascending: false })
+      .order('last_activity_at', { ascending: false })
+      .limit(limit)
+
+    if (discussionsError) throw discussionsError
+
+    // Get comment counts for each discussion
+    if (discussions && discussions.length > 0) {
+      const discussionIds = discussions.map(d => d.id)
+      const { data: commentCounts } = await supabase
+        .from('project_discussion_comments')
+        .select('discussion_id')
+        .in('discussion_id', discussionIds)
+
+      const countsMap = new Map<string, number>()
+      if (commentCounts) {
+        commentCounts.forEach((cc: any) => {
+          countsMap.set(cc.discussion_id, (countsMap.get(cc.discussion_id) || 0) + 1)
+        })
+      }
+
+      return (discussions || []).map((discussion: any) => ({
+        ...discussion,
+        comment_count: countsMap.get(discussion.id) || 0,
+      })) as ProjectDiscussion[]
+    }
+
+    return []
+  } catch (error: any) {
+    console.error('getProjectDiscussions error:', error?.message || JSON.stringify(error, null, 2))
+    return []
+  }
+}
+
+/**
+ * Get a single project discussion with comments
+ */
+export async function getProjectDiscussion(
+  discussionId: string
+): Promise<{ discussion: ProjectDiscussion | null; comments: ProjectDiscussionComment[] }> {
+  try {
+    // Get discussion
+    const { data: discussion, error: discussionError } = await supabase
+      .from('project_discussions')
+      .select(`
+        *,
+        user:profiles!user_id(id, full_name, avatar_url)
+      `)
+      .eq('id', discussionId)
+      .single()
+
+    if (discussionError) throw discussionError
+
+    // Get comments
+    const { data: comments, error: commentsError } = await supabase
+      .from('project_discussion_comments')
+      .select(`
+        *,
+        user:profiles!user_id(id, full_name, avatar_url)
+      `)
+      .eq('discussion_id', discussionId)
+      .order('created_at', { ascending: true })
+
+    if (commentsError) throw commentsError
+
+    // Organize comments into threads
+    const commentsMap = new Map<string, ProjectDiscussionComment>()
+    const rootComments: ProjectDiscussionComment[] = []
+
+    ;(comments || []).forEach((comment: any) => {
+      const commentObj = {
+        ...comment,
+        replies: [],
+      } as ProjectDiscussionComment
+      commentsMap.set(comment.id, commentObj)
+
+      if (comment.parent_comment_id) {
+        const parent = commentsMap.get(comment.parent_comment_id)
+        if (parent) {
+          if (!parent.replies) parent.replies = []
+          parent.replies.push(commentObj)
+        }
+      } else {
+        rootComments.push(commentObj)
+      }
+    })
+
+    return {
+      discussion: discussion as ProjectDiscussion,
+      comments: rootComments,
+    }
+  } catch (error: any) {
+    console.error('getProjectDiscussion error:', error?.message || JSON.stringify(error, null, 2))
+    return { discussion: null, comments: [] }
+  }
+}
+
+/**
+ * Create a project discussion
+ */
+export async function createProjectDiscussion(
+  projectId: string,
+  userId: string,
+  title: string,
+  content: string,
+  tags?: string[]
+): Promise<ProjectDiscussion | null> {
+  try {
+    const { data, error } = await supabase
+      .from('project_discussions')
+      .insert({
+        project_id: projectId,
+        user_id: userId,
+        title: title.trim(),
+        content: content.trim(),
+        tags: tags || [],
+      })
+      .select(`
+        *,
+        user:profiles!user_id(id, full_name, avatar_url)
+      `)
+      .single()
+
+    if (error) throw error
+    return data as ProjectDiscussion
+  } catch (error: any) {
+    console.error('createProjectDiscussion error:', error?.message || JSON.stringify(error, null, 2))
+    throw error
+  }
+}
+
+/**
+ * Add a comment to a project discussion
+ */
+export async function addProjectDiscussionComment(
+  discussionId: string,
+  userId: string,
+  content: string,
+  parentCommentId?: string
+): Promise<ProjectDiscussionComment | null> {
+  try {
+    const { data, error } = await supabase
+      .from('project_discussion_comments')
+      .insert({
+        discussion_id: discussionId,
+        user_id: userId,
+        content: content.trim(),
+        parent_comment_id: parentCommentId || null,
+      })
+      .select(`
+        *,
+        user:profiles!user_id(id, full_name, avatar_url)
+      `)
+      .single()
+
+    if (error) throw error
+    return data as ProjectDiscussionComment
+  } catch (error: any) {
+    console.error('addProjectDiscussionComment error:', error?.message || JSON.stringify(error, null, 2))
+    throw error
+  }
+}
+
+/**
+ * Update a project discussion
+ */
+export async function updateProjectDiscussion(
+  discussionId: string,
+  userId: string,
+  updates: { title?: string; content?: string; tags?: string[]; is_pinned?: boolean; is_locked?: boolean }
+): Promise<ProjectDiscussion | null> {
+  try {
+    const { data, error } = await supabase
+      .from('project_discussions')
+      .update(updates)
+      .eq('id', discussionId)
+      .eq('user_id', userId)
+      .select(`
+        *,
+        user:profiles!user_id(id, full_name, avatar_url)
+      `)
+      .single()
+
+    if (error) throw error
+    return data as ProjectDiscussion
+  } catch (error: any) {
+    console.error('updateProjectDiscussion error:', error?.message || JSON.stringify(error, null, 2))
+    throw error
+  }
+}
+
+/**
+ * Delete a project discussion
+ */
+export async function deleteProjectDiscussion(discussionId: string, userId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('project_discussions')
+      .delete()
+      .eq('id', discussionId)
+      .eq('user_id', userId)
+
+    if (error) throw error
+    return true
+  } catch (error: any) {
+    console.error('deleteProjectDiscussion error:', error?.message || JSON.stringify(error, null, 2))
+    throw error
+  }
+}
+
+// =====================================================
+// COMMUNICATION CHANNELS - Direct Messaging
+// =====================================================
+
+export interface DirectMessage {
+  id: string
+  sender_id: string
+  recipient_id: string
+  message: string
+  is_read: boolean
+  read_at?: string
+  created_at: string
+  updated_at: string
+  reply_to_id?: string
+  attachments?: any[]
+  metadata?: Record<string, any>
+  sender?: {
+    id: string
+    full_name: string
+    avatar_url?: string
+  }
+  recipient?: {
+    id: string
+    full_name: string
+    avatar_url?: string
+  }
+  reply_to?: DirectMessage
+}
+
+export interface Conversation {
+  other_user: {
+    id: string
+    full_name: string
+    avatar_url?: string
+  }
+  last_message?: DirectMessage
+  unread_count: number
+}
+
+/**
+ * Get conversations for a user (list of people they've messaged or been messaged by)
+ */
+export async function getDirectMessageConversations(userId: string): Promise<Conversation[]> {
+  try {
+    // Get all messages where user is sender or recipient
+    const { data: messages, error } = await supabase
+      .from('direct_messages')
+      .select(`
+        *,
+        sender:profiles!sender_id(id, full_name, avatar_url),
+        recipient:profiles!recipient_id(id, full_name, avatar_url)
+      `)
+      .or(`sender_id.eq.${userId},recipient_id.eq.${userId}`)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+
+    // Group messages by conversation partner
+    const conversationsMap = new Map<string, Conversation>()
+
+    ;(messages || []).forEach((message: any) => {
+      const otherUserId = message.sender_id === userId ? message.recipient_id : message.sender_id
+      const otherUser = message.sender_id === userId ? message.recipient : message.sender
+
+      if (!conversationsMap.has(otherUserId)) {
+        conversationsMap.set(otherUserId, {
+          other_user: otherUser,
+          unread_count: 0,
+        })
+      }
+
+      const conversation = conversationsMap.get(otherUserId)!
+      if (!conversation.last_message) {
+        conversation.last_message = message as DirectMessage
+      }
+      if (message.recipient_id === userId && !message.is_read) {
+        conversation.unread_count++
+      }
+    })
+
+    return Array.from(conversationsMap.values()).sort((a, b) => {
+      const aTime = a.last_message?.created_at || ''
+      const bTime = b.last_message?.created_at || ''
+      return bTime.localeCompare(aTime)
+    })
+  } catch (error: any) {
+    console.error('getDirectMessageConversations error:', error?.message || JSON.stringify(error, null, 2))
+    return []
+  }
+}
+
+/**
+ * Get messages between two users
+ */
+export async function getDirectMessages(
+  userId: string,
+  otherUserId: string,
+  limit: number = 50,
+  before?: string
+): Promise<DirectMessage[]> {
+  try {
+    let query = supabase
+      .from('direct_messages')
+      .select(`
+        *,
+        sender:profiles!sender_id(id, full_name, avatar_url),
+        recipient:profiles!recipient_id(id, full_name, avatar_url),
+        reply_to:direct_messages!reply_to_id(id, message, sender_id, sender:profiles!sender_id(id, full_name, avatar_url))
+      `)
+      .or(`and(sender_id.eq.${userId},recipient_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},recipient_id.eq.${userId})`)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (before) {
+      query = query.lt('created_at', before)
+    }
+
+    const { data, error } = await query
+
+    if (error) throw error
+
+    return (data || []).reverse() as DirectMessage[] // Reverse to show oldest first
+  } catch (error: any) {
+    console.error('getDirectMessages error:', error?.message || JSON.stringify(error, null, 2))
+    return []
+  }
+}
+
+/**
+ * Send a direct message
+ */
+export async function sendDirectMessage(
+  senderId: string,
+  recipientId: string,
+  message: string,
+  replyToId?: string,
+  attachments?: any[]
+): Promise<DirectMessage | null> {
+  try {
+    const { data, error } = await supabase
+      .from('direct_messages')
+      .insert({
+        sender_id: senderId,
+        recipient_id: recipientId,
+        message: message.trim(),
+        reply_to_id: replyToId || null,
+        attachments: attachments || [],
+      })
+      .select(`
+        *,
+        sender:profiles!sender_id(id, full_name, avatar_url),
+        recipient:profiles!recipient_id(id, full_name, avatar_url),
+        reply_to:direct_messages!reply_to_id(id, message, sender_id, sender:profiles!sender_id(id, full_name, avatar_url))
+      `)
+      .single()
+
+    if (error) throw error
+    return data as DirectMessage
+  } catch (error: any) {
+    console.error('sendDirectMessage error:', error?.message || JSON.stringify(error, null, 2))
+    throw error
+  }
+}
+
+/**
+ * Mark direct messages as read
+ */
+export async function markDirectMessagesAsRead(
+  messageIds: string[],
+  userId: string
+): Promise<void> {
+  try {
+    if (messageIds.length === 0) return
+
+    const { error } = await supabase
+      .from('direct_messages')
+      .update({
+        is_read: true,
+        read_at: new Date().toISOString(),
+      })
+      .in('id', messageIds)
+      .eq('recipient_id', userId)
+      .eq('is_read', false)
+
+    if (error) throw error
+  } catch (error: any) {
+    console.error('markDirectMessagesAsRead error:', error?.message || JSON.stringify(error, null, 2))
+  }
+}
+
+/**
+ * Get unread direct message count
+ */
+export async function getUnreadDirectMessageCount(userId: string): Promise<number> {
+  try {
+    const { count, error } = await supabase
+      .from('direct_messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('recipient_id', userId)
+      .eq('is_read', false)
+
+    if (error) throw error
+    return count || 0
+  } catch (error: any) {
+    console.error('getUnreadDirectMessageCount error:', error?.message || JSON.stringify(error, null, 2))
+    return 0
   }
 }

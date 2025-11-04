@@ -6,6 +6,7 @@ import { Sidebar } from './Sidebar';
 import { DashboardHeader } from './DashboardHeader';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { InAppNotificationManager } from '@/components/notifications/InAppNotificationManager';
+import { MotivationalMessageBanner } from '@/components/motivation/MotivationalMessageBanner';
 import { markNotificationAsRead } from '@/lib/db/queries';
 
 interface DashboardLayoutProps {
@@ -75,6 +76,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
           onMarkAsRead={handleMarkAsRead}
         />
       )}
+
+      {/* Motivational Messages Banner */}
+      {user?.id && <MotivationalMessageBanner userId={user.id} sidebarCollapsed={sidebarCollapsed} />}
       
       {/* Main Content */}
       <main

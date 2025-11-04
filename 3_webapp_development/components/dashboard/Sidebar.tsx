@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,11 +15,16 @@ import {
   ChevronDown,
   Building2,
   X,
+  Clock,
+  ClipboardCheck,
+  MessageSquare,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
 import { WorkspaceSwitcher } from './WorkspaceSwitcher';
 import Avatar from '@/components/ui/Avatar';
+import { getUserPendingTasksCount } from '@/lib/db/queries';
+import { supabase } from '@/lib/supabase';
 
 interface SidebarProps {
   collapsed: boolean;
@@ -32,12 +37,69 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
   const { user, profile, signOut } = useAuth();
   const { currentWorkspace } = useWorkspace();
   const [showWorkspaceSwitcher, setShowWorkspaceSwitcher] = useState(false);
+  const [pendingTasksCount, setPendingTasksCount] = useState(0);
+
+  // Load pending tasks count
+  useEffect(() => {
+    if (!user?.id) {
+      setPendingTasksCount(0);
+      return;
+    }
+
+    const loadPendingCount = async () => {
+      try {
+        const count = await getUserPendingTasksCount(user.id);
+        setPendingTasksCount(count);
+      } catch (error) {
+        console.error('Error loading pending tasks count:', error);
+        setPendingTasksCount(0);
+      }
+    };
+
+    loadPendingCount();
+
+    // Set up real-time subscription for tasks changes
+    const channel = supabase
+      .channel(`sidebar-tasks:${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'tasks',
+        },
+        () => {
+          // Reload count when tasks change
+          loadPendingCount();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'task_assignees',
+        },
+        () => {
+          // Reload count when task assignments change
+          loadPendingCount();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
 
   const navigationItems = [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
     { icon: FolderKanban, label: 'Projects', href: '/projects' },
     { icon: CheckSquare, label: 'Tasks', href: '/tasks' },
+    { icon: Clock, label: 'Contributions', href: '/contributions' },
+    { icon: ClipboardCheck, label: 'Evaluations', href: '/evaluations' },
     { icon: Users, label: 'Teams', href: '/teams' },
+    { icon: MessageSquare, label: 'Messages', href: '/messages' },
     { icon: BarChart3, label: 'Analytics', href: '/analytics' },
     { icon: Settings, label: 'Settings', href: '/settings' },
   ];
@@ -82,10 +144,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
           x: collapsed ? -256 : 0,
         }}
         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-        className="fixed left-0 top-0 w-64 bg-blue-500 dark:bg-blue-800 border-r border-blue-600 dark:border-blue-900 h-screen z-50 flex flex-col"
+        className="fixed left-0 top-0 w-64 bg-blue-600 dark:bg-blue-800 border-r border-blue-700 dark:border-blue-900 h-screen z-50 flex flex-col"
       >
       {/* Logo & Workspace */}
-      <div className="p-6 border-b border-blue-400 dark:border-blue-700">
+      <div className="p-6 border-b border-blue-500 dark:border-blue-700">
         <div className="flex items-center justify-between mb-4">
           <Link href="/dashboard">
             <div className="text-2xl font-bold">
@@ -97,7 +159,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
           {/* Mobile Close Button */}
           <button
             onClick={onClose}
-            className="md:hidden p-2 hover:bg-blue-600 dark:hover:bg-blue-700 rounded-lg transition-colors"
+            className="md:hidden p-2 hover:bg-blue-700 dark:hover:bg-blue-700 rounded-lg transition-colors"
           >
             <X size={20} className="text-white" />
           </button>
@@ -106,7 +168,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
         {/* Workspace Switcher */}
         <button 
           onClick={() => setShowWorkspaceSwitcher(true)}
-          className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-blue-600 dark:hover:bg-blue-700 transition-colors group"
+          className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-700 transition-colors group"
         >
           <div className="flex items-center space-x-2 flex-1 min-w-0">
             {currentWorkspace?.icon_url ? (
@@ -122,7 +184,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
                 }}
               />
             ) : null}
-            <div className={`bg-blue-400 dark:bg-blue-700 p-2 rounded-lg flex-shrink-0 ${currentWorkspace?.icon_url ? 'hidden icon-fallback' : ''}`}>
+            <div className={`bg-blue-500 dark:bg-blue-700 p-2 rounded-lg flex-shrink-0 ${currentWorkspace?.icon_url ? 'hidden icon-fallback' : ''}`}>
               <Building2 size={16} className="text-white" />
             </div>
             <span className="text-sm font-medium text-white truncate">
@@ -138,6 +200,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
         {navigationItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.href);
+          const showBadge = item.href === '/tasks' && pendingTasksCount > 0;
           
           return (
             <Link 
@@ -148,14 +211,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
             >
               <motion.div
                 whileHover={{ x: 4 }}
-                className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                className={`flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${
                   active
-                    ? 'bg-blue-600 dark:bg-blue-700 text-white'
-                    : 'text-white hover:bg-blue-600 dark:hover:bg-blue-700'
+                    ? 'bg-blue-700 dark:bg-blue-700 text-white'
+                    : 'text-white hover:bg-blue-700 dark:hover:bg-blue-700'
                 }`}
               >
-                <Icon size={20} className="text-white" />
-                <span className="font-medium text-white">{item.label}</span>
+                <div className="flex items-center space-x-3">
+                  <Icon size={20} className="text-white" />
+                  <span className="font-medium text-white">{item.label}</span>
+                </div>
+                {showBadge && (
+                  <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 bg-red-500 text-white text-xs font-semibold rounded-full">
+                    {pendingTasksCount > 99 ? '99+' : pendingTasksCount}
+                  </span>
+                )}
               </motion.div>
             </Link>
           );
@@ -163,8 +233,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
       </nav>
 
       {/* User Section */}
-      <div className="p-4 border-t border-blue-400 dark:border-blue-700">
-        <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-blue-600 dark:hover:bg-blue-700 cursor-pointer mb-2">
+      <div className="p-4 border-t border-blue-500 dark:border-blue-700">
+        <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-700 cursor-pointer mb-2">
           <Avatar
             userId={user?.id || 'current-user'}
             name={profile?.full_name || 'User'}

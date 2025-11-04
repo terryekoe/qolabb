@@ -846,7 +846,7 @@ function SettingsPageContent() {
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Full Name
             </label>
             <input
@@ -855,22 +855,22 @@ function SettingsPageContent() {
               onChange={(e) =>
                 setProfileData({ ...profileData, fullName: e.target.value })
               }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Email
             </label>
             <input
               type="email"
               value={profileData.email}
               disabled
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-300 cursor-not-allowed"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Phone
             </label>
             <input
@@ -879,11 +879,11 @@ function SettingsPageContent() {
               onChange={(e) =>
                 setProfileData({ ...profileData, phone: e.target.value })
               }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Institution
             </label>
             <input
@@ -892,11 +892,11 @@ function SettingsPageContent() {
               onChange={(e) =>
                 setProfileData({ ...profileData, institution: e.target.value })
               }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Role
             </label>
             <select
@@ -904,7 +904,7 @@ function SettingsPageContent() {
               onChange={(e) =>
                 setProfileData({ ...profileData, role: e.target.value })
               }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
             >
               <option value="">Select Role</option>
               <option value="student">Student</option>
@@ -914,7 +914,7 @@ function SettingsPageContent() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Location
             </label>
             <input
@@ -923,7 +923,7 @@ function SettingsPageContent() {
               onChange={(e) =>
                 setProfileData({ ...profileData, location: e.target.value })
               }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
               placeholder="City, Country"
             />
           </div>
@@ -964,8 +964,8 @@ function SettingsPageContent() {
                 }}
                 className={`px-4 py-3 rounded-lg border text-sm font-medium transition-colors text-center ${
                   profileData.goals.includes(goal)
-                    ? "bg-blue-500 text-white border-blue-500"
-                    : "bg-white text-gray-700 border-gray-300 hover:border-blue-300"
+                    ? "bg-blue-500 dark:bg-blue-600 text-white border-blue-500 dark:border-blue-600"
+                    : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500"
                 }`}
               >
                 {goal}
@@ -1005,7 +1005,7 @@ function SettingsPageContent() {
         </h3>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Current Password
             </label>
             <div className="relative">
@@ -1018,7 +1018,7 @@ function SettingsPageContent() {
                     currentPassword: e.target.value,
                   })
                 }
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent pr-12"
               />
               <button
                 type="button"
@@ -1030,7 +1030,7 @@ function SettingsPageContent() {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               New Password
             </label>
             <input
@@ -1042,11 +1042,11 @@ function SettingsPageContent() {
                   newPassword: e.target.value,
                 })
               }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Confirm New Password
             </label>
             <input
@@ -1058,7 +1058,7 @@ function SettingsPageContent() {
                   confirmPassword: e.target.value,
                 })
               }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
             />
           </div>
           <Button variant="primary" className="w-full">
@@ -1074,8 +1074,8 @@ function SettingsPageContent() {
         </h3>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-gray-900 font-medium">Enable 2FA</p>
-            <p className="text-sm text-gray-600">
+            <p className="text-gray-900 dark:text-gray-100 font-medium">Enable 2FA</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Add an extra layer of security to your account
             </p>
           </div>
@@ -1103,7 +1103,7 @@ function SettingsPageContent() {
         </h3>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Session Timeout
             </label>
             <select
@@ -1114,7 +1114,7 @@ function SettingsPageContent() {
                   sessionTimeout: e.target.value,
                 })
               }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
             >
               <option value="1h">1 hour</option>
               <option value="8h">8 hours</option>
@@ -1226,7 +1226,7 @@ function SettingsPageContent() {
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Workspace Name
             </label>
             <input
@@ -1239,12 +1239,12 @@ function SettingsPageContent() {
                 })
               }
               disabled={!isOwnerOrAdmin}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:cursor-not-allowed disabled:text-gray-500 dark:disabled:text-gray-400"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Description
             </label>
             <textarea
@@ -1257,7 +1257,7 @@ function SettingsPageContent() {
               }
               disabled={!isOwnerOrAdmin}
               rows={3}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:cursor-not-allowed disabled:text-gray-500 dark:disabled:text-gray-400"
               placeholder="Add a description for this workspace..."
             />
           </div>
@@ -1287,7 +1287,7 @@ function SettingsPageContent() {
         </p>
 
         <div className="flex items-center space-x-3">
-          <div className="flex-1 px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg font-mono text-lg tracking-wider text-gray-900">
+          <div className="flex-1 px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg font-mono text-lg tracking-wider text-gray-900 dark:text-gray-100">
             {workspaceSettings.inviteCode}
           </div>
           <Button
@@ -1311,10 +1311,10 @@ function SettingsPageContent() {
       </div>
 
       {/* Members */}
-      <div className="bg-white rounded-xl border border-gray-200">
-        <div className="p-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Members</h3>
-          <p className="text-gray-600 text-sm mt-1">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Members</h3>
+          <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
             {members.length} member{members.length !== 1 ? "s" : ""} in this
             workspace
           </p>
@@ -1336,11 +1336,11 @@ function SettingsPageContent() {
             ))}
           </div>
         ) : (
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-gray-200 dark:divide-gray-700">
             {members.map((member) => (
               <div
                 key={member.id}
-                className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0 hover:bg-gray-50 transition-colors"
+                className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
               >
                 <div className="flex items-center space-x-4">
                   <Avatar
@@ -1351,16 +1351,16 @@ function SettingsPageContent() {
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-2">
-                      <p className="font-semibold text-gray-900 truncate">
+                      <p className="font-semibold text-gray-900 dark:text-gray-100 truncate">
                         {member.user?.full_name || "Unknown User"}
                       </p>
                       {member.user_id === user?.id && (
-                        <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-0.5 rounded-full self-start">
+                        <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-semibold px-2 py-0.5 rounded-full self-start">
                           You
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600 truncate">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
                       {member.user?.institution || "No institution"}
                     </p>
                   </div>
@@ -1381,7 +1381,7 @@ function SettingsPageContent() {
                       </div>
                     )}
                     {member.role === "member" && (
-                      <span className="text-sm text-gray-500">Member</span>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">Member</span>
                     )}
                   </div>
 
@@ -1501,8 +1501,8 @@ function SettingsPageContent() {
               className="flex items-center justify-between"
             >
               <div>
-                <p className="text-gray-900 font-medium">{setting.label}</p>
-                <p className="text-sm text-gray-600">{setting.description}</p>
+                <p className="text-gray-900 dark:text-gray-100 font-medium">{setting.label}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{setting.description}</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -1533,8 +1533,8 @@ function SettingsPageContent() {
         </h3>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-gray-900 font-medium">Browser Notifications</p>
-            <p className="text-sm text-gray-600">
+            <p className="text-gray-900 dark:text-gray-100 font-medium">Browser Notifications</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Receive push notifications in your browser
             </p>
           </div>
@@ -1574,7 +1574,7 @@ function SettingsPageContent() {
         </h3>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Who can see your profile?
             </label>
             <select
@@ -1585,7 +1585,7 @@ function SettingsPageContent() {
                   profileVisibility: e.target.value,
                 })
               }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
             >
               <option value="public">Everyone</option>
               <option value="workspace">Workspace Members Only</option>
@@ -1616,8 +1616,8 @@ function SettingsPageContent() {
               className="flex items-center justify-between"
             >
               <div>
-                <p className="text-gray-900 font-medium">{setting.label}</p>
-                <p className="text-sm text-gray-600">{setting.description}</p>
+                <p className="text-gray-900 dark:text-gray-100 font-medium">{setting.label}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{setting.description}</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -1649,8 +1649,8 @@ function SettingsPageContent() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-900 font-medium">Analytics Opt-out</p>
-              <p className="text-sm text-gray-600">
+              <p className="text-gray-900 dark:text-gray-100 font-medium">Analytics Opt-out</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Opt out of anonymous usage analytics
               </p>
             </div>
@@ -1670,17 +1670,17 @@ function SettingsPageContent() {
             </label>
           </div>
 
-          <div className="pt-4 border-t border-gray-200">
+          <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
             <Button
               variant="ghost"
-              className="text-blue-600 hover:bg-blue-50"
+              className="text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
               onClick={handleExportData}
               disabled={exportingData}
             >
               <Download size={18} className="mr-2" />
               {exportingData ? 'Exporting...' : 'Export My Data'}
             </Button>
-            <p className="text-sm text-gray-500 mt-2">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
               Download a copy of all your data (JSON format)
             </p>
           </div>
@@ -1737,7 +1737,7 @@ function SettingsPageContent() {
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Language
             </label>
             <select
@@ -1748,7 +1748,7 @@ function SettingsPageContent() {
                   language: e.target.value,
                 })
               }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
             >
               <option value="en">English</option>
               <option value="es">Español</option>
@@ -1758,7 +1758,7 @@ function SettingsPageContent() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Date Format
             </label>
             <select
@@ -1769,7 +1769,7 @@ function SettingsPageContent() {
                   dateFormat: e.target.value,
                 })
               }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
             >
               <option value="MM/DD/YYYY">MM/DD/YYYY</option>
               <option value="DD/MM/YYYY">DD/MM/YYYY</option>
@@ -1783,7 +1783,7 @@ function SettingsPageContent() {
         <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Interface</h3>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Display Density
             </label>
             <select
@@ -1794,7 +1794,7 @@ function SettingsPageContent() {
                   density: e.target.value,
                 })
               }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
             >
               <option value="compact">Compact</option>
               <option value="comfortable">Comfortable</option>
@@ -1819,8 +1819,8 @@ function SettingsPageContent() {
               className="flex items-center justify-between"
             >
               <div>
-                <p className="text-gray-900 font-medium">{setting.label}</p>
-                <p className="text-sm text-gray-600">{setting.description}</p>
+                <p className="text-gray-900 dark:text-gray-100 font-medium">{setting.label}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{setting.description}</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
