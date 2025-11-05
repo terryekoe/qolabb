@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Users, Crown, UserMinus, Settings, Loader2, AlertTriangle, Calendar, MapPin } from 'lucide-react'
+import { X, Users, Crown, UserMinus, Settings, Loader2, AlertTriangle, Calendar, MapPin, MessageSquare } from 'lucide-react'
 import { Button } from '@/components/Button'
 import Avatar from '@/components/ui/Avatar'
 import { getTeamMembers, removeTeamMember, updateTeamMemberRole, isTeamLeaderOrInstructor } from '@/lib/db/queries'
 import { TeamMember, Profile } from '@/lib/types/database'
 import { toast } from 'react-hot-toast'
 import { useAuth } from '@/lib/auth/AuthContext'
+import { TeamChat } from '@/components/communication/TeamChat'
 
 interface TeamDetailsModalProps {
   isOpen: boolean
@@ -39,6 +40,7 @@ export default function TeamDetailsModal({
   const [updatingRole, setUpdatingRole] = useState<string | null>(null)
   const [canManageTeam, setCanManageTeam] = useState(false)
   const [showRemoveConfirm, setShowRemoveConfirm] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<'members' | 'chat'>('members')
 
   useEffect(() => {
     if (isOpen && team.id) {
@@ -146,17 +148,49 @@ export default function TeamDetailsModal({
             </button>
           </div>
 
-          {/* Content */}
-          <div className="flex-1 overflow-y-auto p-6 bg-gray-50/50 dark:bg-gray-900/50">
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="text-center">
-                  <Loader2 className="w-8 h-8 animate-spin text-blue-400 mx-auto mb-3" />
-                  <span className="text-gray-600 dark:text-gray-400 font-medium">Loading team members...</span>
-                </div>
+          {/* Tabs */}
+          <div className="flex border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+            <button
+              onClick={() => setActiveTab('members')}
+              className={`flex-1 px-4 py-3 font-medium text-sm transition-colors ${
+                activeTab === 'members'
+                  ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+              }`}
+            >
+              <div className="flex items-center justify-center gap-2">
+                <Users size={18} />
+                <span>Members</span>
               </div>
-            ) : (
-              <div className="space-y-8">
+            </button>
+            <button
+              onClick={() => setActiveTab('chat')}
+              className={`flex-1 px-4 py-3 font-medium text-sm transition-colors ${
+                activeTab === 'chat'
+                  ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+              }`}
+            >
+              <div className="flex items-center justify-center gap-2">
+                <MessageSquare size={18} />
+                <span>Chat</span>
+              </div>
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 overflow-hidden flex flex-col bg-gray-50/50 dark:bg-gray-900/50">
+            {activeTab === 'members' ? (
+              <div className="flex-1 overflow-y-auto p-6">
+                {loading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="text-center">
+                      <Loader2 className="w-8 h-8 animate-spin text-blue-400 mx-auto mb-3" />
+                      <span className="text-gray-600 dark:text-gray-400 font-medium">Loading team members...</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-8">
                 {/* Team Leaders */}
                 {leaders.length > 0 && (
                   <div>
@@ -216,6 +250,18 @@ export default function TeamDetailsModal({
                     </div>
                     <p className="text-gray-600 dark:text-gray-400 font-medium text-lg">No team members found</p>
                     <p className="text-gray-500 dark:text-gray-500 text-sm mt-1">Add members to get started</p>
+                  </div>
+                )}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex-1 overflow-hidden">
+                {user?.id ? (
+                  <TeamChat teamId={team.id} userId={user.id} />
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <p className="text-gray-600 dark:text-gray-400">Please log in to view chat</p>
                   </div>
                 )}
               </div>

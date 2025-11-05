@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { FeatureGuard } from '@/components/features/FeatureGuard';
 import {
   FolderKanban,
   Plus,
@@ -641,14 +642,20 @@ function ProjectsPageContent() {
 
 export default function ProjectsPage() {
   return (
-    <Suspense fallback={
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-96">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        </div>
-      </DashboardLayout>
-    }>
-      <ProjectsPageContent />
-    </Suspense>
+    <FeatureGuard 
+      feature="PROJECTS" 
+      featureName="Project Management"
+      description="Project management is not available in the MVP. Focus on tracking participation within your study groups instead."
+    >
+      <Suspense fallback={
+        <DashboardLayout>
+          <div className="flex items-center justify-center h-96">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>
+        </DashboardLayout>
+      }>
+        <ProjectsPageContent />
+      </Suspense>
+    </FeatureGuard>
   );
 }

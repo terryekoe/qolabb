@@ -36,6 +36,7 @@ import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { FeatureGuard } from '@/components/features/FeatureGuard';
 import { 
   getWorkspaceProjects,
   getProjectTasks,
@@ -336,7 +337,7 @@ function KanbanColumn({
   );
 }
 
-export default function TasksPage() {
+function TasksPageContent() {
   const { user, profile } = useAuth();
   const { currentWorkspace } = useWorkspace();
   const router = useRouter();
@@ -1910,5 +1911,17 @@ export default function TasksPage() {
         />
       )}
     </DashboardLayout>
+  );
+}
+
+export default function TasksPage() {
+  return (
+    <FeatureGuard 
+      feature="TASKS" 
+      featureName="Task Management"
+      description="Task management is not available in the MVP. Focus on logging your contributions instead."
+    >
+      <TasksPageContent />
+    </FeatureGuard>
   );
 }

@@ -15,6 +15,8 @@ import {
   Edit2,
   Trash2,
   UserPlus,
+  MessageSquare,
+  ListTodo,
 } from 'lucide-react';
 import { Button } from '@/components/Button';
 import Avatar from '@/components/ui/Avatar';
@@ -23,6 +25,7 @@ import { getProjectTasks, updateTask, deleteTask, isTeamLeaderOrInstructor } fro
 import { useAuth } from '@/lib/auth/AuthContext';
 import { supabase } from '@/lib/supabase';
 import type { Task, TaskStatus } from '@/lib/types/database';
+import { ProjectDiscussions } from '@/components/communication/ProjectDiscussions';
 
 interface ProjectDetailModalProps {
   isOpen: boolean;
@@ -44,6 +47,7 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({
   const [loading, setLoading] = useState(true);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [activeTaskMenu, setActiveTaskMenu] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'tasks' | 'discussions'>('tasks');
 
   const loadTasks = useCallback(async () => {
     if (!project) return;
@@ -240,12 +244,44 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({
             </div>
           </div>
 
-          {/* Tasks Section */}
-          <div className="flex-1 overflow-y-auto p-8">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-gray-900">
-                Tasks ({tasks.length})
-              </h3>
+          {/* Tabs */}
+          <div className="flex border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+            <button
+              onClick={() => setActiveTab('tasks')}
+              className={`flex-1 px-4 py-3 font-medium text-sm transition-colors ${
+                activeTab === 'tasks'
+                  ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+              }`}
+            >
+              <div className="flex items-center justify-center gap-2">
+                <ListTodo size={18} />
+                <span>Tasks ({tasks.length})</span>
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('discussions')}
+              className={`flex-1 px-4 py-3 font-medium text-sm transition-colors ${
+                activeTab === 'discussions'
+                  ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+              }`}
+            >
+              <div className="flex items-center justify-center gap-2">
+                <MessageSquare size={18} />
+                <span>Discussions</span>
+              </div>
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 overflow-hidden flex flex-col">
+            {activeTab === 'tasks' ? (
+              <div className="flex-1 overflow-y-auto p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                    Tasks ({tasks.length})
+                  </h3>
               {canManageTasks && (
                 <Button
                   variant="primary"
@@ -356,6 +392,21 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({
                     ))}
                   </div>
                 </div>
+              </div>
+            )}
+              </div>
+            ) : (
+              <div className="flex-1 overflow-hidden">
+                {user?.id ? (
+                  <ProjectDiscussions 
+                    projectId={project.id} 
+                    userId={user.id}
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <p className="text-gray-600 dark:text-gray-400">Please log in to view discussions</p>
+                  </div>
+                )}
               </div>
             )}
           </div>

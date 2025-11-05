@@ -4,8 +4,9 @@ import React from 'react';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { DirectMessaging } from '@/components/communication/DirectMessaging';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { FeatureGuard } from '@/components/features/FeatureGuard';
 
-export default function MessagesPage() {
+function MessagesPageContent() {
   const { user } = useAuth();
 
   if (!user) {
@@ -34,5 +35,17 @@ export default function MessagesPage() {
         </div>
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function MessagesPage() {
+  return (
+    <FeatureGuard 
+      feature="COMMUNICATION" 
+      featureName="Messaging"
+      description="In-app messaging is not available in the MVP. Students can use WhatsApp, Slack, or other communication tools they're already familiar with."
+    >
+      <MessagesPageContent />
+    </FeatureGuard>
   );
 }

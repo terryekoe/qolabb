@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/auth/AuthContext';
 import { InAppNotificationManager } from '@/components/notifications/InAppNotificationManager';
 import { MotivationalMessageBanner } from '@/components/motivation/MotivationalMessageBanner';
 import { markNotificationAsRead } from '@/lib/db/queries';
+import { isFeatureEnabled } from '@/lib/config/features';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -78,7 +79,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
       )}
 
       {/* Motivational Messages Banner */}
-      {user?.id && <MotivationalMessageBanner userId={user.id} sidebarCollapsed={sidebarCollapsed} />}
+      {user?.id && isFeatureEnabled('MOTIVATIONAL_MESSAGES') && (
+        <MotivationalMessageBanner userId={user.id} sidebarCollapsed={sidebarCollapsed} />
+      )}
       
       {/* Main Content */}
       <main

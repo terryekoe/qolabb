@@ -61,6 +61,8 @@ import {
 import { supabase } from "@/lib/supabase";
 import type { UserRole } from "@/lib/types/database";
 import { AVAILABLE_GOALS } from "@/lib/constants/goals";
+import { IntegrationsSettings } from "@/components/integrations/IntegrationsSettings";
+import { isFeatureEnabled } from "@/lib/config/features";
 
 type SettingsCategory =
   | "profile"
@@ -174,6 +176,8 @@ function SettingsPageContent() {
       setActiveSection('workspace');
     } else if (tab === 'notifications') {
       setActiveSection('notifications');
+    } else if (tab === 'integrations') {
+      setActiveSection('integrations');
     }
   }, [searchParams]);
 
@@ -1884,10 +1888,13 @@ function SettingsPageContent() {
       case "appearance":
         return renderAppearanceSettings();
       case "integrations":
-        return renderComingSoonSection(
-          "Integrations",
-          "Connect external apps and services"
-        );
+        if (!isFeatureEnabled('INTEGRATIONS')) {
+          return renderComingSoonSection(
+            "Integrations",
+            "External integrations are not available in the MVP"
+          );
+        }
+        return <IntegrationsSettings />;
       case "billing":
         return renderComingSoonSection(
           "Billing & Plans",

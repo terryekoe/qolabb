@@ -5586,22 +5586,16 @@ export async function getTeamChatMessages(
   before?: string
 ): Promise<TeamChatMessage[]> {
   try {
+    // Fetch messages without profile joins
     let query = supabase
       .from('team_chat_messages')
-      .select(`
-        *,
-        user:profiles!user_id(id, full_name, avatar_url),
-        reply_to:team_chat_messages!reply_to_id(id, message, user_id, user:profiles!user_id(id, full_name, avatar_url))
-      `)
+      .select('*')
       .eq('team_id', teamId)
       .order('created_at', { ascending: false })
       .limit(limit)
 
     // If channel_id exists in the table, filter by it
-    // Otherwise, if no channel_id column, just use team_id (for backward compatibility)
     if (channelId) {
-      // Check if channel_id column exists by trying to filter on it
-      // If it fails, we'll catch and fall back to team_id only
       query = query.eq('channel_id', channelId)
     }
 
@@ -5617,11 +5611,7 @@ export async function getTeamChatMessages(
         // Fall back to team_id only
         let fallbackQuery = supabase
           .from('team_chat_messages')
-          .select(`
-            *,
-            user:profiles!user_id(id, full_name, avatar_url),
-            reply_to:team_chat_messages!reply_to_id(id, message, user_id, user:profiles!user_id(id, full_name, avatar_url))
-          `)
+          .select('*')
           .eq('team_id', teamId)
           .order('created_at', { ascending: false })
           .limit(limit)
@@ -5632,16 +5622,85 @@ export async function getTeamChatMessages(
 
         const { data: fallbackData, error: fallbackError } = await fallbackQuery
         if (fallbackError) throw fallbackError
-        return (fallbackData || []).reverse() as TeamChatMessage[]
+
+        // Enrich fallback data with profiles
+        return await enrichTeamChatMessages(fallbackData || [])
       }
       throw error
     }
 
-    return (data || []).reverse() as TeamChatMessage[] // Reverse to show oldest first
+    // Enrich messages with profiles
+    return await enrichTeamChatMessages(data || [])
   } catch (error: any) {
     console.error('getTeamChatMessages error:', error?.message || JSON.stringify(error, null, 2))
     return []
   }
+}
+
+// Helper function to enrich team chat messages with profile data
+async function enrichTeamChatMessages(messages: any[]): Promise<TeamChatMessage[]> {
+  if (!messages || messages.length === 0) {
+    return []
+  }
+
+  // Get unique user IDs (from messages and reply_to messages)
+  const userIds = new Set<string>()
+  messages.forEach((msg: any) => {
+    if (msg.user_id) userIds.add(msg.user_id)
+    if (msg.reply_to_id) {
+      // Find the reply_to message in the array to get its user_id
+      const replyToMsg = messages.find((m: any) => m.id === msg.reply_to_id)
+      if (replyToMsg?.user_id) userIds.add(replyToMsg.user_id)
+    }
+  })
+
+  // Fetch profiles separately
+  const profilesMap = new Map<string, any>()
+  if (userIds.size > 0) {
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, full_name, avatar_url')
+      .in('id', Array.from(userIds))
+
+    if (profiles) {
+      profiles.forEach((profile: any) => {
+        profilesMap.set(profile.id, profile)
+      })
+    }
+  }
+
+  // Enrich messages with profile data
+  return messages.map((msg: any) => {
+    const profile = profilesMap.get(msg.user_id)
+    const enrichedMsg: any = {
+      ...msg,
+      user: profile ? {
+        id: profile.id,
+        full_name: profile.full_name,
+        avatar_url: profile.avatar_url,
+      } : null,
+    }
+
+    // If there's a reply_to, enrich it too
+    if (msg.reply_to_id) {
+      const replyToMsg = messages.find((m: any) => m.id === msg.reply_to_id)
+      if (replyToMsg) {
+        const replyToProfile = profilesMap.get(replyToMsg.user_id)
+        enrichedMsg.reply_to = {
+          id: replyToMsg.id,
+          message: replyToMsg.message,
+          user_id: replyToMsg.user_id,
+          user: replyToProfile ? {
+            id: replyToProfile.id,
+            full_name: replyToProfile.full_name,
+            avatar_url: replyToProfile.avatar_url,
+          } : null,
+        }
+      }
+    }
+
+    return enrichedMsg
+  }).reverse() as TeamChatMessage[] // Reverse to show oldest first
 }
 
 /**
@@ -5656,17 +5715,8 @@ export async function sendTeamChatMessage(
   attachments?: any[]
 ): Promise<TeamChatMessage | null> {
   try {
-    // If channelId is not provided, try to get or create default channel
-    let finalChannelId = channelId
-    if (!finalChannelId) {
-      const defaultChannel = await getOrCreateDefaultChannel(teamId)
-      if (!defaultChannel) {
-        throw new Error('No channel available. Please contact your team leader to create a channel.')
-      }
-      finalChannelId = defaultChannel.id
-    }
-
-    // Build insert object - handle both schemas
+    // Build insert object - don't include channel_id by default
+    // The schema doesn't have channel_id column in the new version
     const insertData: any = {
       team_id: teamId,
       user_id: userId,
@@ -5674,50 +5724,52 @@ export async function sendTeamChatMessage(
       reply_to_id: replyToId || null,
     }
 
-    // Only add channel_id if the column exists (check by trying to insert it)
-    // We'll let the database tell us if channel_id is required
-    if (finalChannelId) {
-      insertData.channel_id = finalChannelId
-    }
-
     // Add optional fields if they exist in schema
     if (attachments) {
       insertData.attachments = attachments
     }
 
-    const { data, error } = await supabase
+    // Try to insert without channel_id first
+    let { data, error } = await supabase
       .from('team_chat_messages')
       .insert(insertData)
-      .select(`
-        *,
-        user:profiles!user_id(id, full_name, avatar_url),
-        reply_to:team_chat_messages!reply_to_id(id, message, user_id, user:profiles!user_id(id, full_name, avatar_url))
-      `)
+      .select('*')
       .single()
 
-    if (error) {
-      // If error is about channel_id being required, try to get default channel
-      if (error.message?.includes('channel_id') && !finalChannelId) {
+    // If error mentions channel_id, it means the old schema exists and channel_id is required
+    if (error && error.message?.includes('channel_id')) {
+      // Try with channel_id if provided
+      if (channelId) {
+        insertData.channel_id = channelId
+      } else {
+        // Try to get or create default channel
         const defaultChannel = await getOrCreateDefaultChannel(teamId)
         if (defaultChannel) {
           insertData.channel_id = defaultChannel.id
-          const { data: retryData, error: retryError } = await supabase
-            .from('team_chat_messages')
-            .insert(insertData)
-            .select(`
-              *,
-              user:profiles!user_id(id, full_name, avatar_url),
-              reply_to:team_chat_messages!reply_to_id(id, message, user_id, user:profiles!user_id(id, full_name, avatar_url))
-            `)
-            .single()
-          if (retryError) throw retryError
-          return retryData as TeamChatMessage
+        } else {
+          throw new Error('No channel available. Please contact your team leader to create a channel.')
         }
       }
+
+      // Retry insert with channel_id
+      const retryResult = await supabase
+        .from('team_chat_messages')
+        .insert(insertData)
+        .select('*')
+        .single()
+      
+      if (retryResult.error) throw retryResult.error
+      data = retryResult.data
+    } else if (error) {
+      // Some other error occurred
       throw error
     }
 
-    return data as TeamChatMessage
+    if (!data) return null
+
+    // Enrich with profile data
+    const enriched = await enrichTeamChatMessages([data])
+    return enriched[0] || null
   } catch (error: any) {
     console.error('sendTeamChatMessage error:', error?.message || JSON.stringify(error, null, 2))
     throw error
@@ -5733,6 +5785,7 @@ export async function updateTeamChatMessage(
   newMessage: string
 ): Promise<TeamChatMessage | null> {
   try {
+    // Update without profile join
     const { data, error } = await supabase
       .from('team_chat_messages')
       .update({
@@ -5740,15 +5793,15 @@ export async function updateTeamChatMessage(
       })
       .eq('id', messageId)
       .eq('user_id', userId)
-      .select(`
-        *,
-        user:profiles!user_id(id, full_name, avatar_url),
-        reply_to:team_chat_messages!reply_to_id(id, message, user_id, user:profiles!user_id(id, full_name, avatar_url))
-      `)
+      .select('*')
       .single()
 
     if (error) throw error
-    return data as TeamChatMessage
+    if (!data) return null
+
+    // Enrich with profile data
+    const enriched = await enrichTeamChatMessages([data])
+    return enriched[0] || null
   } catch (error: any) {
     console.error('updateTeamChatMessage error:', error?.message || JSON.stringify(error, null, 2))
     throw error
@@ -5851,13 +5904,10 @@ export async function getProjectDiscussions(
   limit: number = 20
 ): Promise<ProjectDiscussion[]> {
   try {
-    // Get discussions with comment counts
+    // Get discussions without profile join
     const { data: discussions, error: discussionsError } = await supabase
       .from('project_discussions')
-      .select(`
-        *,
-        user:profiles!user_id(id, full_name, avatar_url)
-      `)
+      .select('*')
       .eq('project_id', projectId)
       .order('is_pinned', { ascending: false })
       .order('last_activity_at', { ascending: false })
@@ -5865,28 +5915,55 @@ export async function getProjectDiscussions(
 
     if (discussionsError) throw discussionsError
 
-    // Get comment counts for each discussion
-    if (discussions && discussions.length > 0) {
-      const discussionIds = discussions.map(d => d.id)
-      const { data: commentCounts } = await supabase
-        .from('project_discussion_comments')
-        .select('discussion_id')
-        .in('discussion_id', discussionIds)
-
-      const countsMap = new Map<string, number>()
-      if (commentCounts) {
-        commentCounts.forEach((cc: any) => {
-          countsMap.set(cc.discussion_id, (countsMap.get(cc.discussion_id) || 0) + 1)
-        })
-      }
-
-      return (discussions || []).map((discussion: any) => ({
-        ...discussion,
-        comment_count: countsMap.get(discussion.id) || 0,
-      })) as ProjectDiscussion[]
+    if (!discussions || discussions.length === 0) {
+      return []
     }
 
-    return []
+    // Get unique user IDs
+    const userIds = [...new Set(discussions.map((d: any) => d.user_id).filter(Boolean))]
+
+    // Fetch profiles separately
+    const profilesMap = new Map<string, any>()
+    if (userIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .in('id', userIds)
+
+      if (profiles) {
+        profiles.forEach((profile: any) => {
+          profilesMap.set(profile.id, profile)
+        })
+      }
+    }
+
+    // Get comment counts for each discussion
+    const discussionIds = discussions.map((d: any) => d.id)
+    const { data: commentCounts } = await supabase
+      .from('project_discussion_comments')
+      .select('discussion_id')
+      .in('discussion_id', discussionIds)
+
+    const countsMap = new Map<string, number>()
+    if (commentCounts) {
+      commentCounts.forEach((cc: any) => {
+        countsMap.set(cc.discussion_id, (countsMap.get(cc.discussion_id) || 0) + 1)
+      })
+    }
+
+    // Enrich discussions with profile data
+    return discussions.map((discussion: any) => {
+      const profile = profilesMap.get(discussion.user_id)
+      return {
+        ...discussion,
+        user: profile ? {
+          id: profile.id,
+          full_name: profile.full_name,
+          avatar_url: profile.avatar_url,
+        } : null,
+        comment_count: countsMap.get(discussion.id) || 0,
+      }
+    }) as ProjectDiscussion[]
   } catch (error: any) {
     console.error('getProjectDiscussions error:', error?.message || JSON.stringify(error, null, 2))
     return []
@@ -5900,37 +5977,74 @@ export async function getProjectDiscussion(
   discussionId: string
 ): Promise<{ discussion: ProjectDiscussion | null; comments: ProjectDiscussionComment[] }> {
   try {
-    // Get discussion
+    // Get discussion without profile join
     const { data: discussion, error: discussionError } = await supabase
       .from('project_discussions')
-      .select(`
-        *,
-        user:profiles!user_id(id, full_name, avatar_url)
-      `)
+      .select('*')
       .eq('id', discussionId)
       .single()
 
     if (discussionError) throw discussionError
 
-    // Get comments
+    // Get comments without profile join
     const { data: comments, error: commentsError } = await supabase
       .from('project_discussion_comments')
-      .select(`
-        *,
-        user:profiles!user_id(id, full_name, avatar_url)
-      `)
+      .select('*')
       .eq('discussion_id', discussionId)
       .order('created_at', { ascending: true })
 
     if (commentsError) throw commentsError
 
-    // Organize comments into threads
+    // Get unique user IDs from discussion and comments
+    const userIds = new Set<string>()
+    if (discussion?.user_id) userIds.add(discussion.user_id)
+    if (comments) {
+      comments.forEach((c: any) => {
+        if (c.user_id) userIds.add(c.user_id)
+      })
+    }
+
+    // Fetch profiles separately
+    const profilesMap = new Map<string, any>()
+    if (userIds.size > 0) {
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .in('id', Array.from(userIds))
+
+      if (profiles) {
+        profiles.forEach((profile: any) => {
+          profilesMap.set(profile.id, profile)
+        })
+      }
+    }
+
+    // Enrich discussion with profile
+    const enrichedDiscussion = discussion ? {
+      ...discussion,
+      user: (() => {
+        const profile = profilesMap.get(discussion.user_id)
+        return profile ? {
+          id: profile.id,
+          full_name: profile.full_name,
+          avatar_url: profile.avatar_url,
+        } : null
+      })(),
+    } : null
+
+    // Enrich comments with profiles and organize into threads
     const commentsMap = new Map<string, ProjectDiscussionComment>()
     const rootComments: ProjectDiscussionComment[] = []
 
     ;(comments || []).forEach((comment: any) => {
+      const profile = profilesMap.get(comment.user_id)
       const commentObj = {
         ...comment,
+        user: profile ? {
+          id: profile.id,
+          full_name: profile.full_name,
+          avatar_url: profile.avatar_url,
+        } : null,
         replies: [],
       } as ProjectDiscussionComment
       commentsMap.set(comment.id, commentObj)
@@ -5947,7 +6061,7 @@ export async function getProjectDiscussion(
     })
 
     return {
-      discussion: discussion as ProjectDiscussion,
+      discussion: enrichedDiscussion as ProjectDiscussion | null,
       comments: rootComments,
     }
   } catch (error: any) {
@@ -5967,6 +6081,7 @@ export async function createProjectDiscussion(
   tags?: string[]
 ): Promise<ProjectDiscussion | null> {
   try {
+    // Insert without profile join
     const { data, error } = await supabase
       .from('project_discussions')
       .insert({
@@ -5976,14 +6091,29 @@ export async function createProjectDiscussion(
         content: content.trim(),
         tags: tags || [],
       })
-      .select(`
-        *,
-        user:profiles!user_id(id, full_name, avatar_url)
-      `)
+      .select('*')
       .single()
 
     if (error) throw error
-    return data as ProjectDiscussion
+    if (!data) return null
+
+    // Fetch profile separately
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id, full_name, avatar_url')
+      .eq('id', userId)
+      .single()
+
+    // Enrich with profile data
+    return {
+      ...data,
+      user: profile ? {
+        id: profile.id,
+        full_name: profile.full_name,
+        avatar_url: profile.avatar_url,
+      } : null,
+      comment_count: 0,
+    } as ProjectDiscussion
   } catch (error: any) {
     console.error('createProjectDiscussion error:', error?.message || JSON.stringify(error, null, 2))
     throw error
@@ -6000,6 +6130,7 @@ export async function addProjectDiscussionComment(
   parentCommentId?: string
 ): Promise<ProjectDiscussionComment | null> {
   try {
+    // Insert without profile join
     const { data, error } = await supabase
       .from('project_discussion_comments')
       .insert({
@@ -6008,14 +6139,29 @@ export async function addProjectDiscussionComment(
         content: content.trim(),
         parent_comment_id: parentCommentId || null,
       })
-      .select(`
-        *,
-        user:profiles!user_id(id, full_name, avatar_url)
-      `)
+      .select('*')
       .single()
 
     if (error) throw error
-    return data as ProjectDiscussionComment
+    if (!data) return null
+
+    // Fetch profile separately
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id, full_name, avatar_url')
+      .eq('id', userId)
+      .single()
+
+    // Enrich with profile data
+    return {
+      ...data,
+      user: profile ? {
+        id: profile.id,
+        full_name: profile.full_name,
+        avatar_url: profile.avatar_url,
+      } : null,
+      replies: [],
+    } as ProjectDiscussionComment
   } catch (error: any) {
     console.error('addProjectDiscussionComment error:', error?.message || JSON.stringify(error, null, 2))
     throw error
@@ -6031,19 +6177,41 @@ export async function updateProjectDiscussion(
   updates: { title?: string; content?: string; tags?: string[]; is_pinned?: boolean; is_locked?: boolean }
 ): Promise<ProjectDiscussion | null> {
   try {
+    // Update without profile join
     const { data, error } = await supabase
       .from('project_discussions')
       .update(updates)
       .eq('id', discussionId)
       .eq('user_id', userId)
-      .select(`
-        *,
-        user:profiles!user_id(id, full_name, avatar_url)
-      `)
+      .select('*')
       .single()
 
     if (error) throw error
-    return data as ProjectDiscussion
+    if (!data) return null
+
+    // Fetch profile separately
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id, full_name, avatar_url')
+      .eq('id', userId)
+      .single()
+
+    // Get comment count
+    const { data: comments } = await supabase
+      .from('project_discussion_comments')
+      .select('id')
+      .eq('discussion_id', discussionId)
+
+    // Enrich with profile data
+    return {
+      ...data,
+      user: profile ? {
+        id: profile.id,
+        full_name: profile.full_name,
+        avatar_url: profile.avatar_url,
+      } : null,
+      comment_count: comments?.length || 0,
+    } as ProjectDiscussion
   } catch (error: any) {
     console.error('updateProjectDiscussion error:', error?.message || JSON.stringify(error, null, 2))
     throw error
@@ -6116,22 +6284,41 @@ export async function getDirectMessageConversations(userId: string): Promise<Con
     // Get all messages where user is sender or recipient
     const { data: messages, error } = await supabase
       .from('direct_messages')
-      .select(`
-        *,
-        sender:profiles!sender_id(id, full_name, avatar_url),
-        recipient:profiles!recipient_id(id, full_name, avatar_url)
-      `)
+      .select('*')
       .or(`sender_id.eq.${userId},recipient_id.eq.${userId}`)
       .order('created_at', { ascending: false })
 
     if (error) throw error
 
+    if (!messages || messages.length === 0) return []
+
+    // Get unique user IDs for profile lookups
+    const userIds = new Set<string>()
+    messages.forEach((message: any) => {
+      userIds.add(message.sender_id)
+      userIds.add(message.recipient_id)
+    })
+
+    // Fetch profiles for all users
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, full_name, avatar_url')
+      .in('id', Array.from(userIds))
+
+    if (profilesError) throw profilesError
+
+    // Create a map for quick profile lookups
+    const profileMap = new Map<string, any>()
+    profiles?.forEach(profile => {
+      profileMap.set(profile.id, profile)
+    })
+
     // Group messages by conversation partner
     const conversationsMap = new Map<string, Conversation>()
 
-    ;(messages || []).forEach((message: any) => {
+    messages.forEach((message: any) => {
       const otherUserId = message.sender_id === userId ? message.recipient_id : message.sender_id
-      const otherUser = message.sender_id === userId ? message.recipient : message.sender
+      const otherUser = profileMap.get(otherUserId) || null
 
       if (!conversationsMap.has(otherUserId)) {
         conversationsMap.set(otherUserId, {
@@ -6142,7 +6329,11 @@ export async function getDirectMessageConversations(userId: string): Promise<Con
 
       const conversation = conversationsMap.get(otherUserId)!
       if (!conversation.last_message) {
-        conversation.last_message = message as DirectMessage
+        conversation.last_message = {
+          ...message,
+          sender: profileMap.get(message.sender_id) || null,
+          recipient: profileMap.get(message.recipient_id) || null,
+        } as DirectMessage
       }
       if (message.recipient_id === userId && !message.is_read) {
         conversation.unread_count++
@@ -6172,12 +6363,7 @@ export async function getDirectMessages(
   try {
     let query = supabase
       .from('direct_messages')
-      .select(`
-        *,
-        sender:profiles!sender_id(id, full_name, avatar_url),
-        recipient:profiles!recipient_id(id, full_name, avatar_url),
-        reply_to:direct_messages!reply_to_id(id, message, sender_id, sender:profiles!sender_id(id, full_name, avatar_url))
-      `)
+      .select('*')
       .or(`and(sender_id.eq.${userId},recipient_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},recipient_id.eq.${userId})`)
       .order('created_at', { ascending: false })
       .limit(limit)
@@ -6186,11 +6372,83 @@ export async function getDirectMessages(
       query = query.lt('created_at', before)
     }
 
-    const { data, error } = await query
+    const { data: messages, error } = await query
 
     if (error) throw error
 
-    return (data || []).reverse() as DirectMessage[] // Reverse to show oldest first
+    if (!messages || messages.length === 0) return []
+
+    // Get unique user IDs for profile lookups (including reply_to sender IDs)
+    const userIds = new Set<string>()
+    messages.forEach((message: any) => {
+      userIds.add(message.sender_id)
+      userIds.add(message.recipient_id)
+      if (message.reply_to_id) {
+        // We'll fetch reply_to messages separately if needed
+      }
+    })
+
+    // Fetch profiles for all users
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, full_name, avatar_url')
+      .in('id', Array.from(userIds))
+
+    if (profilesError) throw profilesError
+
+    // Create a map for quick profile lookups
+    const profileMap = new Map<string, any>()
+    profiles?.forEach(profile => {
+      profileMap.set(profile.id, profile)
+    })
+
+    // Fetch reply_to messages if any exist
+    const replyToIds = messages.filter(m => m.reply_to_id).map(m => m.reply_to_id)
+    let replyToMessages: any[] = []
+    if (replyToIds.length > 0) {
+      const { data: replyMessages, error: replyError } = await supabase
+        .from('direct_messages')
+        .select('*')
+        .in('id', replyToIds)
+
+      if (!replyError && replyMessages) {
+        replyToMessages = replyMessages
+        // Add reply message sender IDs to userIds set
+        replyMessages.forEach((reply: any) => {
+          userIds.add(reply.sender_id)
+        })
+
+        // Fetch additional profiles for any new user IDs we found
+        const existingProfileIds = new Set(profiles?.map(p => p.id) || [])
+        const additionalUserIds = Array.from(userIds).filter(id => !existingProfileIds.has(id))
+        if (additionalUserIds.length > 0) {
+          const { data: additionalProfiles } = await supabase
+            .from('profiles')
+            .select('id, full_name, avatar_url')
+            .in('id', additionalUserIds)
+
+          additionalProfiles?.forEach(profile => {
+            profileMap.set(profile.id, profile)
+          })
+        }
+      }
+    }
+
+    // Enrich messages with profile data
+    const enrichedMessages = messages.map((message: any) => {
+      const replyTo = replyToMessages.find(r => r.id === message.reply_to_id)
+      return {
+        ...message,
+        sender: profileMap.get(message.sender_id) || null,
+        recipient: profileMap.get(message.recipient_id) || null,
+        reply_to: replyTo ? {
+          ...replyTo,
+          sender: profileMap.get(replyTo.sender_id) || null,
+        } : null,
+      } as DirectMessage
+    })
+
+    return enrichedMessages.reverse() as DirectMessage[] // Reverse to show oldest first
   } catch (error: any) {
     console.error('getDirectMessages error:', error?.message || JSON.stringify(error, null, 2))
     return []

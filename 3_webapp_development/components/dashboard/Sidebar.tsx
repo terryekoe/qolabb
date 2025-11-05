@@ -25,6 +25,7 @@ import { WorkspaceSwitcher } from './WorkspaceSwitcher';
 import Avatar from '@/components/ui/Avatar';
 import { getUserPendingTasksCount } from '@/lib/db/queries';
 import { supabase } from '@/lib/supabase';
+import { isFeatureEnabled } from '@/lib/config/features';
 
 interface SidebarProps {
   collapsed: boolean;
@@ -92,17 +93,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
     };
   }, [user?.id]);
 
+  // Build navigation items based on feature flags
   const navigationItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
-    { icon: FolderKanban, label: 'Projects', href: '/projects' },
-    { icon: CheckSquare, label: 'Tasks', href: '/tasks' },
-    { icon: Clock, label: 'Contributions', href: '/contributions' },
-    { icon: ClipboardCheck, label: 'Evaluations', href: '/evaluations' },
-    { icon: Users, label: 'Teams', href: '/teams' },
-    { icon: MessageSquare, label: 'Messages', href: '/messages' },
-    { icon: BarChart3, label: 'Analytics', href: '/analytics' },
-    { icon: Settings, label: 'Settings', href: '/settings' },
-  ];
+    { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard', feature: 'DASHBOARD' as const },
+    { icon: FolderKanban, label: 'Projects', href: '/projects', feature: 'PROJECTS' as const },
+    { icon: CheckSquare, label: 'Tasks', href: '/tasks', feature: 'TASKS' as const },
+    { icon: Clock, label: 'My Work', href: '/contributions', feature: 'CONTRIBUTIONS' as const },
+    { icon: ClipboardCheck, label: 'Peer Evaluations', href: '/evaluations', feature: 'PEER_EVALUATIONS' as const },
+    { icon: Users, label: 'Study Groups', href: '/teams', feature: 'STUDY_GROUPS' as const },
+    { icon: MessageSquare, label: 'Messages', href: '/messages', feature: 'COMMUNICATION' as const },
+    { icon: BarChart3, label: 'Participation', href: '/analytics', feature: 'PARTICIPATION_CHART' as const },
+    { icon: Settings, label: 'Settings', href: '/settings', feature: 'SETTINGS_PROFILE' as const },
+  ].filter((item): item is typeof item & { feature: string } => isFeatureEnabled(item.feature));
 
   const isActive = (href: string) => pathname === href;
 
