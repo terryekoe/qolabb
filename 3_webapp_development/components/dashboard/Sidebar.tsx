@@ -93,18 +93,31 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
     };
   }, [user?.id]);
 
-  // Build navigation items based on feature flags
-  const navigationItems = [
+  // Build base navigation items (always visible when feature enabled)
+  const baseNavigationItems = [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard', feature: 'DASHBOARD' as const },
     { icon: FolderKanban, label: 'Assignments', href: '/projects', feature: 'PROJECTS' as const },
-    { icon: CheckSquare, label: 'Contributions', href: '/tasks', feature: 'TASKS' as const },
-    { icon: Clock, label: 'My Work', href: '/contributions', feature: 'CONTRIBUTIONS' as const },
-    { icon: ClipboardCheck, label: 'Peer Evaluations', href: '/evaluations', feature: 'PEER_EVALUATIONS' as const },
-    { icon: Users, label: 'My Groups', href: '/teams', feature: 'STUDY_GROUPS' as const },
-    { icon: MessageSquare, label: 'Messages', href: '/messages', feature: 'COMMUNICATION' as const },
-    { icon: BarChart3, label: 'Participation', href: '/analytics', feature: 'PARTICIPATION_CHART' as const },
+    { icon: CheckSquare, label: 'My Contributions', href: '/tasks', feature: 'TASKS' as const },
+    { icon: Users, label: 'My Group', href: '/teams', feature: 'STUDY_GROUPS' as const },
     { icon: Settings, label: 'Settings', href: '/settings', feature: 'SETTINGS_PROFILE' as const },
   ].filter((item): item is typeof item & { feature: string } => isFeatureEnabled(item.feature));
+
+  // Contextual navigation items (appear based on conditions)
+  const contextualNavigationItems = [
+    // Peer Reviews - only show when there are pending evaluations
+    ...(pendingTasksCount > 0 && isFeatureEnabled('PEER_EVALUATIONS') ? [
+      { 
+        icon: ClipboardCheck, 
+        label: 'Peer Reviews', 
+        href: '/evaluations', 
+        feature: 'PEER_EVALUATIONS' as const,
+        badge: pendingTasksCount 
+      }
+    ] : []),
+  ];
+
+  // Combine base and contextual items
+  const navigationItems = [...baseNavigationItems, ...contextualNavigationItems];
 
   const isActive = (href: string) => pathname === href;
 
@@ -190,7 +203,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
               <Building2 size={16} className="text-white" />
             </div>
             <span className="text-sm font-medium text-white truncate">
-              {currentWorkspace?.name || 'Select Workspace'}
+              {currentWorkspace?.name || 'Select Class'}
             </span>
           </div>
           <ChevronDown size={16} className="text-white flex-shrink-0" />
@@ -202,7 +215,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
         {navigationItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.href);
-          const showBadge = item.href === '/tasks' && pendingTasksCount > 0;
+          // Use badge from item if available, otherwise check for legacy tasks badge
+          const badgeCount = 'badge' in item ? item.badge : (item.href === '/tasks' && pendingTasksCount > 0 ? pendingTasksCount : 0);
+          const showBadge = badgeCount > 0;
           
           return (
             <Link 
@@ -225,7 +240,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
                 </div>
                 {showBadge && (
                   <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 bg-red-500 text-white text-xs font-semibold rounded-full">
-                    {pendingTasksCount > 99 ? '99+' : pendingTasksCount}
+                    {badgeCount > 99 ? '99+' : badgeCount}
                   </span>
                 )}
               </motion.div>

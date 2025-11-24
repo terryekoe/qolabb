@@ -9,12 +9,14 @@ import { Button } from '@/components/Button';
 import Avatar from '@/components/ui/Avatar';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
-import { getWorkspaceStats, getWorkspaceActivity, getWorkspaceProjects } from '@/lib/db/queries';
+import { getWorkspaceStats, getWorkspaceActivity, getWorkspaceProjects, getPendingEvaluations } from '@/lib/db/queries';
 import { useRouter } from 'next/navigation';
 import { FirstRunTour } from '@/components/onboarding/FirstRunTour';
+import { OnboardingChecklist } from '@/components/dashboard/OnboardingChecklist';
+import { PeerReviewAlert } from '@/components/dashboard/PeerReviewAlert';
 
 export default function DashboardPage() {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const { currentWorkspace } = useWorkspace();
   const router = useRouter();
   const userName = profile?.full_name?.split(' ')[0] || 'User';
@@ -22,8 +24,11 @@ export default function DashboardPage() {
   const [stats, setStats] = useState({ activeProjects: 0, totalMembers: 0, tasksCompleted: 0, avgParticipation: 0 });
   const [recentProjects, setRecentProjects] = useState<any[]>([]);
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [pendingEvaluations, setPendingEvaluations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showTour, setShowTour] = useState(false);
+  const [hasGroups, setHasGroups] = useState(false);
+  const [hasContributions, setHasContributions] = useState(false);
 
   // Check if user needs to see first-run tour
   useEffect(() => {
@@ -50,7 +55,7 @@ export default function DashboardPage() {
   }, [currentWorkspace]);
 
   async function loadDashboardData() {
-    if (!currentWorkspace) return;
+    if (!currentWorkspace || !user) return;
     
     try {
       setLoading(true);
@@ -66,6 +71,10 @@ export default function DashboardPage() {
       // Load recent activity
       const activityData = await getWorkspaceActivity(currentWorkspace.id, 5);
       setRecentActivity(activityData || []);
+      
+      // Load pending peer evaluations
+      const evaluationsData = await getPendingEvaluations(user.id, currentWorkspace.id);
+      setPendingEvaluations(evaluationsData || []);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     } finally {
@@ -123,41 +132,83 @@ export default function DashboardPage() {
           </div>
         ) : (
           <>
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <StatCard
-                title="Active Assignments"
-                value={stats.activeProjects.toString()}
-                change={stats.activeProjects > 0 ? `${stats.activeProjects} total` : 'No assignments yet'}
-                changeType={stats.activeProjects > 0 ? 'positive' : 'neutral'}
-                icon={FolderKanban}
-                color="blue"
-              />
-              <StatCard
-                title="Team Members"
-                value={stats.totalMembers.toString()}
-                change={stats.totalMembers > 0 ? `${stats.totalMembers} total` : 'No members yet'}
-                changeType={stats.totalMembers > 0 ? 'positive' : 'neutral'}
-                icon={Users}
-                color="green"
-              />
-              <StatCard
-                title="Avg. Participation"
-                value={`${stats.avgParticipation}%`}
-                change={stats.avgParticipation > 0 ? 'Based on contributions' : 'No data yet'}
-                changeType={stats.avgParticipation > 70 ? 'positive' : stats.avgParticipation > 50 ? 'neutral' : 'negative'}
-                icon={TrendingUp}
-                color="purple"
-              />
-              <StatCard
-                title="Contributions Made"
-                value={stats.tasksCompleted.toString()}
-                change={stats.tasksCompleted > 0 ? `${stats.tasksCompleted} total` : 'No contributions yet'}
-                changeType={stats.tasksCompleted > 0 ? 'positive' : 'neutral'}
-                icon={BarChart3}
-                color="orange"
-              />
-            </div>
+            {/* Peer Review Alert for students */}
+            <PeerReviewAlert pendingEvaluations={pendingEvaluations} />
+            
+            {/* Onboarding Checklist for new users */}
+            <OnboardingChecklist
+              hasGroups={hasGroups}
+              hasAssignments={stats.activeProjects > 0}
+              hasContributions={hasContributions}
+            />
+            
+            
+            {/* Role-Based Stats Grid */}
+            {profile?.role?.toLowerCase() === 'instructor' ? (
+              // Instructor Dashboard: 4 stats
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <StatCard
+                  title="Active Classes"
+                  value="1"
+                  change={currentWorkspace ? currentWorkspace.name : 'No class selected'}
+                  changeType="neutral"
+                  icon={FolderKanban}
+                  color="blue"
+                />
+                <StatCard
+                  title="Assignments"
+                  value={stats.activeProjects.toString()}
+                  change={stats.activeProjects > 0 ? `${stats.activeProjects} active` : 'No assignments yet'}
+                  changeType={stats.activeProjects > 0 ? 'positive' : 'neutral'}
+                  icon={FolderKanban}
+                  color="green"
+                />
+                <StatCard
+                  title="Students"
+                  value={stats.totalMembers.toString()}
+                  change={stats.totalMembers > 0 ? `${stats.totalMembers} enrolled` : 'No students yet'}
+                  changeType={stats.totalMembers > 0 ? 'positive' : 'neutral'}
+                  icon={Users}
+                  color="purple"
+                />
+                <StatCard
+                  title="Avg. Participation"
+                  value={`${stats.avgParticipation}%`}
+                  change={stats.avgParticipation > 0 ? 'Based on contributions' : 'No data yet'}
+                  changeType={stats.avgParticipation > 70 ? 'positive' : stats.avgParticipation > 50 ? 'neutral' : 'negative'}
+                  icon={TrendingUp}
+                  color="orange"
+                />
+              </div>
+            ) : (
+              // Student Dashboard: 3 stats
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <StatCard
+                  title="Assignments Due"
+                  value={stats.activeProjects.toString()}
+                  change={stats.activeProjects > 0 ? `${stats.activeProjects} to complete` : 'All caught up!'}
+                  changeType={stats.activeProjects > 0 ? 'neutral' : 'positive'}
+                  icon={FolderKanban}
+                  color="blue"
+                />
+                <StatCard
+                  title="Contributions Made"
+                  value={stats.tasksCompleted.toString()}
+                  change={stats.tasksCompleted > 0 ? 'Keep it up!' : 'Start contributing'}
+                  changeType={stats.tasksCompleted > 0 ? 'positive' : 'neutral'}
+                  icon={BarChart3}
+                  color="green"
+                />
+                <StatCard
+                  title="Team Members"
+                  value={stats.totalMembers.toString()}
+                  change={stats.totalMembers > 0 ? 'In your group' : 'Join a group'}
+                  changeType={stats.totalMembers > 0 ? 'positive' : 'neutral'}
+                  icon={Users}
+                  color="purple"
+                />
+              </div>
+            )}
 
             {/* Quick Actions */}
             <motion.div
@@ -168,30 +219,65 @@ export default function DashboardPage() {
             >
               <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Quick Actions</h2>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                <button 
-                  onClick={() => router.push('/projects?create=true')}
-                  className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-4 text-left transition-colors group"
-                >
-                  <Plus className="mb-2 group-hover:scale-110 transition-transform" size={24} />
-                  <p className="font-semibold">Start Assignment</p>
-                  <p className="text-sm opacity-80">Create a new group assignment</p>
-                </button>
-                <button 
-                  onClick={() => router.push('/settings?tab=workspace&section=invite')}
-                  className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-4 text-left transition-colors group"
-                >
-                  <Users className="mb-2 group-hover:scale-110 transition-transform" size={24} />
-                  <p className="font-semibold">Invite Members</p>
-                  <p className="text-sm opacity-80">Add people to workspace</p>
-                </button>
-                <button 
-                  onClick={() => router.push('/analytics')}
-                  className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-4 text-left transition-colors group"
-                >
-                  <BarChart3 className="mb-2 group-hover:scale-110 transition-transform" size={24} />
-                  <p className="font-semibold">View Analytics</p>
-                  <p className="text-sm opacity-80">Check team insights</p>
-                </button>
+                {profile?.role?.toLowerCase() === 'instructor' ? (
+                  // Instructor Quick Actions
+                  <>
+                    <button 
+                      onClick={() => router.push('/projects?create=true')}
+                      className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-4 text-left transition-colors group"
+                    >
+                      <Plus className="mb-2 group-hover:scale-110 transition-transform" size={24} />
+                      <p className="font-semibold">Create Assignment</p>
+                      <p className="text-sm opacity-80">Add a new assignment</p>
+                    </button>
+                    <button 
+                      onClick={() => router.push('/teams')}
+                      className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-4 text-left transition-colors group"
+                    >
+                      <Users className="mb-2 group-hover:scale-110 transition-transform" size={24} />
+                      <p className="font-semibold">Manage Groups</p>
+                      <p className="text-sm opacity-80">Create and organize groups</p>
+                    </button>
+                    <button 
+                      onClick={() => router.push('/evaluations')}
+                      className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-4 text-left transition-colors group"
+                    >
+                      <BarChart3 className="mb-2 group-hover:scale-110 transition-transform" size={24} />
+                      <p className="font-semibold">View Reviews</p>
+                      <p className="text-sm opacity-80">Check peer evaluations</p>
+                    </button>
+                  </>
+                ) : (
+                  // Student Quick Actions
+                  <>
+                    <button 
+                      onClick={() => router.push('/tasks?log=true')}
+                      className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-4 text-left transition-colors group"
+                    >
+                      <Plus className="mb-2 group-hover:scale-110 transition-transform" size={24} />
+                      <p className="font-semibold">Log Contribution</p>
+                      <p className="text-sm opacity-80">Record your work</p>
+                    </button>
+                    <button 
+                      onClick={() => router.push('/teams')}
+                      className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-4 text-left transition-colors group"
+                    >
+                      <Users className="mb-2 group-hover:scale-110 transition-transform" size={24} />
+                      <p className="font-semibold">View My Group</p>
+                      <p className="text-sm opacity-80">See your teammates</p>
+                    </button>
+                    {pendingEvaluations.length > 0 && (
+                      <button 
+                        onClick={() => router.push('/evaluations')}
+                        className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-4 text-left transition-colors group"
+                      >
+                        <Clock className="mb-2 group-hover:scale-110 transition-transform" size={24} />
+                        <p className="font-semibold">Complete Reviews</p>
+                        <p className="text-sm opacity-80">{pendingEvaluations.length} pending</p>
+                      </button>
+                    )}
+                  </>
+                )}
               </div>
             </motion.div>
 

@@ -49,7 +49,7 @@ export const WorkspaceSwitcher: React.FC<WorkspaceSwitcherProps> = ({ isOpen, on
             <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
               {/* Header */}
               <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                <h2 className="text-lg font-bold text-gray-900">Switch Workspace</h2>
+                <h2 className="text-lg font-bold text-gray-900">Switch Class</h2>
                 <button
                   onClick={onClose}
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -133,7 +133,7 @@ export const WorkspaceSwitcher: React.FC<WorkspaceSwitcherProps> = ({ isOpen, on
                   className="w-full flex items-center justify-center space-x-2 p-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors"
                 >
                   <Plus size={20} />
-                  <span>Create or Join Workspace</span>
+                  <span>Create or Join Class</span>
                 </motion.button>
               </div>
             </div>

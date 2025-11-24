@@ -8,12 +8,16 @@ import { Button } from '@/components/Button';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { updateProfile } from '@/lib/db/queries';
 import { AVAILABLE_GOALS } from '@/lib/constants/goals';
+import { joinWorkspaceByInviteCode } from '@/app/actions/workspace';
+import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
 
 export default function OnboardingPage() {
   const router = useRouter();
   const { user, profile } = useAuth();
+  const { refreshWorkspaces, switchWorkspace } = useWorkspace();
   const [currentStep, setCurrentStep] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [joiningClass, setJoiningClass] = useState(false);
   const [formData, setFormData] = useState({
     fullName: '',
     role: '',
@@ -39,22 +43,51 @@ export default function OnboardingPage() {
     }
   }, [user, profile, formData.fullName]);
 
+  // Check for pending class code and auto-join
+  useEffect(() => {
+    const handlePendingClassCode = async () => {
+      if (!user) return;
+      
+      const pendingCode = sessionStorage.getItem('pendingClassCode');
+      if (pendingCode) {
+        setJoiningClass(true);
+        try {
+          const result = await joinWorkspaceByInviteCode(pendingCode);
+          
+          if (result.success && result.workspaceId) {
+            // Clear the pending code
+            sessionStorage.removeItem('pendingClassCode');
+            
+            // Refresh workspaces and switch to the new one
+            await refreshWorkspaces();
+            switchWorkspace(result.workspaceId);
+            
+            // Skip onboarding and go directly to dashboard
+            router.push('/dashboard');
+          } else {
+            // If join failed, clear the code and continue with normal onboarding
+            sessionStorage.removeItem('pendingClassCode');
+            setJoiningClass(false);
+          }
+        } catch (error) {
+          console.error('Failed to auto-join with class code:', error);
+          sessionStorage.removeItem('pendingClassCode');
+          setJoiningClass(false);
+        }
+      }
+    };
+
+    handlePendingClassCode();
+  }, [user, router, refreshWorkspaces, switchWorkspace]);
+
   const steps = [
-    {
-      title: 'Welcome to Qolabb!',
-      description: 'Let\'s get you set up in just a few steps.',
-    },
     {
       title: 'What\'s your role?',
       description: 'Help us personalize your experience.',
     },
     {
       title: 'Tell us about yourself',
-      description: 'We\'ll customize Qolabb for your needs.',
-    },
-    {
-      title: 'What are your goals?',
-      description: 'Select all that apply.',
+      description: 'We\'ll customize Qolabb for your needs. All fields are optional.',
     },
   ];
 
@@ -116,21 +149,23 @@ export default function OnboardingPage() {
   };
 
   const canProceed = () => {
-    if (currentStep === 1) return formData.role !== '';
-    if (currentStep === 2) {
-      const hasFullName = formData.fullName !== '' || 
-                          profile?.full_name || 
-                          user?.user_metadata?.full_name || 
-                          user?.user_metadata?.name;
-      return hasFullName && formData.institution !== '';
-    }
-    if (currentStep === 3) return formData.goals.length > 0;
+    // Step 0 (Role selection): Must select a role
+    if (currentStep === 0) return formData.role !== '';
+    // Step 1 (Personal info + goals): All fields are optional, can always proceed
+    if (currentStep === 1) return true;
     return true;
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-qolabb-beige-50 flex items-center justify-center p-4">
-      <div className="max-w-2xl w-full">
+      {joiningClass ? (
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Joining Your Class...</h2>
+          <p className="text-gray-600">We're setting up your account. This will only take a moment.</p>
+        </div>
+      ) : (
+        <div className="max-w-2xl w-full">
         {/* Progress Bar */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-2">
@@ -175,26 +210,6 @@ export default function OnboardingPage() {
               {/* Step Content */}
               <div className="mb-8">
                 {currentStep === 0 && (
-                  <div className="space-y-6">
-                    <div className="bg-gradient-to-r from-blue-50 to-qolabb-beige-50 rounded-xl p-6">
-                      <p className="text-lg text-gray-700">
-                        Qolabb helps you track contributions, visualize engagement, and promote fair collaboration in team projects.
-                      </p>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {['Track', 'Analyze', 'Collaborate'].map((feature, i) => (
-                        <div key={feature} className="text-center">
-                          <div className="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2">
-                            <span className="text-blue-700 font-bold">{i + 1}</span>
-                          </div>
-                          <p className="font-medium text-gray-700">{feature}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {currentStep === 1 && (
                   <div className="grid grid-cols-1 gap-4">
                     {roles.map((role) => (
                       <motion.button
@@ -227,68 +242,75 @@ export default function OnboardingPage() {
                   </div>
                 )}
 
-                {currentStep === 2 && (
-                  <div className="space-y-4">
-                    <div>
-                      <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-2">
-                        Full Name {(profile?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name) && '(optional - you can update this)'}
-                      </label>
-                      <input
-                        id="fullName"
-                        type="text"
-                        value={formData.fullName}
-                        onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                        placeholder={
-                          (profile?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name) 
-                            ? `Currently: ${profile?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name}` 
-                            : "e.g., John Doe"
-                        }
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                      {(profile?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name) && (
-                        <p className="text-sm text-gray-500 mt-1">
-                          We found your name from your account. You can leave this blank to keep it, or enter a new name.
-                        </p>
-                      )}
+                {currentStep === 1 && (
+                  <div className="space-y-6">
+                    {/* Personal Info Section */}
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Personal Information</h3>
+                      <div>
+                        <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-2">
+                          Full Name (optional)
+                        </label>
+                        <input
+                          id="fullName"
+                          type="text"
+                          value={formData.fullName}
+                          onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                          placeholder={
+                            (profile?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name) 
+                              ? `Currently: ${profile?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name}` 
+                              : "e.g., John Doe"
+                          }
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                        {(profile?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name) && (
+                          <p className="text-sm text-gray-500 mt-1">
+                            We found your name from your account. You can leave this blank to keep it, or enter a new name.
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <label htmlFor="institution" className="block text-sm font-medium text-gray-700 mb-2">
+                          School/University/Institution (optional)
+                        </label>
+                        <input
+                          id="institution"
+                          type="text"
+                          value={formData.institution}
+                          onChange={(e) => setFormData({ ...formData, institution: e.target.value })}
+                          placeholder="e.g., MIT, Harvard University"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <label htmlFor="institution" className="block text-sm font-medium text-gray-700 mb-2">
-                        School/University/Institution
-                      </label>
-                      <input
-                        id="institution"
-                        type="text"
-                        value={formData.institution}
-                        onChange={(e) => setFormData({ ...formData, institution: e.target.value })}
-                        placeholder="e.g., MIT, Harvard University"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                  </div>
-                )}
 
-                {currentStep === 3 && (
-                  <div className="grid grid-cols-2 gap-3">
-                    {goals.map((goal) => (
-                      <motion.button
-                        key={goal}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => handleGoalToggle(goal)}
-                        className={`p-4 rounded-lg border-2 transition-all ${
-                          formData.goals.includes(goal)
-                            ? 'border-blue-600 bg-blue-50'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-gray-900">{goal}</span>
-                          {formData.goals.includes(goal) && (
-                            <Check className="text-blue-600" size={18} />
-                          )}
-                        </div>
-                      </motion.button>
-                    ))}
+                    {/* Goals Section */}
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Your Goals (optional)</h3>
+                      <p className="text-sm text-gray-600">Select any that apply - you can change these later in settings.</p>
+                      <div className="grid grid-cols-2 gap-3">
+                        {goals.map((goal) => (
+                          <motion.button
+                            key={goal}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => handleGoalToggle(goal)}
+                            className={`p-4 rounded-lg border-2 transition-all ${
+                              formData.goals.includes(goal)
+                                ? 'border-blue-600 bg-blue-50'
+                                : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium text-gray-900">{goal}</span>
+                              {formData.goals.includes(goal) && (
+                                <Check className="text-blue-600" size={18} />
+                              )}
+                            </div>
+                          </motion.button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
@@ -319,6 +341,7 @@ export default function OnboardingPage() {
           </div>
         </motion.div>
       </div>
+      )}
     </div>
   );
 }

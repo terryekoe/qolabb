@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Mail, Lock, User, ArrowRight, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, AlertCircle, CheckCircle2, Building2 } from 'lucide-react';
 import { Button } from '@/components/Button';
 import { useAuth } from '@/lib/auth/AuthContext';
 
@@ -16,6 +16,7 @@ export default function SignupPage() {
     email: '',
     password: '',
     confirmPassword: '',
+    classCode: '', // Optional class code
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -52,6 +53,11 @@ export default function SignupPage() {
       await signUp(formData.email, formData.password, formData.fullName);
 
       setSuccess(true);
+      
+      // Store class code in sessionStorage if provided
+      if (formData.classCode.trim()) {
+        sessionStorage.setItem('pendingClassCode', formData.classCode.toUpperCase());
+      }
       
       // Redirect to onboarding after 2 seconds
       setTimeout(() => {
@@ -251,6 +257,37 @@ export default function SignupPage() {
                     placeholder="••••••••"
                   />
                 </div>
+              </div>
+
+              {/* Class Code Input (Optional) */}
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300"></div>
+                </div>
+                <div className="relative flex justify-center text-xs">
+                  <span className="px-2 bg-white text-gray-500">Optional</span>
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="classCode" className="block text-sm font-medium text-gray-700 mb-2">
+                  Class Code (Optional)
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Building2 className="text-gray-400" size={20} />
+                  </div>
+                  <input
+                    id="classCode"
+                    name="classCode"
+                    type="text"
+                    value={formData.classCode}
+                    onChange={(e) => setFormData({ ...formData, classCode: e.target.value.toUpperCase() })}
+                    className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-all font-mono text-sm tracking-wider"
+                    placeholder="XXXX-XXXX-XXXX"
+                  />
+                </div>
+                <p className="mt-1 text-xs text-gray-500">Have a class code from your instructor? Enter it to join automatically.</p>
               </div>
             </div>
 

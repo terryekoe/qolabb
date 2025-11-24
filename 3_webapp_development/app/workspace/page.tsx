@@ -118,7 +118,7 @@ export default function WorkspacePage() {
             Welcome to <span className="text-blue-600">Qolabb</span>
           </h1>
           <p className="text-xl text-gray-600">
-            Create a workspace or join an existing one to get started
+            Create a class or join an existing one to get started
           </p>
         </motion.div>
 
@@ -137,10 +137,10 @@ export default function WorkspacePage() {
               <Plus className="text-blue-700" size={32} />
             </div>
             <h2 className="text-2xl font-bold mb-3 text-gray-900">
-              Create Workspace
+              Create Class
             </h2>
             <p className="text-gray-600 mb-6">
-              Start a new workspace for your class, organization, or team projects
+              Start a new class for your course, organization, or team projects
             </p>
             <div className="flex items-center text-blue-600 font-semibold">
               Get Started <ArrowRight className="ml-2" size={20} />
@@ -160,10 +160,10 @@ export default function WorkspacePage() {
               <Users className="text-qolabb-beige-700" size={32} />
             </div>
             <h2 className="text-2xl font-bold mb-3 text-gray-900">
-              Join Workspace
+              Join Class
             </h2>
             <p className="text-gray-600 mb-6">
-              Have an invite code? Join an existing workspace to collaborate
+              Have a class code? Join an existing class to collaborate
             </p>
             <div className="flex items-center text-qolabb-beige-700 font-semibold">
               Join Now <ArrowRight className="ml-2" size={20} />
@@ -194,7 +194,7 @@ export default function WorkspacePage() {
                   <div className="bg-blue-100 p-3 rounded-lg mr-4">
                     <Building2 className="text-blue-700" size={24} />
                   </div>
-                  <h2 className="text-2xl font-bold text-gray-900">Create Workspace</h2>
+                  <h2 className="text-2xl font-bold text-gray-900">Create Class</h2>
                 </div>
 
                 <div className="space-y-4 mb-6">
@@ -216,7 +216,7 @@ export default function WorkspacePage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Workspace Name *
+                      Class Name *
                     </label>
                     <input
                       type="text"
@@ -234,7 +234,7 @@ export default function WorkspacePage() {
                     <textarea
                       value={workspaceDescription}
                       onChange={(e) => setWorkspaceDescription(e.target.value)}
-                      placeholder="Brief description of this workspace..."
+                      placeholder="Brief description of this class..."
                       rows={3}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
@@ -255,7 +255,7 @@ export default function WorkspacePage() {
                     disabled={!workspaceName.trim() || loading}
                     className="flex-1"
                   >
-                    {loading ? 'Creating...' : 'Create Workspace'}
+                    {loading ? 'Creating...' : 'Create Class'}
                   </Button>
                 </div>
               </motion.div>
@@ -284,7 +284,7 @@ export default function WorkspacePage() {
                   <div className="bg-qolabb-beige-100 p-3 rounded-lg mr-4">
                     <Mail className="text-qolabb-beige-700" size={24} />
                   </div>
-                  <h2 className="text-2xl font-bold text-gray-900">Join Workspace</h2>
+                  <h2 className="text-2xl font-bold text-gray-900">Join Class</h2>
                 </div>
 
                 <div className="space-y-4 mb-6">
@@ -306,7 +306,7 @@ export default function WorkspacePage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Invite Code *
+                      Class Code *
                     </label>
                     <input
                       type="text"
@@ -316,7 +316,7 @@ export default function WorkspacePage() {
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-beige-500 focus:border-transparent font-mono text-lg tracking-wider"
                     />
                     <p className="text-sm text-gray-500 mt-2">
-                      Enter the invite code shared by your workspace admin
+                      Enter the class code shared by your instructor
                     </p>
                   </div>
                 </div>
@@ -335,7 +335,7 @@ export default function WorkspacePage() {
                     disabled={!inviteCode.trim() || loading}
                     className="flex-1"
                   >
-                    {loading ? 'Joining...' : 'Join Workspace'}
+                    {loading ? 'Joining...' : 'Join Class'}
                   </Button>
                 </div>
               </motion.div>

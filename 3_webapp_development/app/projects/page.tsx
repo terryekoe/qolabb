@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useState, useEffect, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FeatureGuard } from '@/components/features/FeatureGuard';
@@ -18,6 +16,7 @@ import {
   X,
   Shield,
   Crown,
+  ClipboardCheck,
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/Button';
@@ -34,10 +33,12 @@ import {
   isTeamLeaderOrInstructor,
   getWorkspaceMembers,
   updateTeamMemberRole,
+  getPendingEvaluations,
 } from '@/lib/db/queries';
 
 type ProjectStatus = 'pending' | 'active' | 'completed' | 'archived';
 type FilterType = 'all' | ProjectStatus;
+type TabType = 'assignments' | 'reviews';
 
 // Force dynamic rendering to prevent prerender errors
 export const dynamic = 'force-dynamic';
@@ -49,9 +50,11 @@ function ProjectsPageContent() {
   
   const [projects, setProjects] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
+  const [pendingEvaluations, setPendingEvaluations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<FilterType>('all');
+  const [activeTab, setActiveTab] = useState<TabType>('assignments');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const [canManageTasks, setCanManageTasks] = useState(false);
@@ -74,11 +77,12 @@ function ProjectsPageContent() {
   }, [searchParams]);
 
   useEffect(() => {
-    if (currentWorkspace) {
+    if (currentWorkspace && user) {
       loadProjects();
       loadTeams();
+      loadPendingEvaluations();
     }
-  }, [currentWorkspace]);
+  }, [currentWorkspace, user]);
 
   // Real-time subscriptions for projects and teams
   useEffect(() => {
@@ -164,6 +168,17 @@ function ProjectsPageContent() {
       setTeams(data || []);
     } catch (error) {
       console.error('Error loading teams:', error);
+    }
+  }
+
+  async function loadPendingEvaluations() {
+    if (!currentWorkspace || !user) return;
+    
+    try {
+      const data = await getPendingEvaluations(user.id, currentWorkspace.id);
+      setPendingEvaluations(data || []);
+    } catch (error) {
+      console.error('Error loading pending evaluations:', error);
     }
   }
 
@@ -310,189 +325,296 @@ function ProjectsPageContent() {
           </div>
         </div>
 
-        {/* Search and Filters */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-          <div className="flex flex-col lg:flex-row gap-4">
-            {/* Search */}
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-              <input
-                type="text"
-                placeholder="Search assignments..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            {/* Status Filter */}
-            <div className="flex items-center space-x-2 overflow-x-auto">
-              <Filter size={20} className="text-gray-400 flex-shrink-0" />
-              {(['all', 'active', 'pending', 'completed', 'archived'] as FilterType[]).map((status) => (
-                <button
-                  key={status}
-                  onClick={() => setStatusFilter(status)}
-                  className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors ${
-                    statusFilter === status
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                  }`}
-                >
-                  {status.charAt(0).toUpperCase() + status.slice(1)}
-                  <span className="ml-2 opacity-75">({statusCounts[status]})</span>
-                </button>
-              ))}
-            </div>
+        {/* Tab Navigation */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-1">
+          <div className="flex gap-2">
+            <button
+              onClick={() => setActiveTab('assignments')}
+              className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+                activeTab === 'assignments'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            >
+              <span className="flex items-center justify-center gap-2">
+                <FolderKanban size={16} />
+                Assignments
+                <span className="opacity-75">({projects.length})</span>
+              </span>
+            </button>
+            {pendingEvaluations.length > 0 && (
+              <button
+                onClick={() => setActiveTab('reviews')}
+                className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+                  activeTab === 'reviews'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                <span className="flex items-center justify-center gap-2">
+                  <ClipboardCheck size={16} />
+                  Reviews
+                  <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                    {pendingEvaluations.length}
+                  </span>
+                </span>
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Projects Grid */}
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 animate-pulse">
-                <div className="h-6 bg-gray-200 rounded mb-4"></div>
-                <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+        {/* Tab Content */}
+        {activeTab === 'assignments' ? (
+          <>
+            {/* Search and Filters */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+              <div className="flex flex-col lg:flex-row gap-4">
+                {/* Search */}
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                  <input
+                    type="text"
+                    placeholder="Search assignments..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                {/* Status Filter */}
+                <div className="flex items-center space-x-2 overflow-x-auto">
+                  <Filter size={20} className="text-gray-400 flex-shrink-0" />
+                  {(['all', 'active', 'pending', 'completed', 'archived'] as FilterType[]).map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => setStatusFilter(status)}
+                      className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors ${
+                        statusFilter === status
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                      }`}
+                    >
+                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                      <span className="ml-2 opacity-75">({statusCounts[status]})</span>
+                    </button>
+                  ))}
+                </div>
               </div>
-            ))}
-          </div>
-        ) : filteredProjects.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border-2 border-dashed border-gray-300 dark:border-gray-600"
-          >
-            <FolderKanban size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-              {searchQuery || statusFilter !== 'all' ? 'No assignments found' : 'No assignments yet'}
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
-              {searchQuery || statusFilter !== 'all'
-                ? 'Try adjusting your filters or search query'
-                : teams.length === 0
-                ? 'You need to create a team before you can add assignments'
-                : 'Create your first assignment to start collaborating with your team'}
-            </p>
-            {teams.length === 0 ? (
-              <Button
-                variant="secondary"
-                onClick={() => window.location.href = '/teams'}
-                className="flex items-center space-x-2 mx-auto"
+            </div>
+
+            {/* Projects Grid */}
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 animate-pulse">
+                    <div className="h-6 bg-gray-200 rounded mb-4"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                  </div>
+                ))}
+              </div>
+            ) : filteredProjects.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border-2 border-dashed border-gray-300 dark:border-gray-600"
               >
-                <UsersIcon size={20} />
-                <span>Go to Teams Page</span>
-              </Button>
-            ) : !searchQuery && statusFilter === 'all' ? (
-              <Button
-                variant="primary"
-                onClick={() => setShowCreateModal(true)}
-                className="flex items-center space-x-2 mx-auto"
-              >
-                <Plus size={20} />
-                <span>Create First Assignment</span>
-              </Button>
-            ) : null}
-          </motion.div>
+                <FolderKanban size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                  {searchQuery || statusFilter !== 'all' ? 'No assignments found' : 'No assignments yet'}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                  {searchQuery || statusFilter !== 'all'
+                    ? 'Try adjusting your filters or search query'
+                    : teams.length === 0
+                    ? 'You need to create a team before you can add assignments'
+                    : 'Create your first assignment to start collaborating with your team'}
+                </p>
+                {teams.length === 0 ? (
+                  <Button
+                    variant="secondary"
+                    onClick={() => window.location.href = '/teams'}
+                    className="flex items-center space-x-2 mx-auto"
+                  >
+                    <UsersIcon size={20} />
+                    <span>Go to Teams Page</span>
+                  </Button>
+                ) : !searchQuery && statusFilter === 'all' ? (
+                  <Button
+                    variant="primary"
+                    onClick={() => setShowCreateModal(true)}
+                    className="flex items-center space-x-2 mx-auto"
+                  >
+                    <Plus size={20} />
+                    <span>Create First Assignment</span>
+                  </Button>
+                ) : null}
+              </motion.div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredProjects.map((project, index) => {
+                  const statusConfig = getStatusConfig(project.status);
+                  
+                  return (
+                    <motion.div
+                      key={project.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      whileHover={{ y: -4 }}
+                      onClick={() => handleProjectClick(project)}
+                      className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all overflow-hidden group cursor-pointer"
+                    >
+                      {/* Project Header */}
+                      <div className="p-6">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1 truncate">
+                              {project.name}
+                            </h3>
+                            {project.team && (
+                              <p className="text-sm text-gray-500 flex items-center">
+                                <UsersIcon size={14} className="mr-1" />
+                                {project.team.name}
+                              </p>
+                            )}
+                          </div>
+                          <button className="p-2 hover:bg-gray-100 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                            <MoreVertical size={18} className="text-gray-400" />
+                          </button>
+                        </div>
+
+                        {/* Description */}
+                        {project.description && (
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
+                            {project.description}
+                          </p>
+                        )}
+
+                        {/* Status Badge */}
+                        <div className="flex items-center justify-between mb-4">
+                          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${statusConfig.color}`}>
+                            {statusConfig.icon}
+                            {statusConfig.label}
+                          </span>
+                          {project.due_date && (
+                            <span className="flex items-center text-xs text-gray-500">
+                              <Calendar size={14} className="mr-1" />
+                              {new Date(project.due_date).toLocaleDateString()}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Tasks Progress (if available) */}
+                        {project.tasks && project.tasks.length > 0 && (
+                          <div>
+                            <div className="flex justify-between text-xs text-gray-600 mb-2">
+                              <span>Tasks</span>
+                              <span>
+                                {project.tasks.filter((t: any) => t.status === 'completed').length}/{project.tasks.length}
+                              </span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-blue-600 h-2 rounded-full transition-all"
+                                style={{
+                                  width: `${(project.tasks.filter((t: any) => t.status === 'completed').length / project.tasks.length) * 100}%`
+                                }}
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Team Members (if available) */}
+                        {project.contributions && project.contributions.length > 0 && (
+                          <div className="mt-4 pt-4 border-t border-gray-100">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-gray-500">Contributors</span>
+                              <div className="flex -space-x-2">
+                                <AvatarGroup
+                                  users={project.contributions.map((contrib: any) => ({
+                                    userId: contrib.user?.id || contrib.id,
+                                    name: contrib.user?.full_name || 'User',
+                                    src: contrib.user?.avatar_url
+                                  }))}
+                                  max={3}
+                                  size="sm"
+                                  className="[&>*]:border-2 [&>*]:border-white"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
+          </>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProjects.map((project, index) => {
-              const statusConfig = getStatusConfig(project.status);
-              
-              return (
+          /* Reviews Tab Content */
+          <div className="space-y-4">
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-xl p-4">
+              <div className="flex items-start gap-3">
+                <ClipboardCheck className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">
+                    Pending Peer Reviews
+                  </h3>
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    You have {pendingEvaluations.length} peer {pendingEvaluations.length === 1 ? 'review' : 'reviews'} to complete. 
+                    Review your teammates' contributions to help improve collaboration.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Pending Reviews List */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {pendingEvaluations.map((evaluation, index) => (
                 <motion.div
-                  key={project.id}
+                  key={evaluation.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  whileHover={{ y: -4 }}
-                  onClick={() => handleProjectClick(project)}
-                  className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all overflow-hidden group cursor-pointer"
+                  className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-all"
                 >
-                  {/* Project Header */}
-                  <div className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1 truncate">
-                          {project.name}
-                        </h3>
-                        {project.team && (
-                          <p className="text-sm text-gray-500 flex items-center">
-                            <UsersIcon size={14} className="mr-1" />
-                            {project.team.name}
-                          </p>
-                        )}
-                      </div>
-                      <button className="p-2 hover:bg-gray-100 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">
-                        <MoreVertical size={18} className="text-gray-400" />
-                      </button>
-                    </div>
-
-                    {/* Description */}
-                    {project.description && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
-                        {project.description}
-                      </p>
-                    )}
-
-                    {/* Status Badge */}
-                    <div className="flex items-center justify-between mb-4">
-                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${statusConfig.color}`}>
-                        {statusConfig.icon}
-                        {statusConfig.label}
-                      </span>
-                      {project.due_date && (
-                        <span className="flex items-center text-xs text-gray-500">
-                          <Calendar size={14} className="mr-1" />
-                          {new Date(project.due_date).toLocaleDateString()}
-                        </span>
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-1">
+                        Review {evaluation.evaluatee_name || 'Teammate'}
+                      </h3>
+                      {evaluation.project_name && (
+                        <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                          <FolderKanban size={14} />
+                          {evaluation.project_name}
+                        </p>
                       )}
                     </div>
-
-                    {/* Tasks Progress (if available) */}
-                    {project.tasks && project.tasks.length > 0 && (
-                      <div>
-                        <div className="flex justify-between text-xs text-gray-600 mb-2">
-                          <span>Tasks</span>
-                          <span>
-                            {project.tasks.filter((t: any) => t.status === 'completed').length}/{project.tasks.length}
-                          </span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div
-                            className="bg-blue-600 h-2 rounded-full transition-all"
-                            style={{
-                              width: `${(project.tasks.filter((t: any) => t.status === 'completed').length / project.tasks.length) * 100}%`
-                            }}
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Team Members (if available) */}
-                    {project.contributions && project.contributions.length > 0 && (
-                      <div className="mt-4 pt-4 border-t border-gray-100">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-500">Contributors</span>
-                          <div className="flex -space-x-2">
-                            <AvatarGroup
-                              users={project.contributions.map((contrib: any) => ({
-                                userId: contrib.user?.id || contrib.id,
-                                name: contrib.user?.full_name || 'User',
-                                src: contrib.user?.avatar_url
-                              }))}
-                              max={3}
-                              size="sm"
-                              className="[&>*]:border-2 [&>*]:border-white"
-                            />
-                          </div>
-                        </div>
-                      </div>
+                    {evaluation.due_date && (
+                      <span className="flex items-center text-xs text-gray-500 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+                        <Clock size={12} className="mr-1" />
+                        Due {new Date(evaluation.due_date).toLocaleDateString()}
+                      </span>
                     )}
                   </div>
+
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                    Evaluate your teammate's contributions and provide constructive feedback.
+                  </p>
+
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => window.location.href = '/evaluations'}
+                    className="w-full"
+                  >
+                    Start Review
+                  </Button>
                 </motion.div>
-              );
-            })}
+              ))}
+            </div>
           </div>
         )}
       </div>
