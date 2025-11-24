@@ -15,7 +15,7 @@ Personally, I really dislike group work for this exact reason. I often find myse
 On the other hand, I also experienced the reverse situation during the CDSP projects with **MIT Emerging Talent** (the program for which I am currently building this project). Due to personal reasons, I couldn't contribute fully, which forced a few colleagues to carry the project. This made me realize that uneven participation is not just about fairness—it actively impedes learning opportunities and meaningful collaboration for everyone involved.
 
 **The Solution:**
-Qolabb aims to solve this by using data science to:
+Qolabb aims to solve this by building a web application that leverages data science to:
 *   **Track individual contributions** transparently.
 *   **Visualize engagement** to hold members accountable.
 *   **Ensure that grades and recognition reflect actual effort.**
@@ -23,7 +23,11 @@ Qolabb aims to solve this by using data science to:
 This project is about making teamwork fair again.
 
 ## 🧗 Challenges
-*Document the technical or non-technical hurdles faced during development and how they were overcome.*
+
+### 🔐 1. The Workspace RLS Struggle
+One of the biggest hurdles was implementing the workspace flow. I wanted users to be able to create a new workspace or select an existing one immediately after logging in.
+
+This feature caused a significant amount of trouble, to the point where I almost felt like giving up. The root cause turned out to be the **Row Level Security (RLS) policies** in Supabase. The policies for authenticated users weren't correctly set up to allow the necessary reads and writes during that initial creation phase. Once I realized the RLS policies were blocking the requests, I was able to fix it, but it was a tough debugging experience.
 
 ## 🗣️ Feedback
 *Record feedback received from peers, instructors, or users, and how it influenced the project.*
