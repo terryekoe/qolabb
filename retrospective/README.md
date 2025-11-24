@@ -30,7 +30,24 @@ One of the biggest hurdles was implementing the workspace flow. I wanted users t
 This feature caused a significant amount of trouble, to the point where I almost felt like giving up. The root cause turned out to be the **Row Level Security (RLS) policies** in Supabase. The policies for authenticated users weren't correctly set up to allow the necessary reads and writes during that initial creation phase. Once I realized the RLS policies were blocking the requests, I was able to fix it, but it was a tough debugging experience.
 
 ## 🗣️ Feedback
-*Record feedback received from peers, instructors, or users, and how it influenced the project.*
+
+### 💬 Insights from Evan Cole (Instructor)
+I had a valuable conversation with my instructor, Evan, which highlighted both technical issues and a critical design flaw.
+
+**1. The "Disappearing Project" Bug:**
+Early on, Evan tested the deployed app and encountered a bug where he created a project but couldn't find it afterwards.
+> *"I created a project (ET6 ELO2) then couldn’t find it again, the dropdown told me there were none."*
+This confirmed the RLS issue I was struggling with (mentioned above). I had to temporarily disable RLS to let him proceed, which was a quick fix but not a long-term solution.
+
+**2. Feature Creep & Loss of Focus:**
+The most critical piece of feedback came later, when Evan noted that the app was losing its educational identity:
+> *"It feels like it’s becoming a generic task management app. There’s barely any wording about studying in groups... Imagine yourself as a student without much experience working in groups... trying to use this for the first time. You’d be overwhelmed."*
+
+**Key Takeaway:**
+I was building too many features without keeping the specific user persona (students) in mind. The app was becoming complex rather than helpful. Evan advised me to:
+*   **Define user personas** more carefully.
+*   **Simplify the user experience**, even if it means removing code.
+*   Focus on the **minimal set of features** that truly support group study.
 
 ## 🔄 Turning Points
 *Highlight key moments where the project direction changed or significant decisions were made.*
