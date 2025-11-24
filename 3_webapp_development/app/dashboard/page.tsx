@@ -126,9 +126,9 @@ export default function DashboardPage() {
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <StatCard
-                title="Active Projects"
+                title="Active Assignments"
                 value={stats.activeProjects.toString()}
-                change={stats.activeProjects > 0 ? `${stats.activeProjects} total` : 'No projects yet'}
+                change={stats.activeProjects > 0 ? `${stats.activeProjects} total` : 'No assignments yet'}
                 changeType={stats.activeProjects > 0 ? 'positive' : 'neutral'}
                 icon={FolderKanban}
                 color="blue"
@@ -150,9 +150,9 @@ export default function DashboardPage() {
                 color="purple"
               />
               <StatCard
-                title="Tasks Completed"
+                title="Contributions Made"
                 value={stats.tasksCompleted.toString()}
-                change={stats.tasksCompleted > 0 ? `${stats.tasksCompleted} total` : 'No tasks yet'}
+                change={stats.tasksCompleted > 0 ? `${stats.tasksCompleted} total` : 'No contributions yet'}
                 changeType={stats.tasksCompleted > 0 ? 'positive' : 'neutral'}
                 icon={BarChart3}
                 color="orange"
@@ -173,8 +173,8 @@ export default function DashboardPage() {
                   className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-4 text-left transition-colors group"
                 >
                   <Plus className="mb-2 group-hover:scale-110 transition-transform" size={24} />
-                  <p className="font-semibold">Create Project</p>
-                  <p className="text-sm opacity-80">Start a new team project</p>
+                  <p className="font-semibold">Start Assignment</p>
+                  <p className="text-sm opacity-80">Create a new group assignment</p>
                 </button>
                 <button 
                   onClick={() => router.push('/settings?tab=workspace&section=invite')}
@@ -205,7 +205,7 @@ export default function DashboardPage() {
                 className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6"
               >
                 <div className="flex items-center justify-between mb-4 sm:mb-6 gap-2 sm:gap-4">
-                  <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 flex-shrink-0 min-w-0">Recent Projects</h2>
+                  <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 flex-shrink-0 min-w-0">Current Assignments</h2>
                   {recentProjects.length > 0 && (
                     <Button 
                       variant="ghost" 
@@ -219,16 +219,16 @@ export default function DashboardPage() {
                 </div>
                 
                 {recentProjects.length === 0 ? (
-                  <div className="text-center py-12">
+                    <div className="text-center py-12">
                     <FolderKanban size={48} className="mx-auto text-gray-300 mb-4" />
-                    <p className="text-gray-600 dark:text-gray-400 mb-4">No projects yet</p>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">No assignments yet</p>
                     <Button 
                       variant="primary" 
                       size="sm"
                       onClick={() => router.push('/projects?create=true')}
                     >
                       <Plus size={16} className="mr-2" />
-                      Create First Project
+                      Create First Assignment
                     </Button>
                   </div>
                 ) : (

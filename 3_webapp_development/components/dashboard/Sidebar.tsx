@@ -96,11 +96,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
   // Build navigation items based on feature flags
   const navigationItems = [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard', feature: 'DASHBOARD' as const },
-    { icon: FolderKanban, label: 'Projects', href: '/projects', feature: 'PROJECTS' as const },
-    { icon: CheckSquare, label: 'Tasks', href: '/tasks', feature: 'TASKS' as const },
+    { icon: FolderKanban, label: 'Assignments', href: '/projects', feature: 'PROJECTS' as const },
+    { icon: CheckSquare, label: 'Contributions', href: '/tasks', feature: 'TASKS' as const },
     { icon: Clock, label: 'My Work', href: '/contributions', feature: 'CONTRIBUTIONS' as const },
     { icon: ClipboardCheck, label: 'Peer Evaluations', href: '/evaluations', feature: 'PEER_EVALUATIONS' as const },
-    { icon: Users, label: 'Study Groups', href: '/teams', feature: 'STUDY_GROUPS' as const },
+    { icon: Users, label: 'My Groups', href: '/teams', feature: 'STUDY_GROUPS' as const },
     { icon: MessageSquare, label: 'Messages', href: '/messages', feature: 'COMMUNICATION' as const },
     { icon: BarChart3, label: 'Participation', href: '/analytics', feature: 'PARTICIPATION_CHART' as const },
     { icon: Settings, label: 'Settings', href: '/settings', feature: 'SETTINGS_PROFILE' as const },
