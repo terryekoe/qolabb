@@ -212,9 +212,9 @@ export default function TeamsPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Teams</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">My Groups</h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Manage teams in {currentWorkspace.name}
+              Manage groups in {currentWorkspace.name}
             </p>
           </div>
           {activeTab === 'my-teams' && (
@@ -224,7 +224,7 @@ export default function TeamsPage() {
               className="flex items-center space-x-2"
             >
               <Plus size={20} />
-              <span>New Team</span>
+              <span>New Group</span>
             </Button>
           )}
         </div>
@@ -241,8 +241,8 @@ export default function TeamsPage() {
               }`}
             >
               <Users size={18} />
-              <span className="hidden sm:inline">My Teams</span>
-              <span className="sm:hidden">Teams</span>
+              <span className="hidden sm:inline">My Groups</span>
+              <span className="sm:hidden">Groups</span>
             </button>
             <button
               onClick={() => setActiveTab('discover')}
@@ -253,8 +253,8 @@ export default function TeamsPage() {
               }`}
             >
               <Compass size={18} />
-              <span className="hidden sm:inline">Discover Teams</span>
-              <span className="sm:hidden">Discover</span>
+              <span className="hidden sm:inline">Find Groups</span>
+              <span className="sm:hidden">Find</span>
             </button>
             <button
               onClick={() => setActiveTab('requests')}
@@ -265,7 +265,7 @@ export default function TeamsPage() {
               }`}
             >
               <Bell size={18} />
-              <span className="hidden sm:inline">Join Requests</span>
+              <span className="hidden sm:inline">Membership Requests</span>
               <span className="sm:hidden">Requests</span>
             </button>
             <button
@@ -277,8 +277,8 @@ export default function TeamsPage() {
               }`}
             >
               <UserCog size={18} />
-              <span className="hidden sm:inline">Bulk Assignment</span>
-              <span className="sm:hidden">Bulk</span>
+              <span className="hidden sm:inline">Class Assignments</span>
+              <span className="sm:hidden">Class</span>
             </button>
             <button
               onClick={() => setActiveTab('audit-log')}
@@ -289,8 +289,8 @@ export default function TeamsPage() {
               }`}
             >
               <History size={18} />
-              <span className="hidden sm:inline">Audit Log</span>
-              <span className="sm:hidden">Audit</span>
+              <span className="hidden sm:inline">Group History</span>
+              <span className="sm:hidden">History</span>
             </button>
           </div>
         </div>
@@ -304,7 +304,7 @@ export default function TeamsPage() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <input
                   type="text"
-                  placeholder="Search teams..."
+                  placeholder="Search groups..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -331,12 +331,12 @@ export default function TeamsPage() {
           >
             <Users size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-              {searchQuery ? 'No teams found' : 'No teams yet'}
+              {searchQuery ? 'No groups found' : 'No groups yet'}
             </h3>
             <p className="text-gray-600 mb-6">
               {searchQuery
                 ? 'Try adjusting your search query'
-                : 'Create your first team to start collaborating on projects'}
+                : 'Create your first group to start collaborating on assignments'}
             </p>
             {!searchQuery && (
               <Button
@@ -345,7 +345,7 @@ export default function TeamsPage() {
                 className="flex items-center space-x-2 mx-auto"
               >
                 <Plus size={20} />
-                <span>Create First Team</span>
+                <span>Create First Group</span>
               </Button>
             )}
           </motion.div>
@@ -406,7 +406,7 @@ export default function TeamsPage() {
                   {/* Members Avatars */}
                   {team.members && team.members.length > 0 && (
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Team Members</span>
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Group Members</span>
                       <AvatarGroup
                         users={team.members.map((member: any) => ({
                           userId: member.user?.id || member.user_id || `member-${member.id}`,
@@ -495,7 +495,7 @@ export default function TeamsPage() {
                   <div className="bg-blue-100 p-3 rounded-lg mr-4">
                     <Users className="text-blue-700" size={24} />
                   </div>
-                  <h2 className="text-2xl font-bold text-gray-900">Create Team</h2>
+                  <h2 className="text-2xl font-bold text-gray-900">Create Group</h2>
                 </div>
                 <button
                   onClick={() => {
@@ -520,13 +520,13 @@ export default function TeamsPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Team Name *
+                    Group Name *
                   </label>
                   <input
                     type="text"
                     value={teamName}
                     onChange={(e) => setTeamName(e.target.value)}
-                    placeholder="e.g., Frontend Development Team"
+                    placeholder="e.g., Study Group A"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
@@ -538,7 +538,7 @@ export default function TeamsPage() {
                   <textarea
                     value={teamDescription}
                     onChange={(e) => setTeamDescription(e.target.value)}
-                    placeholder="What does this team do?"
+                    placeholder="What does this group do?"
                     rows={3}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
@@ -546,7 +546,7 @@ export default function TeamsPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Team Color
+                    Group Color
                   </label>
                   <div className="grid grid-cols-6 gap-3">
                     {colors.map((color) => (
@@ -587,7 +587,7 @@ export default function TeamsPage() {
                   disabled={!teamName.trim() || creating}
                   className="flex-1"
                 >
-                  {creating ? 'Creating...' : 'Create Team'}
+                  {creating ? 'Creating...' : 'Create Group'}
                 </Button>
               </div>
             </motion.div>

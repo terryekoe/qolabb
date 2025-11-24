@@ -50,4 +50,13 @@ I was building too many features without keeping the specific user persona (stud
 *   Focus on the **minimal set of features** that truly support group study.
 
 ## 🔄 Turning Points
-*Highlight key moments where the project direction changed or significant decisions were made.*
+
+### 🎓 The "Student-Centric" Pivot
+Following Evan's feedback, I made a conscious decision to pivot the application's identity.
+*   **Before:** The app used generic terms like "Projects", "Tasks", and "Workspaces", mimicking tools like Asana or Jira.
+*   **After:** I refactored the entire UI to use student-friendly language:
+    *   "Projects" became **"Assignments"**
+    *   "Tasks" became **"Contributions"**
+    *   "Study Groups" became **"My Groups"**
+
+This shift wasn't just cosmetic; it redefined the app's purpose. It's no longer about "managing work"—it's about **collaborating on assignments**. This change immediately made the dashboard feel less overwhelming and more relevant to a student's daily life.

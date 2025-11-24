@@ -16,8 +16,8 @@ export const FEATURES = {
   PEER_EVALUATIONS: true,      // Unique educational value
   
   // HIDE FOR MVP - Set to false
-  TASKS: false,                 // Too complex for first-time users
-  PROJECTS: false,              // Not needed for MVP - focus on contributions
+  TASKS: true,                 // Too complex for first-time users
+  PROJECTS: true,              // Not needed for MVP - focus on contributions
   ADVANCED_ANALYTICS: false,   // Hide complex charts, keep basic participation
   COMMUNICATION: false,         // Students use WhatsApp/Slack already
   TEAM_CHAT: false,             // Part of communication

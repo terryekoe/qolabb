@@ -1032,9 +1032,9 @@ function TasksPageContent() {
 
   const viewTabs = [
     { id: 'focus', label: 'My Day', description: 'Start with what matters', icon: Sun },
-    { id: 'board', label: 'Team Board', description: 'See work by stage', icon: FolderKanban },
-    { id: 'all', label: 'Task Library', description: 'Browse every task', icon: CheckSquare },
-    { id: 'team', label: 'Team Workload', description: 'Balance work fairly', icon: UsersIcon },
+    { id: 'board', label: 'Group Board', description: 'See work by stage', icon: FolderKanban },
+    { id: 'all', label: 'Contribution Library', description: 'Browse every contribution', icon: CheckSquare },
+    { id: 'team', label: 'Group Workload', description: 'Balance work fairly', icon: UsersIcon },
   ] as const;
 
   const renderFocusView = () => {
@@ -1049,7 +1049,7 @@ function TasksPageContent() {
                 <Sun size={16} />
                 Today's focus
               </span>
-              <h1 className="text-2xl sm:text-3xl font-bold">Hi {userFirstName}, let's move one task forward.</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold">Hi {userFirstName}, let's move one contribution forward.</h1>
               <p className="text-sm sm:text-base text-white/80">
                 Pick the next step from the list. Status words stay simple: <strong>To Start</strong>, <strong>Doing</strong>, <strong>Done</strong>.
               </p>
@@ -1061,14 +1061,14 @@ function TasksPageContent() {
                 className="flex items-center gap-2 !bg-white dark:!bg-gray-800 !text-blue-600 dark:!text-blue-400 hover:!bg-white/90 dark:hover:!bg-gray-700"
               >
                 <FolderKanban size={18} />
-                Open team board
+                Open group board
               </Button>
               <Button
                 variant="ghost"
                 onClick={() => setShowAdvancedTools(true)}
                 className="!text-white !border !border-white/40 hover:!bg-white/10"
               >
-                Show task options
+                Show contribution options
               </Button>
         </div>
           </div>
@@ -1081,11 +1081,11 @@ function TasksPageContent() {
                 <Sparkles size={18} className="text-blue-500" />
                 Your next steps
               </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Choose one task to start. You can always come back for more.</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Choose one contribution to start. You can always come back for more.</p>
             </div>
             {hasMyTasks && (
               <span className="text-xs text-gray-500">
-                Showing up to {Math.min(upcomingTasks.length, 5)} task{upcomingTasks.length === 1 ? '' : 's'} needing attention
+                Showing up to {Math.min(upcomingTasks.length, 5)} contribution{upcomingTasks.length === 1 ? '' : 's'} needing attention
               </span>
             )}
           </div>
@@ -1102,7 +1102,7 @@ function TasksPageContent() {
 
                 const nextAction: { label: string; status: TaskStatus } | null =
                   task.status === 'todo'
-                    ? { label: 'Start task', status: 'in_progress' }
+                    ? { label: 'Start contribution', status: 'in_progress' }
                     : task.status === 'in_progress'
                     ? { label: 'Mark done', status: 'completed' }
                     : null;
@@ -1190,7 +1190,7 @@ function TasksPageContent() {
             <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 text-center shadow-sm">
               <p className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">You're all caught up!</p>
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                No tasks are assigned to you yet. Browse the board or create one together.
+                No contributions are assigned to you yet. Browse the board or create one together.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button variant="primary" onClick={() => setViewMode('board')} className="flex items-center gap-2">
@@ -1208,7 +1208,7 @@ function TasksPageContent() {
                     }
                   }}
                 >
-                    Create a task with my team
+                    Create a contribution with my group
                 </Button>
                 )}
               </div>
@@ -1223,7 +1223,7 @@ function TasksPageContent() {
               Needs attention soon
             </div>
             <p className="text-sm text-qolabb-orange-700">
-              These tasks are past their due date. Open the details to ask for help or reassign together.
+              These contributions are past their due date. Open the details to ask for help or reassign together.
             </p>
             <div className="space-y-2">
               {overdueMyTasks.slice(0, 3).map((task: any) => (
@@ -1238,7 +1238,7 @@ function TasksPageContent() {
                     ))}
                   </div>
             {overdueMyTasks.length > 3 && (
-              <p className="text-xs text-qolabb-orange-700">+{overdueMyTasks.length - 3} more overdue task{overdueMyTasks.length - 3 === 1 ? '' : 's'} on the board</p>
+              <p className="text-xs text-qolabb-orange-700">+{overdueMyTasks.length - 3} more overdue contribution{overdueMyTasks.length - 3 === 1 ? '' : 's'} on the board</p>
             )}
           </section>
         )}
@@ -1247,10 +1247,10 @@ function TasksPageContent() {
           <section className="bg-blue-50 border border-blue-200 rounded-xl p-5 space-y-3">
             <div className="flex items-center gap-2 text-blue-900 font-semibold">
               <Lightbulb size={18} />
-              Tasks waiting for an owner
+              Contributions waiting for an owner
             </div>
             <p className="text-sm text-blue-800">
-              {unassignedTeamTasks.length} task{unassignedTeamTasks.length === 1 ? '' : 's'} need someone to take the lead. Assign a teammate or invite learners from the team board.
+              {unassignedTeamTasks.length} contribution{unassignedTeamTasks.length === 1 ? '' : 's'} need someone to take the lead. Assign a teammate or invite learners from the group board.
             </p>
             <Button variant="secondary" onClick={() => setViewMode('board')} className="flex items-center gap-2 w-fit">
               <UsersIcon size={16} />
@@ -1282,9 +1282,9 @@ function TasksPageContent() {
             <div className="space-y-2">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Quick tips</h3>
               <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                <li>• Start one task at a time. When you finish, log what you contributed so the class can celebrate it.</li>
-                <li>• If something feels unclear, open the task details and leave a comment asking for next steps.</li>
-                <li>• Need more controls? Tap "Show task options" above to reveal filters and advanced tools.</li>
+                <li>• Start one contribution at a time. When you finish, log what you contributed so the class can celebrate it.</li>
+                <li>• If something feels unclear, open the contribution details and leave a comment asking for next steps.</li>
+                <li>• Need more controls? Tap "Show contribution options" above to reveal filters and advanced tools.</li>
               </ul>
           </div>
         </div>
@@ -1312,7 +1312,7 @@ function TasksPageContent() {
       return (
         <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border-2 border-dashed border-gray-300 dark:border-gray-600">
           <FolderKanban size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">No tasks match your filters</h3>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">No contributions match your filters</h3>
           <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
             Clear filters or widen the search to see cards. You can drag between columns to update status at any time.
           </p>
@@ -1327,7 +1327,7 @@ function TasksPageContent() {
     return (
       <div className="space-y-4">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">Team board</h2>
+          <h2 className="text-xl font-semibold text-gray-900">Group board</h2>
           <p className="text-sm text-gray-600">
             Drag cards between <strong>To Start</strong>, <strong>Doing</strong>, and <strong>Done</strong>. Everyone sees updates immediately.
           </p>
@@ -1412,9 +1412,9 @@ function TasksPageContent() {
       return (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-xl p-12 text-center border-2 border-dashed border-gray-300">
           <CheckSquare size={64} className="mx-auto text-gray-300 mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">No tasks match your filters</h3>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">No contributions match your filters</h3>
           <p className="text-gray-600 mb-6 max-w-md mx-auto">
-            Adjust the search or filters to see more tasks. You can also show completed work or tasks waiting for an owner.
+            Adjust the search or filters to see more contributions. You can also show completed work or contributions waiting for an owner.
           </p>
           <div className="flex justify-center gap-3 flex-wrap">
             <Button variant="secondary" onClick={() => resetFilters()} className="flex items-center gap-2">
@@ -1433,8 +1433,8 @@ function TasksPageContent() {
     return (
       <div className="space-y-4">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">Task library ({filteredTasks.length})</h3>
-          <p className="text-sm text-gray-600">Click any task to open the full details, files, and conversation.</p>
+          <h3 className="text-lg font-semibold text-gray-900">Contribution library ({filteredTasks.length})</h3>
+          <p className="text-sm text-gray-600">Click any contribution to open the full details, files, and conversation.</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredTasks.map((task: any, index: number) => {
@@ -1564,9 +1564,9 @@ function TasksPageContent() {
     return (
       <div className="space-y-4">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Team workload</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Group workload</h2>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            See how tasks are spread across people and projects so the group stays balanced.
+            See how contributions are spread across people and assignments so the group stays balanced.
           </p>
         </div>
         {tasks.length > 0 && projects.length > 0 ? (
@@ -1581,9 +1581,9 @@ function TasksPageContent() {
         ) : (
           <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border-2 border-dashed border-gray-300 dark:border-gray-600">
             <BarChart3 size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">No tasks to analyze yet</h3>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">No contributions to analyze yet</h3>
             <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-              Create tasks with your team, then return here to see how work is shared.
+              Create contributions with your group, then return here to see how work is shared.
             </p>
             <Button variant="primary" onClick={() => setViewMode('focus')} className="flex items-center gap-2 mx-auto">
               <ArrowRight size={18} />
@@ -1600,9 +1600,9 @@ function TasksPageContent() {
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 space-y-6 shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Task options</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Contribution options</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Search, filter, and reorder tasks. These controls apply to the board and task library views.
+              Search, filter, and reorder contributions. These controls apply to the board and contribution library views.
             </p>
           </div>
           <div className="flex gap-3 flex-wrap">
@@ -1611,7 +1611,7 @@ function TasksPageContent() {
               Reset filters
             </Button>
             <Button variant="ghost" size="sm" onClick={() => setShowAdvancedTools(false)}>
-              Hide task options
+              Hide contribution options
             </Button>
           </div>
         </div>
@@ -1620,7 +1620,7 @@ function TasksPageContent() {
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
               <div className="text-2xl font-bold text-gray-900">{taskCounts.all}</div>
-              <div className="text-xs uppercase tracking-wide text-gray-500 mt-1">Total tasks</div>
+              <div className="text-xs uppercase tracking-wide text-gray-500 mt-1">Total contributions</div>
             </div>
             <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
               <div className="text-2xl font-bold text-qolabb-orange-600">{taskCounts.todo}</div>
@@ -1644,7 +1644,7 @@ function TasksPageContent() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label htmlFor="task-search" className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
-              Search tasks
+              Search contributions
             </label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -1653,7 +1653,7 @@ function TasksPageContent() {
                 type="text"
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Find tasks by title or description"
+                placeholder="Find contributions by title or description"
                 className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
@@ -1662,13 +1662,13 @@ function TasksPageContent() {
             </p>
           </div>
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Filter by project</label>
+            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Filter by assignment</label>
             <select
               value={selectedProject}
               onChange={(event) => setSelectedProject(event.target.value)}
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
             >
-              <option value="all">All projects ({projects.length})</option>
+              <option value="all">All assignments ({projects.length})</option>
               {projects.map((project) => (
                 <option key={project.id} value={project.id}>
                   {project.name}
@@ -1691,7 +1691,7 @@ function TasksPageContent() {
           <div className="flex items-center gap-2 overflow-x-auto">
             {(['all', 'my_tasks', 'todo', 'in_progress', 'completed'] as FilterType[]).map((status) => {
               const labels: Record<FilterType, string> = {
-                all: 'All tasks',
+                all: 'All contributions',
                 my_tasks: 'Assigned to me',
                 todo: 'To Start',
                 in_progress: 'Doing',
@@ -1779,7 +1779,7 @@ function TasksPageContent() {
                     className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                   />
                   <label htmlFor="overdue-only" className="text-sm text-gray-600">
-                    Show only overdue tasks
+                    Show only overdue contributions
                   </label>
                 </div>
               </motion.div>
@@ -1796,7 +1796,7 @@ function TasksPageContent() {
         <div className="text-center py-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">No workspace selected</h2>
           <p className="text-gray-600 mb-6">
-            Please select a workspace from the dashboard to view tasks.
+            Please select a workspace from the dashboard to view contributions.
           </p>
           <Button onClick={() => router.push('/dashboard')} className="flex items-center gap-2">
             <ArrowRight size={18} />
@@ -1859,7 +1859,7 @@ function TasksPageContent() {
           <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-sm">
             <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
               <Lightbulb size={16} className="text-blue-500 flex-shrink-0" />
-              <span>Need to search, filter, or reorder tasks? Turn on task options to reveal those controls.</span>
+              <span>Need to search, filter, or reorder contributions? Turn on contribution options to reveal those controls.</span>
             </div>
             <Button
               variant="ghost"
@@ -1867,7 +1867,7 @@ function TasksPageContent() {
               onClick={() => setShowAdvancedTools(true)}
               className="self-start sm:self-auto whitespace-nowrap"
             >
-              Show task options
+              Show contribution options
             </Button>
           </div>
         )}
@@ -1918,8 +1918,8 @@ export default function TasksPage() {
   return (
     <FeatureGuard 
       feature="TASKS" 
-      featureName="Task Management"
-      description="Task management is not available in the MVP. Focus on logging your contributions instead."
+      featureName="Contribution Tracking"
+      description="Contribution tracking is not available in the MVP. Focus on logging your contributions instead."
     >
       <TasksPageContent />
     </FeatureGuard>

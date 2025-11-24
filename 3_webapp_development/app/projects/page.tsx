@@ -269,7 +269,7 @@ function ProjectsPageContent() {
           <div className="text-center">
             <FolderKanban size={64} className="mx-auto text-gray-300 mb-4" />
             <h2 className="text-2xl font-bold text-gray-900 mb-2">No Workspace Selected</h2>
-            <p className="text-gray-600">Select a workspace to view projects</p>
+            <p className="text-gray-600">Select a workspace to view assignments</p>
           </div>
         </div>
       </DashboardLayout>
@@ -282,16 +282,16 @@ function ProjectsPageContent() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Projects</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Assignments</h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Manage projects in {currentWorkspace.name}
+              Manage assignments in {currentWorkspace.name}
             </p>
           </div>
           <div className="flex flex-col items-end gap-2">
             <Button
               variant="primary"
               onClick={() => {
-                console.log('Create Project button clicked');
+                console.log('Create Assignment button clicked');
                 console.log('Teams available:', teams.length);
                 setShowCreateModal(true);
               }}
@@ -299,12 +299,12 @@ function ProjectsPageContent() {
               disabled={teams.length === 0}
             >
               <Plus size={20} />
-              <span>New Project</span>
+              <span>New Assignment</span>
             </Button>
             {teams.length === 0 && (
               <p className="text-sm text-orange-600 flex items-center gap-1">
                 <AlertCircle size={14} />
-                Create a team first to add projects
+                Create a team first to add assignments
               </p>
             )}
           </div>
@@ -318,7 +318,7 @@ function ProjectsPageContent() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
               <input
                 type="text"
-                placeholder="Search projects..."
+                placeholder="Search assignments..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -365,14 +365,14 @@ function ProjectsPageContent() {
           >
             <FolderKanban size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-              {searchQuery || statusFilter !== 'all' ? 'No projects found' : 'No projects yet'}
+              {searchQuery || statusFilter !== 'all' ? 'No assignments found' : 'No assignments yet'}
             </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
               {searchQuery || statusFilter !== 'all'
                 ? 'Try adjusting your filters or search query'
                 : teams.length === 0
-                ? 'You need to create a team before you can add projects'
-                : 'Create your first project to start collaborating with your team'}
+                ? 'You need to create a team before you can add assignments'
+                : 'Create your first assignment to start collaborating with your team'}
             </p>
             {teams.length === 0 ? (
               <Button
@@ -390,7 +390,7 @@ function ProjectsPageContent() {
                 className="flex items-center space-x-2 mx-auto"
               >
                 <Plus size={20} />
-                <span>Create First Project</span>
+                <span>Create First Assignment</span>
               </Button>
             ) : null}
           </motion.div>
@@ -523,7 +523,7 @@ function ProjectsPageContent() {
                   <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-lg mr-4">
                     <FolderKanban className="text-blue-700 dark:text-blue-400" size={24} />
                   </div>
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Create Project</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Create Assignment</h2>
                 </div>
                 <button
                   onClick={() => {
@@ -545,7 +545,7 @@ function ProjectsPageContent() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Project Name *
+                    Assignment Name *
                   </label>
                   <input
                     type="text"
@@ -581,7 +581,7 @@ function ProjectsPageContent() {
                   <textarea
                     value={projectDescription}
                     onChange={(e) => setProjectDescription(e.target.value)}
-                    placeholder="Brief description of the project..."
+                    placeholder="Brief description of the assignment..."
                     rows={3}
                     className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
                   />
@@ -618,7 +618,7 @@ function ProjectsPageContent() {
                   disabled={!projectName.trim() || !selectedTeam || creating}
                   className="flex-1"
                 >
-                  {creating ? 'Creating...' : 'Create Project'}
+                  {creating ? 'Creating...' : 'Create Assignment'}
                 </Button>
               </div>
             </motion.div>
