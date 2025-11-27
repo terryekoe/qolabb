@@ -45,7 +45,7 @@ export default function ProjectDetailPage() {
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [activeTaskMenu, setActiveTaskMenu] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'tasks' | 'discussions'>('tasks');
-  const [viewMode, setViewMode] = useState<'team' | 'focus'>('team');
+  const [viewMode, setViewMode] = useState<'team' | 'focus'>('focus');
   const [canManageTasks, setCanManageTasks] = useState(false);
 
   const loadProject = useCallback(async () => {
@@ -168,7 +168,7 @@ export default function ProjectDetailPage() {
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900">
+      <div className="flex flex-col h-full overflow-hidden bg-gray-50 dark:bg-gray-900">
         {/* Header */}
         <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-start justify-between mb-4">
@@ -207,17 +207,6 @@ export default function ProjectDetailPage() {
             {/* View Toggle */}
             <div className="hidden md:flex bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
               <button
-                onClick={() => setViewMode('team')}
-                className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                  viewMode === 'team'
-                    ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-                }`}
-              >
-                <LayoutTemplate size={16} className="mr-2" />
-                Team Board
-              </button>
-              <button
                 onClick={() => setViewMode('focus')}
                 className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
                   viewMode === 'focus'
@@ -227,6 +216,17 @@ export default function ProjectDetailPage() {
               >
                 <ListChecks size={16} className="mr-2" />
                 My Focus
+              </button>
+              <button
+                onClick={() => setViewMode('team')}
+                className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                  viewMode === 'team'
+                    ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                }`}
+              >
+                <LayoutTemplate size={16} className="mr-2" />
+                Team Board
               </button>
             </div>
           </div>
@@ -253,7 +253,7 @@ export default function ProjectDetailPage() {
 
         {/* Content Area */}
         {viewMode === 'focus' ? (
-          <div className="flex-1 overflow-hidden flex flex-col md:flex-row">
+          <div className="flex-1 flex flex-col md:flex-row overflow-hidden" style={{ height: 'calc(100vh - 344px)' }}>
             {/* Column 1: Instructions & Resources */}
             <div className="w-full md:w-1/4 p-6 border-r border-gray-200 dark:border-gray-700 overflow-y-auto bg-white dark:bg-gray-800">
               <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
@@ -269,24 +269,29 @@ export default function ProjectDetailPage() {
                 Resources
               </h3>
               <div className="space-y-3">
-                <div className="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-700">
-                  <div className="bg-red-100 text-red-600 p-2 rounded mr-3">
-                    <FileText size={16} />
+                {project.resources && project.resources.length > 0 ? (
+                  project.resources.map((resource: any) => (
+                    <a
+                      key={resource.id}
+                      href={resource.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <div className="bg-blue-100 text-blue-600 p-2 rounded mr-3">
+                        <LinkIcon size={16} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{resource.name}</div>
+                        <div className="text-xs text-gray-500 truncate">{resource.url}</div>
+                      </div>
+                    </a>
+                  ))
+                ) : (
+                  <div className="text-center py-6 text-sm text-gray-500 dark:text-gray-400">
+                    No resources attached to this assignment
                   </div>
-                  <div>
-                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">Project Guidelines.pdf</div>
-                    <div className="text-xs text-gray-500">PDF • 2.4 MB</div>
-                  </div>
-                </div>
-                <div className="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-700">
-                  <div className="bg-blue-100 text-blue-600 p-2 rounded mr-3">
-                    <LinkIcon size={16} />
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">Reference Materials</div>
-                    <div className="text-xs text-gray-500">External Link</div>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
 
@@ -377,26 +382,18 @@ export default function ProjectDetailPage() {
               </div>
             </div>
 
-            {/* Column 3: Team Chat */}
-            <div className="w-full md:w-1/4 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 flex flex-col">
-              <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-                <h3 className="font-bold text-gray-900 dark:text-gray-100 flex items-center">
-                  <MessageSquare size={18} className="mr-2 text-blue-600" />
-                  Team Chat
-                </h3>
-              </div>
-              <div className="flex-1 overflow-hidden">
-                {user?.id ? (
-                  <ProjectDiscussions 
-                    projectId={project.id} 
-                    userId={user.id}
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-full text-sm text-gray-500">
-                    Log in to chat
-                  </div>
-                )}
-              </div>
+            {/* Column 3: Project Discussions */}
+            <div className="w-full md:w-1/4 bg-white dark:bg-gray-800 flex flex-col h-full">
+              {user?.id ? (
+                <ProjectDiscussions 
+                  projectId={project.id} 
+                  userId={user.id}
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full text-sm text-gray-500">
+                  Log in to view discussions
+                </div>
+              )}
             </div>
           </div>
         ) : (

@@ -181,10 +181,59 @@ export interface Project {
   description: string | null
   status: ProjectStatus
   due_date: string | null
+  resources?: ProjectResource[]
   created_by: string | null
   created_at: string
   updated_at: string
 }
+
+export interface ProjectResource {
+  id: string
+  type: 'link' | 'file'
+  name: string
+  url: string
+  size?: string
+  fileType?: string
+  addedBy: string
+  addedAt: string
+}
+
+export interface TaskSubmission {
+  id: string
+  task_id: string
+  submitted_by: string
+  url: string
+  notes: string | null
+  url_type: 'github' | 'google_docs' | 'google_sheets' | 'other' | null
+  verification_status: 'verified' | 'failed' | 'pending'
+  verification_data: VerificationData | null
+  verification_error: string | null
+  status: 'pending' | 'approved' | 'rejected'
+  feedback: string | null
+  reviewed_by: string | null
+  reviewed_at: string | null
+  submitted_at: string
+  updated_at: string
+  created_at: string
+}
+
+export interface VerificationData {
+  // GitHub
+  repo_name?: string
+  description?: string
+  language?: string
+  stars?: number
+  commit_count?: number
+  last_updated?: string
+  is_public?: boolean
+  
+  // Google Docs/Sheets
+  doc_name?: string
+  doc_type?: string
+  last_modified?: string
+  owner?: string
+}
+
 
 export interface Task {
   id: string

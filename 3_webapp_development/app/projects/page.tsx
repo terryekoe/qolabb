@@ -20,6 +20,7 @@ import {
   Crown,
   ClipboardCheck,
   ArrowRight,
+  Link as LinkIcon,
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/Button';
@@ -37,6 +38,7 @@ import {
   updateTeamMemberRole,
   getPendingEvaluations,
 } from '@/lib/db/queries';
+import type { ProjectResource } from '@/lib/types/database';
 
 type ProjectStatus = 'pending' | 'active' | 'completed' | 'archived';
 type FilterType = 'all' | ProjectStatus;
@@ -66,6 +68,9 @@ function ProjectsPageContent() {
   const [projectDescription, setProjectDescription] = useState('');
   const [selectedTeam, setSelectedTeam] = useState('');
   const [dueDate, setDueDate] = useState('');
+  const [resources, setResources] = useState<ProjectResource[]>([]);
+  const [resourceName, setResourceName] = useState('');
+  const [resourceUrl, setResourceUrl] = useState('');
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
 
@@ -197,6 +202,7 @@ function ProjectsPageContent() {
         description: projectDescription || null,
         status: 'active',
         due_date: dueDate || null,
+        resources: resources.length > 0 ? resources : undefined,
         created_by: user.id,
       }, user.id);
 
@@ -215,11 +221,35 @@ function ProjectsPageContent() {
     setProjectDescription('');
     setSelectedTeam('');
     setDueDate('');
+    setResources([]);
+    setResourceName('');
+    setResourceUrl('');
     setError('');
   }
 
   function handleProjectClick(project: any) {
     router.push(`/projects/${project.id}`);
+  }
+
+  function handleAddResource() {
+    if (!resourceName.trim() || !resourceUrl.trim() || !user?.id) return;
+
+    const newResource: ProjectResource = {
+      id: `resource_${Date.now()}`,
+      type: 'link',
+      name: resourceName,
+      url: resourceUrl,
+      addedBy: user.id,
+      addedAt: new Date().toISOString(),
+    };
+
+    setResources([...resources, newResource]);
+    setResourceName('');
+    setResourceUrl('');
+  }
+
+  function handleRemoveResource(resourceId: string) {
+    setResources(resources.filter(r => r.id !== resourceId));
   }
 
   // Filter and search projects
@@ -742,6 +772,71 @@ function ProjectsPageContent() {
                     onChange={(e) => setDueDate(e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
                   />
+                </div>
+
+                {/* Resources Section */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Resources (optional)
+                  </label>
+                  <div className="space-y-3">
+                    {/* Add Resource Form */}
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={resourceName}
+                        onChange={(e) => setResourceName(e.target.value)}
+                        placeholder="Resource name"
+                        className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <input
+                        type="url"
+                        value={resourceUrl}
+                        onChange={(e) => setResourceUrl(e.target.value)}
+                        placeholder="https://..."
+                        className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddResource}
+                        disabled={!resourceName.trim() || !resourceUrl.trim()}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+                      >
+                        Add
+                      </button>
+                    </div>
+
+                    {/* Resources List */}
+                    {resources.length > 0 && (
+                      <div className="space-y-2">
+                        {resources.map((resource) => (
+                          <div
+                            key={resource.id}
+                            className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600"
+                          >
+                            <div className="flex items-center gap-2 flex-1">
+                              <LinkIcon size={16} className="text-blue-600 dark:text-blue-400" />
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                                  {resource.name}
+                                </div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                  {resource.url}
+                                </div>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveResource(resource.id)}
+                              className="p-1 hover:bg-red-100 dark:hover:bg-red-900/20 rounded transition-colors"
+                            >
+                              <X size={16} className="text-red-600 dark:text-red-400" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 

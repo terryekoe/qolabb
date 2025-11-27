@@ -65,7 +65,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="h-screen overflow-hidden bg-gray-50 dark:bg-gray-900 flex flex-col">
       <Sidebar collapsed={sidebarCollapsed} onClose={() => setSidebarCollapsed(true)} />
       <DashboardHeader onToggleSidebar={toggleSidebar} sidebarCollapsed={sidebarCollapsed} />
       
@@ -85,7 +85,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
       
       {/* Main Content */}
       <main
-        className="pt-16 transition-all duration-300"
+        className="flex-1 pt-16 overflow-hidden transition-all duration-300"
         style={{ marginLeft: sidebarCollapsed ? '0' : '16rem' }}
       >
         {children}
