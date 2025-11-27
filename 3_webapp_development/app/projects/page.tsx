@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FeatureGuard } from '@/components/features/FeatureGuard';
@@ -17,14 +19,14 @@ import {
   Shield,
   Crown,
   ClipboardCheck,
+  ArrowRight,
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/Button';
 import Avatar, { AvatarGroup } from '@/components/ui/Avatar';
-import { ProjectDetailModal } from '@/components/projects/ProjectDetailModal';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { 
   getWorkspaceProjects, 
@@ -47,6 +49,7 @@ function ProjectsPageContent() {
   const { user } = useAuth();
   const { currentWorkspace } = useWorkspace();
   const searchParams = useSearchParams();
+  const router = useRouter();
   
   const [projects, setProjects] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
@@ -56,8 +59,6 @@ function ProjectsPageContent() {
   const [statusFilter, setStatusFilter] = useState<FilterType>('all');
   const [activeTab, setActiveTab] = useState<TabType>('assignments');
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [selectedProject, setSelectedProject] = useState<any>(null);
-  const [canManageTasks, setCanManageTasks] = useState(false);
   const [isInstructor, setIsInstructor] = useState(false);
   
   // Create project form state
@@ -217,13 +218,8 @@ function ProjectsPageContent() {
     setError('');
   }
 
-  async function handleProjectClick(project: any) {
-    if (!user || !currentWorkspace) return;
-    
-    // Check if user can manage tasks (instructor or team leader)
-    const canManage = await isTeamLeaderOrInstructor(user.id, project.team_id, currentWorkspace.id);
-    setCanManageTasks(canManage);
-    setSelectedProject(project);
+  function handleProjectClick(project: any) {
+    router.push(`/projects/${project.id}`);
   }
 
   // Filter and search projects
@@ -454,6 +450,8 @@ function ProjectsPageContent() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredProjects.map((project, index) => {
                   const statusConfig = getStatusConfig(project.status);
+                  const myTasks = project.tasks?.filter((t: any) => t.assigned_to === user?.id && t.status !== 'completed') || [];
+                  const nextTask = myTasks[0];
                   
                   return (
                     <motion.div
@@ -463,10 +461,10 @@ function ProjectsPageContent() {
                       transition={{ delay: index * 0.05 }}
                       whileHover={{ y: -4 }}
                       onClick={() => handleProjectClick(project)}
-                      className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all overflow-hidden group cursor-pointer"
+                      className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all overflow-hidden group cursor-pointer flex flex-col h-full"
                     >
                       {/* Project Header */}
-                      <div className="p-6">
+                      <div className="p-6 flex-1 flex flex-col">
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex-1 min-w-0">
                             <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1 truncate">
@@ -491,60 +489,85 @@ function ProjectsPageContent() {
                           </p>
                         )}
 
-                        {/* Status Badge */}
-                        <div className="flex items-center justify-between mb-4">
-                          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${statusConfig.color}`}>
+                        {/* Smart Task Section */}
+                        {myTasks.length > 0 ? (
+                          <div className="mt-auto bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 border border-blue-100 dark:border-blue-800">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs font-semibold text-blue-700 dark:text-blue-300 flex items-center">
+                                <ClipboardCheck size={14} className="mr-1" />
+                                My Tasks ({myTasks.length})
+                              </span>
+                              {nextTask.due_date && (
+                                <span className="text-xs text-blue-600 dark:text-blue-400 flex items-center">
+                                  <Clock size={12} className="mr-1" />
+                                  {new Date(nextTask.due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2 truncate">
+                              {nextTask.title}
+                            </div>
+                            <Button
+                              variant="primary"
+                              size="sm"
+                              className="w-full justify-center h-8 text-xs"
+                              onClick={(e) => {
+                                e?.stopPropagation();
+                                handleProjectClick(project);
+                                // Ideally we would open the specific task, but opening the modal is a good start
+                              }}
+                            >
+                              Resume Work <ArrowRight size={14} className="ml-1" />
+                            </Button>
+                          </div>
+                        ) : (
+                          /* Fallback to Team Progress */
+                          <div className="mt-auto">
+                            {project.tasks && project.tasks.length > 0 ? (
+                              <div>
+                                <div className="flex justify-between text-xs text-gray-600 mb-2">
+                                  <span>Team Progress</span>
+                                  <span>
+                                    {project.tasks.filter((t: any) => t.status === 'completed').length}/{project.tasks.length}
+                                  </span>
+                                </div>
+                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                  <div
+                                    className="bg-blue-600 h-2 rounded-full transition-all"
+                                    style={{
+                                      width: `${(project.tasks.filter((t: any) => t.status === 'completed').length / project.tasks.length) * 100}%`
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="text-xs text-gray-500 italic">No tasks created yet</div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Status Badge & Contributors Footer */}
+                        <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${statusConfig.color}`}>
                             {statusConfig.icon}
                             {statusConfig.label}
                           </span>
-                          {project.due_date && (
-                            <span className="flex items-center text-xs text-gray-500">
-                              <Calendar size={14} className="mr-1" />
-                              {new Date(project.due_date).toLocaleDateString()}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Tasks Progress (if available) */}
-                        {project.tasks && project.tasks.length > 0 && (
-                          <div>
-                            <div className="flex justify-between text-xs text-gray-600 mb-2">
-                              <span>Tasks</span>
-                              <span>
-                                {project.tasks.filter((t: any) => t.status === 'completed').length}/{project.tasks.length}
-                              </span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div
-                                className="bg-blue-600 h-2 rounded-full transition-all"
-                                style={{
-                                  width: `${(project.tasks.filter((t: any) => t.status === 'completed').length / project.tasks.length) * 100}%`
-                                }}
+                          
+                          {project.contributions && project.contributions.length > 0 && (
+                            <div className="flex -space-x-2">
+                              <AvatarGroup
+                                users={project.contributions.map((contrib: any) => ({
+                                  userId: contrib.user?.id || contrib.id,
+                                  name: contrib.user?.full_name || 'User',
+                                  src: contrib.user?.avatar_url
+                                }))}
+                                max={3}
+                                size="sm"
+                                className="[&>*]:border-2 [&>*]:border-white"
                               />
                             </div>
-                          </div>
-                        )}
-
-                        {/* Team Members (if available) */}
-                        {project.contributions && project.contributions.length > 0 && (
-                          <div className="mt-4 pt-4 border-t border-gray-100">
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs text-gray-500">Contributors</span>
-                              <div className="flex -space-x-2">
-                                <AvatarGroup
-                                  users={project.contributions.map((contrib: any) => ({
-                                    userId: contrib.user?.id || contrib.id,
-                                    name: contrib.user?.full_name || 'User',
-                                    src: contrib.user?.avatar_url
-                                  }))}
-                                  max={3}
-                                  size="sm"
-                                  className="[&>*]:border-2 [&>*]:border-white"
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        )}
+                          )}
+                        </div>
                       </div>
                     </motion.div>
                   );
@@ -747,17 +770,6 @@ function ProjectsPageContent() {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Project Detail Modal */}
-      {selectedProject && (
-        <ProjectDetailModal
-          isOpen={!!selectedProject}
-          onClose={() => setSelectedProject(null)}
-          project={selectedProject}
-          workspaceId={currentWorkspace.id}
-          canManageTasks={canManageTasks}
-        />
-      )}
     </DashboardLayout>
   );
 }

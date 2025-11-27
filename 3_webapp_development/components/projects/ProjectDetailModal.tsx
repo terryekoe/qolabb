@@ -17,6 +17,10 @@ import {
   UserPlus,
   MessageSquare,
   ListTodo,
+  LayoutTemplate,
+  ListChecks,
+  FileText,
+  Link as LinkIcon,
 } from 'lucide-react';
 import { Button } from '@/components/Button';
 import Avatar from '@/components/ui/Avatar';
@@ -48,6 +52,7 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [activeTaskMenu, setActiveTaskMenu] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'tasks' | 'discussions'>('tasks');
+  const [viewMode, setViewMode] = useState<'team' | 'focus'>('team');
 
   const loadTasks = useCallback(async () => {
     if (!project) return;
@@ -216,12 +221,39 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({
                   )}
                 </div>
               </div>
-              <button
-                onClick={onClose}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <X size={24} className="text-gray-500" />
-              </button>
+              <div className="flex items-center">
+                {/* View Toggle */}
+                <div className="hidden md:flex bg-gray-100 dark:bg-gray-700 p-1 rounded-lg mr-4">
+                  <button
+                    onClick={() => setViewMode('team')}
+                    className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                      viewMode === 'team'
+                        ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                    }`}
+                  >
+                    <LayoutTemplate size={16} className="mr-2" />
+                    Team Board
+                  </button>
+                  <button
+                    onClick={() => setViewMode('focus')}
+                    className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                      viewMode === 'focus'
+                        ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                    }`}
+                  >
+                    <ListChecks size={16} className="mr-2" />
+                    My Focus
+                  </button>
+                </div>
+                <button
+                  onClick={onClose}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X size={24} className="text-gray-500" />
+                </button>
+              </div>
             </div>
 
             {/* Progress Bar */}
@@ -244,172 +276,324 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({
             </div>
           </div>
 
-          {/* Tabs */}
-          <div className="flex border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-            <button
-              onClick={() => setActiveTab('tasks')}
-              className={`flex-1 px-4 py-3 font-medium text-sm transition-colors ${
-                activeTab === 'tasks'
-                  ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
-              }`}
-            >
-              <div className="flex items-center justify-center gap-2">
-                <ListTodo size={18} />
-                <span>Tasks ({tasks.length})</span>
-              </div>
-            </button>
-            <button
-              onClick={() => setActiveTab('discussions')}
-              className={`flex-1 px-4 py-3 font-medium text-sm transition-colors ${
-                activeTab === 'discussions'
-                  ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
-              }`}
-            >
-              <div className="flex items-center justify-center gap-2">
-                <MessageSquare size={18} />
-                <span>Discussions</span>
-              </div>
-            </button>
-          </div>
+          {/* Content Area */}
+          {viewMode === 'focus' ? (
+            <div className="flex-1 overflow-hidden flex flex-col md:flex-row bg-gray-50 dark:bg-gray-900">
+              {/* Column 1: Instructions & Resources */}
+              <div className="w-full md:w-1/4 p-6 border-r border-gray-200 dark:border-gray-700 overflow-y-auto bg-white dark:bg-gray-800">
+                <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+                  <FileText size={18} className="mr-2 text-blue-600" />
+                  Instructions
+                </h3>
+                <div className="prose dark:prose-invert text-sm text-gray-600 dark:text-gray-400 mb-8">
+                  {project.description || "No instructions provided for this assignment."}
+                </div>
 
-          {/* Content */}
-          <div className="flex-1 overflow-hidden flex flex-col">
-            {activeTab === 'tasks' ? (
-              <div className="flex-1 overflow-y-auto p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                    Tasks ({tasks.length})
+                <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+                  <LinkIcon size={18} className="mr-2 text-blue-600" />
+                  Resources
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-700">
+                    <div className="bg-red-100 text-red-600 p-2 rounded mr-3">
+                      <FileText size={16} />
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100">Project Guidelines.pdf</div>
+                      <div className="text-xs text-gray-500">PDF • 2.4 MB</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-700">
+                    <div className="bg-blue-100 text-blue-600 p-2 rounded mr-3">
+                      <LinkIcon size={16} />
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100">Reference Materials</div>
+                      <div className="text-xs text-gray-500">External Link</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Column 2: My Checklist */}
+              <div className="w-full md:w-1/2 p-6 overflow-y-auto border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+                <div className="max-w-2xl mx-auto">
+                  <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
+                    <ListChecks size={18} className="mr-2 text-blue-600" />
+                    My Checklist
                   </h3>
-              {canManageTasks && (
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={() => setShowTaskModal(true)}
-                  className="flex items-center"
-                >
-                  <Plus size={18} className="mr-2" />
-                  Add Task
-                </Button>
-              )}
+
+                  {loading ? (
+                    <div className="space-y-4">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="h-16 bg-gray-200 rounded-xl animate-pulse"></div>
+                      ))}
+                    </div>
+                  ) : tasks.filter(t => t.assigned_to === user?.id).length === 0 ? (
+                    <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
+                      <CheckCircle2 size={48} className="mx-auto text-gray-300 mb-4" />
+                      <p className="text-gray-600 dark:text-gray-400 mb-4">You have no tasks assigned yet.</p>
+                      {canManageTasks && (
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          onClick={() => setShowTaskModal(true)}
+                        >
+                          Create Task
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {tasks.filter(t => t.assigned_to === user?.id).map((task) => (
+                        <div 
+                          key={task.id}
+                          className={`bg-white dark:bg-gray-800 p-4 rounded-xl border transition-all ${
+                            task.status === 'completed' 
+                              ? 'border-gray-200 dark:border-gray-700 opacity-75' 
+                              : 'border-blue-200 dark:border-blue-800 shadow-sm'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <button
+                              onClick={() => handleUpdateTaskStatus(task.id, task.status === 'completed' ? 'todo' : 'completed')}
+                              className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                                task.status === 'completed'
+                                  ? 'bg-green-500 border-green-500 text-white'
+                                  : 'border-gray-300 hover:border-blue-500'
+                              }`}
+                            >
+                              {task.status === 'completed' && <CheckCircle2 size={12} />}
+                            </button>
+                            <div className="flex-1">
+                              <div className={`text-sm font-medium mb-1 ${
+                                task.status === 'completed' ? 'text-gray-500 line-through' : 'text-gray-900 dark:text-gray-100'
+                              }`}>
+                                {task.title}
+                              </div>
+                              {task.description && (
+                                <p className="text-xs text-gray-500 mb-2 line-clamp-2">{task.description}</p>
+                              )}
+                              <div className="flex items-center gap-3">
+                                {task.due_date && (
+                                  <span className={`text-xs flex items-center ${
+                                    new Date(task.due_date) < new Date() && task.status !== 'completed'
+                                      ? 'text-red-600'
+                                      : 'text-gray-500'
+                                  }`}>
+                                    <Clock size={12} className="mr-1" />
+                                    {new Date(task.due_date).toLocaleDateString()}
+                                  </span>
+                                )}
+                                <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                  task.priority === 'high' ? 'bg-red-100 text-red-700' :
+                                  task.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                                  'bg-gray-100 text-gray-700'
+                                }`}>
+                                  {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Column 3: Team Chat */}
+              <div className="w-full md:w-1/4 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 flex flex-col">
+                <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                  <h3 className="font-bold text-gray-900 dark:text-gray-100 flex items-center">
+                    <MessageSquare size={18} className="mr-2 text-blue-600" />
+                    Team Chat
+                  </h3>
+                </div>
+                <div className="flex-1 overflow-hidden">
+                  {user?.id ? (
+                    <ProjectDiscussions 
+                      projectId={project.id} 
+                      userId={user.id}
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-full text-sm text-gray-500">
+                      Log in to chat
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
+          ) : (
+            <>
+              {/* Tabs */}
+              <div className="flex border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                <button
+                  onClick={() => setActiveTab('tasks')}
+                  className={`flex-1 px-4 py-3 font-medium text-sm transition-colors ${
+                    activeTab === 'tasks'
+                      ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <ListTodo size={18} />
+                    <span>Tasks ({tasks.length})</span>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setActiveTab('discussions')}
+                  className={`flex-1 px-4 py-3 font-medium text-sm transition-colors ${
+                    activeTab === 'discussions'
+                      ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <MessageSquare size={18} />
+                    <span>Discussions</span>
+                  </div>
+                </button>
+              </div>
 
-            {loading ? (
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="bg-gray-50 rounded-xl p-4 animate-pulse">
-                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                  </div>
-                ))}
-              </div>
-            ) : tasks.length === 0 ? (
-              <div className="text-center py-12">
-                <CheckCircle2 size={48} className="mx-auto text-gray-300 mb-4" />
-                <p className="text-gray-600 mb-4">No tasks yet</p>
-                {canManageTasks && (
-                  <Button
-                    variant="primary"
-                    onClick={() => setShowTaskModal(true)}
-                    className="flex items-center mx-auto"
-                  >
-                    <Plus size={18} className="mr-2" />
-                    Create First Task
-                  </Button>
-                )}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* To Do Column */}
-                <div>
-                  <div className="flex items-center mb-4">
-                    <AlertCircle size={18} className="text-orange-600 mr-2" />
-                    <h4 className="font-semibold text-gray-900">To Do</h4>
-                    <span className="ml-auto bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full text-xs font-semibold">
-                      {tasksByStatus.todo.length}
-                    </span>
-                  </div>
-                  <div className="space-y-3">
-                    {tasksByStatus.todo.map((task) => (
-                      <TaskCard
-                        key={task.id}
-                        task={task}
-                        onUpdateStatus={handleUpdateTaskStatus}
-                        onDelete={handleDeleteTask}
-                        canManage={canManageTasks}
-                        activeMenu={activeTaskMenu}
-                        setActiveMenu={setActiveTaskMenu}
-                      />
-                    ))}
-                  </div>
+              {/* Content */}
+              <div className="flex-1 overflow-hidden flex flex-col">
+                {activeTab === 'tasks' ? (
+                  <div className="flex-1 overflow-y-auto p-8">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                        Tasks ({tasks.length})
+                      </h3>
+                  {canManageTasks && (
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => setShowTaskModal(true)}
+                      className="flex items-center"
+                    >
+                      <Plus size={18} className="mr-2" />
+                      Add Task
+                    </Button>
+                  )}
                 </div>
 
-                {/* In Progress Column */}
-                <div>
-                  <div className="flex items-center mb-4">
-                    <Clock size={18} className="text-blue-600 mr-2" />
-                    <h4 className="font-semibold text-gray-900">In Progress</h4>
-                    <span className="ml-auto bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-semibold">
-                      {tasksByStatus.in_progress.length}
-                    </span>
-                  </div>
-                  <div className="space-y-3">
-                    {tasksByStatus.in_progress.map((task) => (
-                      <TaskCard
-                        key={task.id}
-                        task={task}
-                        onUpdateStatus={handleUpdateTaskStatus}
-                        onDelete={handleDeleteTask}
-                        canManage={canManageTasks}
-                        activeMenu={activeTaskMenu}
-                        setActiveMenu={setActiveTaskMenu}
-                      />
+                {loading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="bg-gray-50 rounded-xl p-4 animate-pulse">
+                        <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                      </div>
                     ))}
                   </div>
-                </div>
-
-                {/* Completed Column */}
-                <div>
-                  <div className="flex items-center mb-4">
-                    <CheckCircle2 size={18} className="text-green-600 mr-2" />
-                    <h4 className="font-semibold text-gray-900">Completed</h4>
-                    <span className="ml-auto bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-semibold">
-                      {tasksByStatus.completed.length}
-                    </span>
+                ) : tasks.length === 0 ? (
+                  <div className="text-center py-12">
+                    <CheckCircle2 size={48} className="mx-auto text-gray-300 mb-4" />
+                    <p className="text-gray-600 mb-4">No tasks yet</p>
+                    {canManageTasks && (
+                      <Button
+                        variant="primary"
+                        onClick={() => setShowTaskModal(true)}
+                        className="flex items-center mx-auto"
+                      >
+                        <Plus size={18} className="mr-2" />
+                        Create First Task
+                      </Button>
+                    )}
                   </div>
-                  <div className="space-y-3">
-                    {tasksByStatus.completed.map((task) => (
-                      <TaskCard
-                        key={task.id}
-                        task={task}
-                        onUpdateStatus={handleUpdateTaskStatus}
-                        onDelete={handleDeleteTask}
-                        canManage={canManageTasks}
-                        activeMenu={activeTaskMenu}
-                        setActiveMenu={setActiveTaskMenu}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-              </div>
-            ) : (
-              <div className="flex-1 overflow-hidden">
-                {user?.id ? (
-                  <ProjectDiscussions 
-                    projectId={project.id} 
-                    userId={user.id}
-                  />
                 ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <p className="text-gray-600 dark:text-gray-400">Please log in to view discussions</p>
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* To Do Column */}
+                    <div>
+                      <div className="flex items-center mb-4">
+                        <AlertCircle size={18} className="text-orange-600 mr-2" />
+                        <h4 className="font-semibold text-gray-900">To Do</h4>
+                        <span className="ml-auto bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full text-xs font-semibold">
+                          {tasksByStatus.todo.length}
+                        </span>
+                      </div>
+                      <div className="space-y-3">
+                        {tasksByStatus.todo.map((task) => (
+                          <TaskCard
+                            key={task.id}
+                            task={task}
+                            onUpdateStatus={handleUpdateTaskStatus}
+                            onDelete={handleDeleteTask}
+                            canManage={canManageTasks}
+                            activeMenu={activeTaskMenu}
+                            setActiveMenu={setActiveTaskMenu}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* In Progress Column */}
+                    <div>
+                      <div className="flex items-center mb-4">
+                        <Clock size={18} className="text-blue-600 mr-2" />
+                        <h4 className="font-semibold text-gray-900">In Progress</h4>
+                        <span className="ml-auto bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-semibold">
+                          {tasksByStatus.in_progress.length}
+                        </span>
+                      </div>
+                      <div className="space-y-3">
+                        {tasksByStatus.in_progress.map((task) => (
+                          <TaskCard
+                            key={task.id}
+                            task={task}
+                            onUpdateStatus={handleUpdateTaskStatus}
+                            onDelete={handleDeleteTask}
+                            canManage={canManageTasks}
+                            activeMenu={activeTaskMenu}
+                            setActiveMenu={setActiveTaskMenu}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Completed Column */}
+                    <div>
+                      <div className="flex items-center mb-4">
+                        <CheckCircle2 size={18} className="text-green-600 mr-2" />
+                        <h4 className="font-semibold text-gray-900">Completed</h4>
+                        <span className="ml-auto bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-semibold">
+                          {tasksByStatus.completed.length}
+                        </span>
+                      </div>
+                      <div className="space-y-3">
+                        {tasksByStatus.completed.map((task) => (
+                          <TaskCard
+                            key={task.id}
+                            task={task}
+                            onUpdateStatus={handleUpdateTaskStatus}
+                            onDelete={handleDeleteTask}
+                            canManage={canManageTasks}
+                            activeMenu={activeTaskMenu}
+                            setActiveMenu={setActiveTaskMenu}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                  </div>
+                ) : (
+                  <div className="flex-1 overflow-hidden">
+                    {user?.id ? (
+                      <ProjectDiscussions 
+                        projectId={project.id} 
+                        userId={user.id}
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-full">
+                        <p className="text-gray-600 dark:text-gray-400">Please log in to view discussions</p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-            )}
-          </div>
+            </>
+          )}
         </motion.div>
       </motion.div>
       )}
