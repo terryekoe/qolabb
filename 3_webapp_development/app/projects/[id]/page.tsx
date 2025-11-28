@@ -170,7 +170,7 @@ export default function ProjectDetailPage() {
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col h-full overflow-hidden bg-gray-50 dark:bg-gray-900">
+      <div className="flex flex-col h-full md:overflow-hidden overflow-y-auto bg-gray-50 dark:bg-gray-900">
         {/* Header */}
         <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-start justify-between mb-4">
@@ -283,9 +283,9 @@ export default function ProjectDetailPage() {
 
         {/* Content Area */}
         {viewMode === 'focus' ? (
-          <div className="flex-1 flex flex-col md:flex-row overflow-hidden" style={{ height: 'calc(100vh - 344px)' }}>
+          <div className="flex-1 flex flex-col md:flex-row md:overflow-hidden">
             {/* Column 1: Instructions & Resources */}
-            <div className="w-full md:w-1/4 p-6 border-r border-gray-200 dark:border-gray-700 overflow-y-auto bg-white dark:bg-gray-800">
+            <div className="w-full md:w-1/4 p-6 border-r border-gray-200 dark:border-gray-700 md:overflow-y-auto bg-white dark:bg-gray-800">
               <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
                 <FileText size={18} className="mr-2 text-blue-600" />
                 Instructions
@@ -326,7 +326,7 @@ export default function ProjectDetailPage() {
             </div>
 
             {/* Column 2: My Checklist */}
-            <div className="w-full md:w-1/2 p-6 overflow-y-auto border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+            <div className="w-full md:w-1/2 p-6 md:overflow-y-auto border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
               <div className="max-w-2xl mx-auto">
                 <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
                   <ListChecks size={18} className="mr-2 text-blue-600" />
@@ -413,7 +413,7 @@ export default function ProjectDetailPage() {
             </div>
 
             {/* Column 3: Project Discussions */}
-            <div className="w-full md:w-1/4 bg-white dark:bg-gray-800 flex flex-col h-full">
+            <div className="w-full md:w-1/4 bg-white dark:bg-gray-800 flex flex-col h-[500px] md:h-full border-t md:border-t-0 border-gray-200 dark:border-gray-700">
               {user?.id ? (
                 <ProjectDiscussions 
                   projectId={project.id} 

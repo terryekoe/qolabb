@@ -1410,10 +1410,10 @@ function TasksPageContent() {
 
     if (filteredTasks.length === 0) {
       return (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-xl p-12 text-center border-2 border-dashed border-gray-300">
-          <CheckSquare size={64} className="mx-auto text-gray-300 mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">No contributions match your filters</h3>
-          <p className="text-gray-600 mb-6 max-w-md mx-auto">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border-2 border-dashed border-gray-300 dark:border-gray-600">
+          <CheckSquare size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">No contributions match your filters</h3>
+          <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
             Adjust the search or filters to see more contributions. You can also show completed work or contributions waiting for an owner.
           </p>
           <div className="flex justify-center gap-3 flex-wrap">
@@ -1811,7 +1811,7 @@ function TasksPageContent() {
     <DashboardLayout>
       <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
         {/* View Tabs Navigation */}
-        <div className="bg-white rounded-xl border border-gray-200 p-2 shadow-sm">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-2 shadow-sm">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
             {viewTabs.map((tab) => {
               const Icon = tab.icon;
@@ -1834,16 +1834,16 @@ function TasksPageContent() {
                   <div className="flex items-start gap-3">
                     <span
                       className={`p-2 rounded-lg ${
-                        isActive ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'
+                        isActive ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
                       }`}
                     >
                       <Icon size={18} />
                     </span>
                     <div className="space-y-1 min-w-0">
-                      <span className={`block text-sm font-semibold truncate ${isActive ? 'text-white' : 'text-gray-800'}`}>
+                      <span className={`block text-sm font-semibold truncate ${isActive ? 'text-white' : 'text-gray-800 dark:text-gray-200'}`}>
                         {tab.label}
                       </span>
-                      <span className={`text-xs ${isActive ? 'text-white/80' : 'text-gray-500'} hidden sm:block truncate`}>
+                      <span className={`text-xs ${isActive ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'} hidden sm:block truncate`}>
                         {tab.description}
                       </span>
                     </div>

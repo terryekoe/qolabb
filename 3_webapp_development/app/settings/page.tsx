@@ -1858,14 +1858,14 @@ function SettingsPageContent() {
         <p className="text-gray-600">{description}</p>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <SettingsIcon size={32} className="text-blue-600" />
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center">
+        <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+          <SettingsIcon size={32} className="text-blue-600 dark:text-blue-400" />
         </div>
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
           Coming Soon
         </h3>
-        <p className="text-gray-600 max-w-md mx-auto">
+        <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
           This section is currently under development. We're working hard to
           bring you these features soon!
         </p>
@@ -1912,9 +1912,9 @@ function SettingsPageContent() {
 
   return (
     <DashboardLayout>
-      <div className="min-h-screen bg-gray-50">
+      <div className="h-full overflow-y-auto bg-gray-50 dark:bg-gray-900">
         {/* Settings Navigation Bar */}
-        <div className="bg-white border-b border-gray-200 sticky top-16 z-20">
+        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-20">
           <div className="px-4 sm:px-6 lg:px-8">
             {/* Mobile: Menu Button Only */}
             <div className="md:hidden flex justify-center py-3">
@@ -1977,7 +1977,7 @@ function SettingsPageContent() {
                     setIsMobileSidebarOpen(false);
                   }
                 }}
-                className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl z-50 md:hidden max-h-[85vh] overflow-hidden"
+                className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 rounded-t-3xl shadow-2xl z-50 md:hidden max-h-[85vh] overflow-hidden"
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Drag Handle */}
@@ -1985,22 +1985,22 @@ function SettingsPageContent() {
                   className="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing"
                   onPointerDown={(e) => e.stopPropagation()}
                 >
-                  <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
+                  <div className="w-12 h-1.5 bg-gray-300 dark:bg-gray-600 rounded-full" />
                 </div>
 
                 {/* Header */}
-                <div className="px-6 pb-4 border-b border-gray-200">
+                <div className="px-6 pb-4 border-b border-gray-200 dark:border-gray-700">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h2 className="text-xl font-bold text-gray-900">Settings</h2>
-                      <p className="text-sm text-gray-500 mt-0.5">Choose a category</p>
+                      <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Settings</h2>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Choose a category</p>
                     </div>
                     <button
                       onClick={() => setIsMobileSidebarOpen(false)}
-                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                       aria-label="Close settings menu"
                     >
-                      <X size={20} className="text-gray-600" />
+                      <X size={20} className="text-gray-600 dark:text-gray-400" />
                     </button>
                   </div>
                 </div>
@@ -2026,7 +2026,7 @@ function SettingsPageContent() {
                             ${
                               isActive
                                 ? "bg-blue-50 border-blue-300 shadow-md scale-105"
-                                : "bg-white border-gray-200 hover:border-blue-200 hover:shadow-md hover:bg-gray-50 active:scale-95"
+                                : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-blue-200 dark:hover:border-blue-600 hover:shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95"
                             }
                           `}
                         >
@@ -2037,7 +2037,7 @@ function SettingsPageContent() {
                               ${
                                 isActive
                                   ? "bg-blue-100 text-blue-700"
-                                  : "bg-gray-100 text-gray-600 group-hover:bg-blue-50 group-hover:text-blue-600"
+                                  : "bg-gray-100 text-gray-600 dark:text-gray-300 group-hover:bg-blue-50 dark:group-hover:bg-blue-600 group-hover:text-blue-600"
                               }
                             `}
                           >

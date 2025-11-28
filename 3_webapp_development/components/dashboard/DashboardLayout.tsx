@@ -85,8 +85,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
       
       {/* Main Content */}
       <main
-        className="flex-1 pt-16 overflow-hidden transition-all duration-300"
-        style={{ marginLeft: sidebarCollapsed ? '0' : '16rem' }}
+        className={`flex-1 pt-16 overflow-hidden transition-all duration-300 ${
+          sidebarCollapsed ? 'ml-0' : 'ml-0 md:ml-64'
+        }`}
       >
         {children}
       </main>
