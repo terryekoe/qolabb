@@ -71,9 +71,7 @@ export default function ContributionsPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [stats, setStats] = useState({
     totalContributions: 0,
-    totalHours: 0,
     thisWeek: 0,
-    thisMonth: 0,
   });
 
   const loadData = useCallback(async () => {
@@ -95,15 +93,11 @@ export default function ContributionsPage() {
       const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
       const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-      const totalHours = (contributionsData || []).reduce((sum, c) => sum + (c.hours_spent || 0), 0);
       const thisWeek = (contributionsData || []).filter(c => new Date(c.created_at) >= weekAgo).length;
-      const thisMonth = (contributionsData || []).filter(c => new Date(c.created_at) >= monthAgo).length;
 
       setStats({
         totalContributions: contributionsData?.length || 0,
-        totalHours,
         thisWeek,
-        thisMonth,
       });
     } catch (error: any) {
       console.error('Error loading contributions:', error);
@@ -245,7 +239,7 @@ export default function ContributionsPage() {
         </div>
 
         {/* Statistics Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -263,20 +257,6 @@ export default function ContributionsPage() {
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Total Hours</p>
-                <p className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mt-1">
-                  {stats.totalHours.toFixed(1)}h
-                </p>
-              </div>
-              <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                <Clock className="text-green-600 dark:text-green-400" size={24} />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
-            <div className="flex items-center justify-between">
-              <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">This Week</p>
                 <p className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mt-1">
                   {stats.thisWeek}
@@ -284,20 +264,6 @@ export default function ContributionsPage() {
               </div>
               <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
                 <Calendar className="text-purple-600 dark:text-purple-400" size={24} />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">This Month</p>
-                <p className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mt-1">
-                  {stats.thisMonth}
-                </p>
-              </div>
-              <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-                <Calendar className="text-orange-600 dark:text-orange-400" size={24} />
               </div>
             </div>
           </div>
@@ -512,16 +478,8 @@ export default function ContributionsPage() {
                       </div>
                     )}
 
-                    {/* Hours and Date */}
-                    <div className="flex items-center justify-between text-xs">
-                      {contrib.hours_spent ? (
-                        <div className="flex items-center text-gray-600 dark:text-gray-400">
-                          <Clock size={14} className="mr-1" />
-                          <span className="font-medium">{contrib.hours_spent}h</span>
-                        </div>
-                      ) : (
-                        <span className="text-gray-400 dark:text-gray-500">No time logged</span>
-                      )}
+                    {/* Date */}
+                    <div className="flex items-center justify-end text-xs pt-2">
                       <span className="text-gray-500 dark:text-gray-400">{formatDate(contrib.created_at)}</span>
                     </div>
                   </div>
@@ -571,7 +529,6 @@ function ContributionFormModal({
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [contributionType, setContributionType] = useState<ContributionType>('other');
-  const [hoursSpent, setHoursSpent] = useState('');
   const [projectId, setProjectId] = useState('');
   const [taskId, setTaskId] = useState('');
   const [loading, setLoading] = useState(false);
@@ -583,14 +540,12 @@ function ContributionFormModal({
       setTitle(contribution.title || '');
       setDescription(contribution.description || '');
       setContributionType(contribution.contribution_type || 'other');
-      setHoursSpent(contribution.hours_spent?.toString() || '');
       setProjectId(contribution.project_id || '');
       setTaskId(contribution.task_id || '');
     } else {
       setTitle('');
       setDescription('');
       setContributionType('other');
-      setHoursSpent('');
       setProjectId('');
       setTaskId('');
     }
@@ -628,12 +583,6 @@ function ContributionFormModal({
       return;
     }
 
-    const hours = hoursSpent ? parseFloat(hoursSpent) : null;
-    if (hours !== null && (isNaN(hours) || hours < 0)) {
-      setError('Hours must be a positive number');
-      return;
-    }
-
     setLoading(true);
     setError('');
 
@@ -645,7 +594,7 @@ function ContributionFormModal({
         title: title.trim(),
         description: description.trim() || null,
         contribution_type: contributionType,
-        hours_spent: hours,
+        hours_spent: null,
       };
 
       if (contribution) {
@@ -821,25 +770,6 @@ function ContributionFormModal({
               </div>
             </div>
 
-            {/* Hours Spent */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                <Clock size={16} className="mr-2 text-gray-500" />
-                Hours Spent (Optional)
-              </label>
-              <input
-                type="number"
-                value={hoursSpent}
-                onChange={(e) => setHoursSpent(e.target.value)}
-                placeholder="e.g., 2.5"
-                min="0"
-                step="0.25"
-                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
-              />
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Track time spent on this contribution for better analytics
-              </p>
-            </div>
           </div>
 
           {/* Footer */}

@@ -6593,7 +6593,7 @@ export async function getProjectSubmission(projectId: string): Promise<ProjectSu
       .from('project_submissions')
       .select('*')
       .eq('project_id', projectId)
-      .order('created_at', { ascending: false })
+      .order('submitted_at', { ascending: false })
       .limit(1)
       .single();
 
