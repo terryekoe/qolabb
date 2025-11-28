@@ -38,6 +38,7 @@ import {
   updateTeamMemberRole,
   getPendingEvaluations,
 } from '@/lib/db/queries';
+import { usePermissions } from '@/lib/hooks/usePermissions';
 import type { ProjectResource } from '@/lib/types/database';
 
 type ProjectStatus = 'pending' | 'active' | 'completed' | 'archived';
@@ -50,6 +51,7 @@ export const dynamic = 'force-dynamic';
 function ProjectsPageContent() {
   const { user } = useAuth();
   const { currentWorkspace } = useWorkspace();
+  const { canAccess } = usePermissions();
   const searchParams = useSearchParams();
   const router = useRouter();
   
@@ -329,24 +331,28 @@ function ProjectsPageContent() {
             </p>
           </div>
           <div className="flex flex-col items-end gap-2">
-            <Button
-              variant="primary"
-              onClick={() => {
-                console.log('Create Assignment button clicked');
-                console.log('Teams available:', teams.length);
-                setShowCreateModal(true);
-              }}
-              className="flex items-center space-x-2"
-              disabled={teams.length === 0}
-            >
-              <Plus size={20} />
-              <span>New Assignment</span>
-            </Button>
-            {teams.length === 0 && (
-              <p className="text-sm text-orange-600 flex items-center gap-1">
-                <AlertCircle size={14} />
-                Create a team first to add assignments
-              </p>
+            {canAccess.instructorFeatures() && (
+              <>
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    console.log('Create Assignment button clicked');
+                    console.log('Teams available:', teams.length);
+                    setShowCreateModal(true);
+                  }}
+                  className="flex items-center space-x-2"
+                  disabled={teams.length === 0}
+                >
+                  <Plus size={20} />
+                  <span>New Assignment</span>
+                </Button>
+                {teams.length === 0 && (
+                  <p className="text-sm text-orange-600 flex items-center gap-1">
+                    <AlertCircle size={14} />
+                    Create a team first to add assignments
+                  </p>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -466,14 +472,16 @@ function ProjectsPageContent() {
                     <span>Go to Teams Page</span>
                   </Button>
                 ) : !searchQuery && statusFilter === 'all' ? (
-                  <Button
-                    variant="primary"
-                    onClick={() => setShowCreateModal(true)}
-                    className="flex items-center space-x-2 mx-auto"
-                  >
-                    <Plus size={20} />
-                    <span>Create First Assignment</span>
-                  </Button>
+                  canAccess.instructorFeatures() && (
+                    <Button
+                      variant="primary"
+                      onClick={() => setShowCreateModal(true)}
+                      className="flex items-center space-x-2 mx-auto"
+                    >
+                      <Plus size={20} />
+                      <span>Create First Assignment</span>
+                    </Button>
+                  )
                 ) : null}
               </motion.div>
             ) : (

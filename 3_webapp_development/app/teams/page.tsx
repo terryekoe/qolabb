@@ -31,10 +31,12 @@ import TeamDiscovery from '@/components/teams/TeamDiscovery';
 import JoinRequestManager from '@/components/teams/JoinRequestManager';
 import BulkTeamAssignment from '@/components/teams/BulkTeamAssignment';
 import TeamAuditLog from '@/components/teams/TeamAuditLog';
+import { usePermissions } from '@/lib/hooks/usePermissions';
 
 export default function TeamsPage() {
   const { user } = useAuth();
   const { currentWorkspace } = useWorkspace();
+  const { canAccess } = usePermissions();
   const [teams, setTeams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -431,15 +433,17 @@ export default function TeamsPage() {
                       <Users size={16} />
                       <span>View Details</span>
                     </Button>
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      className="flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 border-0"
-                      onClick={() => handleAddMember(team)}
-                    >
-                      <UserPlus size={16} />
-                      <span>Add</span>
-                    </Button>
+                    {canAccess.instructorFeatures() && (
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        className="flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 border-0"
+                        onClick={() => handleAddMember(team)}
+                      >
+                        <UserPlus size={16} />
+                        <span>Add</span>
+                      </Button>
+                    )}
                   </div>
                 </div>
               </motion.div>
