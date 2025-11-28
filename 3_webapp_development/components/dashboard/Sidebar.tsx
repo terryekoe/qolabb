@@ -99,7 +99,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
   const baseNavigationItems = [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard', feature: 'DASHBOARD' as const },
     { icon: FolderKanban, label: 'Assignments', href: '/projects', feature: 'PROJECTS' as const },
-    { icon: CheckSquare, label: 'My Contributions', href: '/tasks', feature: 'TASKS' as const },
+    { icon: CheckSquare, label: isInstructor ? 'Contributions' : 'My Contributions', href: '/tasks', feature: 'TASKS' as const },
     { icon: Users, label: 'My Group', href: '/teams', feature: 'STUDY_GROUPS' as const },
     { icon: Settings, label: 'Settings', href: '/settings', feature: 'SETTINGS_PROFILE' as const },
   ].filter((item): item is typeof item & { feature: string } => isFeatureEnabled(item.feature));

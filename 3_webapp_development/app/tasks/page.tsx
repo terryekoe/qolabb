@@ -44,6 +44,7 @@ import {
   deleteTask,
   isTeamLeaderOrInstructor,
 } from '@/lib/db/queries';
+import { usePermissions } from '@/lib/hooks/usePermissions';
 import type { TaskStatus, TaskPriority } from '@/lib/types/database';
 import {
   DndContext,
@@ -350,10 +351,11 @@ function TasksPageContent() {
   const [selectedProject, setSelectedProject] = useState<string>('all');
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [selectedTaskProject, setSelectedTaskProject] = useState<any>(null);
+  const { isInstructor } = usePermissions();
   const [canManageTasks, setCanManageTasks] = useState(false);
   const [activeTaskMenu, setActiveTaskMenu] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'focus' | 'board' | 'all' | 'team'>('focus');
+  const [viewMode, setViewMode] = useState<'focus' | 'board' | 'all' | 'team'>(isInstructor ? 'all' : 'focus');
   const [showAdvancedTools, setShowAdvancedTools] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   
@@ -1035,7 +1037,7 @@ function TasksPageContent() {
     { id: 'board', label: 'Group Board', description: 'See work by stage', icon: FolderKanban },
     { id: 'all', label: 'Contribution Library', description: 'Browse every contribution', icon: CheckSquare },
     { id: 'team', label: 'Group Workload', description: 'Balance work fairly', icon: UsersIcon },
-  ] as const;
+  ].filter(tab => !isInstructor || tab.id !== 'focus') as any;
 
   const renderFocusView = () => {
     const hasMyTasks = upcomingTasks.length > 0;
@@ -1197,7 +1199,7 @@ function TasksPageContent() {
                   <FolderKanban size={18} />
                   Browse board
                 </Button>
-                {projects.length > 0 && (
+                {projects.length > 0 && !isInstructor && (
                   <Button
                     variant="secondary"
                   onClick={() => {
@@ -1312,9 +1314,13 @@ function TasksPageContent() {
       return (
         <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border-2 border-dashed border-gray-300 dark:border-gray-600">
           <FolderKanban size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">No contributions match your filters</h3>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+            {isInstructor ? 'No student contributions match your filters' : 'No contributions match your filters'}
+          </h3>
           <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-            Clear filters or widen the search to see cards. You can drag between columns to update status at any time.
+            {isInstructor 
+              ? 'Adjust filters to see student work. You can drag cards to update status if needed.'
+              : 'Clear filters or widen the search to see cards. You can drag between columns to update status at any time.'}
           </p>
           <Button variant="secondary" onClick={() => resetFilters()} className="flex items-center gap-2 mx-auto">
             <Filter size={16} />
@@ -1412,9 +1418,13 @@ function TasksPageContent() {
       return (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border-2 border-dashed border-gray-300 dark:border-gray-600">
           <CheckSquare size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">No contributions match your filters</h3>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+            {isInstructor ? 'No student contributions match your filters' : 'No contributions match your filters'}
+          </h3>
           <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-            Adjust the search or filters to see more contributions. You can also show completed work or contributions waiting for an owner.
+            {isInstructor
+              ? 'Adjust the search or filters to see more student work.'
+              : 'Adjust the search or filters to see more contributions. You can also show completed work or contributions waiting for an owner.'}
           </p>
           <div className="flex justify-center gap-3 flex-wrap">
             <Button variant="secondary" onClick={() => resetFilters()} className="flex items-center gap-2">
@@ -1433,8 +1443,14 @@ function TasksPageContent() {
     return (
       <div className="space-y-4">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">Contribution library ({filteredTasks.length})</h3>
-          <p className="text-sm text-gray-600">Click any contribution to open the full details, files, and conversation.</p>
+          <h3 className="text-lg font-semibold text-gray-900">
+            {isInstructor ? `Student contributions (${filteredTasks.length})` : `Contribution library (${filteredTasks.length})`}
+          </h3>
+          <p className="text-sm text-gray-600">
+            {isInstructor 
+              ? 'Click any contribution to view details, files, and student discussions.'
+              : 'Click any contribution to open the full details, files, and conversation.'}
+          </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredTasks.map((task: any, index: number) => {
@@ -1566,7 +1582,9 @@ function TasksPageContent() {
         <div>
           <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Group workload</h2>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            See how contributions are spread across people and assignments so the group stays balanced.
+            {isInstructor
+              ? 'Monitor how work is distributed among students to ensure fair participation.'
+              : 'See how contributions are spread across people and assignments so the group stays balanced.'}
           </p>
         </div>
         {tasks.length > 0 && projects.length > 0 ? (
@@ -1583,7 +1601,9 @@ function TasksPageContent() {
             <BarChart3 size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">No contributions to analyze yet</h3>
             <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-              Create contributions with your group, then return here to see how work is shared.
+              {isInstructor
+                ? 'Once students start contributing, you will see their workload distribution here.'
+                : 'Create contributions with your group, then return here to see how work is shared.'}
             </p>
             <Button variant="primary" onClick={() => setViewMode('focus')} className="flex items-center gap-2 mx-auto">
               <ArrowRight size={18} />
@@ -1689,7 +1709,9 @@ function TasksPageContent() {
             </Button>
           </div>
           <div className="flex items-center gap-2 overflow-x-auto">
-            {(['all', 'my_tasks', 'todo', 'in_progress', 'completed'] as FilterType[]).map((status) => {
+            {(['all', 'my_tasks', 'todo', 'in_progress', 'completed'] as FilterType[])
+              .filter(status => !isInstructor || status !== 'my_tasks')
+              .map((status) => {
               const labels: Record<FilterType, string> = {
                 all: 'All contributions',
                 my_tasks: 'Assigned to me',
@@ -1813,7 +1835,7 @@ function TasksPageContent() {
         {/* View Tabs Navigation */}
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-2 shadow-sm">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-            {viewTabs.map((tab) => {
+            {viewTabs.map((tab: any) => {
               const Icon = tab.icon;
               const isActive = viewMode === tab.id;
               return (
