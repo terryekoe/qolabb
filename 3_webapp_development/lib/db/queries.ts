@@ -2760,11 +2760,12 @@ export async function getWorkspaceStats(workspaceId: string) {
       .eq('workspace_id', workspaceId)
       .eq('status', 'active')
 
-    // Get total members
+    // Get total members (excluding instructors)
     const { count: memberCount } = await supabase
       .from('workspace_members')
-      .select('*', { count: 'exact', head: true })
+      .select('*, profiles!inner(role)', { count: 'exact', head: true })
       .eq('workspace_id', workspaceId)
+      .neq('profiles.role', 'instructor')
 
     // Get completed tasks
     const { count: completedTasks } = await supabase
