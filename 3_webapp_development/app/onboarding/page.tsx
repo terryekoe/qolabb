@@ -120,6 +120,10 @@ export default function OnboardingPage() {
             goals: formData.goals.length > 0 ? formData.goals : null,
           });
           console.log('Onboarding data saved to profile');
+          console.log('Saved role:', formData.role);
+          
+          // Force a small delay to ensure profile is updated in the database
+          await new Promise(resolve => setTimeout(resolve, 500));
         } catch (error) {
           console.error('Failed to save onboarding data:', error);
           // Continue anyway - user can update in settings

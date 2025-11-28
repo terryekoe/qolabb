@@ -30,6 +30,12 @@ export default function DashboardPage() {
   const [hasGroups, setHasGroups] = useState(false);
   const [hasContributions, setHasContributions] = useState(false);
 
+  // Helper function to check if user is instructor
+  const isInstructor = () => {
+    const role = profile?.role?.toLowerCase();
+    return role === 'instructor' || role === 'both';
+  };
+
   // Check if user needs to see first-run tour
   useEffect(() => {
     if (profile && currentWorkspace) {
@@ -144,7 +150,7 @@ export default function DashboardPage() {
               />
               
               {/* Role-Based Stats Grid */}
-              {profile?.role?.toLowerCase() === 'instructor' ? (
+              {isInstructor() ? (
                 // Instructor Dashboard: 4 stats
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   <StatCard
@@ -219,7 +225,7 @@ export default function DashboardPage() {
               >
                 <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Quick Actions</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                  {profile?.role?.toLowerCase() === 'instructor' ? (
+                  {isInstructor() ? (
                     // Instructor Quick Actions
                     <>
                       <button 

@@ -102,8 +102,16 @@ export function FirstRunTour({ onComplete }: FirstRunTourProps) {
   const [dismissed, setDismissed] = useState(false);
 
   const role = profile?.role?.toLowerCase() || 'student';
-  const isInstructor = ['instructor', 'teaching_assistant', 'admin'].includes(role);
+  const isInstructor = role === 'instructor' || role === 'both';
   const tourSteps = isInstructor ? INSTRUCTOR_TOUR : STUDENT_TOUR;
+
+  // Debug logging to help identify role issues
+  useEffect(() => {
+    console.log('FirstRunTour - Profile role:', profile?.role);
+    console.log('FirstRunTour - Normalized role:', role);
+    console.log('FirstRunTour - Is instructor:', isInstructor);
+    console.log('FirstRunTour - Using tour:', isInstructor ? 'INSTRUCTOR' : 'STUDENT');
+  }, [profile?.role, role, isInstructor]);
 
   const handleCheckItem = async (itemId: string, action?: () => void) => {
     if (action) {
