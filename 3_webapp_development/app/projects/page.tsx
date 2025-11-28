@@ -357,24 +357,24 @@ function ProjectsPageContent() {
           </div>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-1">
-          <div className="flex gap-2">
-            <button
-              onClick={() => setActiveTab('assignments')}
-              className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
-                activeTab === 'assignments'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-            >
-              <span className="flex items-center justify-center gap-2">
-                <FolderKanban size={16} />
-                Assignments
-                <span className="opacity-75">({projects.length})</span>
-              </span>
-            </button>
-            {pendingEvaluations.length > 0 && (
+        {/* Tab Navigation - only show if there are reviews to toggle between */}
+        {pendingEvaluations.length > 0 && (
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-1">
+            <div className="flex gap-2">
+              <button
+                onClick={() => setActiveTab('assignments')}
+                className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+                  activeTab === 'assignments'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                <span className="flex items-center justify-center gap-2">
+                  <FolderKanban size={16} />
+                  Assignments
+                  <span className="opacity-75">({projects.length})</span>
+                </span>
+              </button>
               <button
                 onClick={() => setActiveTab('reviews')}
                 className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
@@ -391,9 +391,9 @@ function ProjectsPageContent() {
                   </span>
                 </span>
               </button>
-            )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Tab Content */}
         {activeTab === 'assignments' ? (
