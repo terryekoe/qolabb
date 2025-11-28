@@ -26,6 +26,23 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
     }
   }, [user, loading, router]);
 
+  // Handle mobile sidebar state on mount and resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setSidebarCollapsed(true);
+      } else {
+        setSidebarCollapsed(false);
+      }
+    };
+
+    // Set initial state
+    handleResize();
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // Show loading state while checking authentication
   if (loading) {
     return (

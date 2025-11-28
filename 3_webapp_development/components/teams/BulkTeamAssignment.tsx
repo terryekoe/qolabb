@@ -278,6 +278,11 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
     if (!member || !member.id || !member.full_name) {
       return false
     }
+
+    // Exclude instructors from the assignment list
+    if (member.role === 'instructor') {
+      return false
+    }
     
     const matchesSearch = (member.full_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                          (member.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||

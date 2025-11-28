@@ -96,25 +96,6 @@ export const HeroSection: React.FC = () => {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-6 pt-8 border-t border-gray-200 dark:border-gray-700">
-              {[
-                { value: '1000+', label: 'Students' },
-                { value: '250+', label: 'Projects' },
-                { value: '98%', label: 'Satisfaction' },
-              ].map((stat, index) => (
-                <motion.div
-                  key={stat.label}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 + index * 0.1 }}
-                >
-                  <div className="text-3xl md:text-4xl font-bold text-blue-700 dark:text-blue-400">
-                    {stat.value}
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">{stat.label}</div>
-                </motion.div>
-              ))}
-            </div>
           </motion.div>
 
           {/* Right Column - Image/Illustration */}

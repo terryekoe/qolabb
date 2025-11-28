@@ -14,6 +14,7 @@ export const FEATURES = {
   CONTRIBUTIONS: true,          // "What I Did" - core feature
   PARTICIPATION_CHART: true,    // Basic participation visibility
   PEER_EVALUATIONS: true,      // Unique educational value
+  ANALYTICS: true,             // Instructor analytics dashboard
   
   // HIDE FOR MVP - Set to false
   TASKS: true,                 // Too complex for first-time users

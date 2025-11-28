@@ -26,6 +26,7 @@ import Avatar from '@/components/ui/Avatar';
 import { getUserPendingTasksCount } from '@/lib/db/queries';
 import { supabase } from '@/lib/supabase';
 import { isFeatureEnabled } from '@/lib/config/features';
+import { usePermissions } from '@/lib/hooks/usePermissions';
 
 interface SidebarProps {
   collapsed: boolean;
@@ -37,6 +38,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
   const router = useRouter();
   const { user, profile, signOut } = useAuth();
   const { currentWorkspace } = useWorkspace();
+  const { canAccess } = usePermissions();
   const [showWorkspaceSwitcher, setShowWorkspaceSwitcher] = useState(false);
   const [pendingTasksCount, setPendingTasksCount] = useState(0);
 
@@ -101,6 +103,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
     { icon: Users, label: 'My Group', href: '/teams', feature: 'STUDY_GROUPS' as const },
     { icon: Settings, label: 'Settings', href: '/settings', feature: 'SETTINGS_PROFILE' as const },
   ].filter((item): item is typeof item & { feature: string } => isFeatureEnabled(item.feature));
+
+  // Analytics - only show if user has access
+  if (canAccess.analytics()) {
+    baseNavigationItems.splice(1, 0, { 
+      icon: BarChart3, 
+      label: 'Analytics', 
+      href: '/analytics', 
+      feature: 'ANALYTICS' as any 
+    });
+  }
 
   // Contextual navigation items (appear based on conditions)
   const contextualNavigationItems = [
