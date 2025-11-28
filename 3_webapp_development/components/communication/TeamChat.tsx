@@ -231,7 +231,7 @@ export function TeamChat({ teamId, userId }: TeamChatProps) {
             <MessageSquare size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-2" />
             <p className="text-gray-500 dark:text-gray-400">No channel selected</p>
             <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
-              {channels.length === 0 ? 'No channels available. Contact your team leader.' : 'Please select a channel above.'}
+              {channels.length === 0 ? 'No channels available. Contact your group leader.' : 'Please select a channel above.'}
             </p>
           </div>
         ) : loading && messages.length === 0 ? (

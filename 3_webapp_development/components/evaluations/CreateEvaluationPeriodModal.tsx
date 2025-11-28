@@ -183,6 +183,37 @@ export function CreateEvaluationPeriodModal({
             </select>
           </div>
 
+          {/* Project Selection (Optional) */}
+          <div>
+            <label htmlFor="projectId" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Link to Project (Optional)
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <FolderKanban size={18} className="text-gray-400" />
+              </div>
+              <select
+                id="projectId"
+                value={formData.projectId || ''}
+                onChange={(e) =>
+                  setFormData({ ...formData, projectId: e.target.value || undefined })
+                }
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent disabled:opacity-50"
+                disabled={loading || loadingProjects}
+              >
+                <option value="">No specific project</option>
+                {projects.map((project) => (
+                  <option key={project.id} value={project.id}>
+                    {project.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Select a project if this evaluation is specific to a project assignment.
+            </p>
+          </div>
+
           {/* Date Range */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>

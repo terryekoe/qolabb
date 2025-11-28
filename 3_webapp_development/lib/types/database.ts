@@ -235,6 +235,21 @@ export interface VerificationData {
 }
 
 
+export interface ProjectSubmission {
+  id: string
+  project_id: string
+  submitted_by: string
+  content: string | null
+  resources: ProjectResource[]
+  status: 'submitted' | 'graded' | 'returned'
+  grade: number | null
+  feedback: string | null
+  graded_by: string | null
+  graded_at: string | null
+  submitted_at: string
+  updated_at: string
+}
+
 export interface Task {
   id: string
   project_id: string

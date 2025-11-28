@@ -26,12 +26,15 @@ import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/Button';
 import Avatar from '@/components/ui/Avatar';
 import { TaskModal } from '@/components/projects/TaskModal';
-import { getProjectTasks, updateTask, deleteTask, isTeamLeaderOrInstructor } from '@/lib/db/queries';
+import { getProjectTasks, updateTask, deleteTask, isTeamLeaderOrInstructor, submitProject, getProjectSubmission, getProject, getProjectDiscussions } from '@/lib/db/queries';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
 import { supabase } from '@/lib/supabase';
-import type { Task, TaskStatus } from '@/lib/types/database';
+import { toast } from 'react-hot-toast';
+import { Project, Task, ProjectResource, ProjectSubmission, TaskStatus } from '@/lib/types/database';
+import { ProjectDiscussion } from '@/lib/db/queries'; // Import from queries as it's defined there
 import { ProjectDiscussions } from '@/components/communication/ProjectDiscussions';
+import { ProjectSubmissionModal } from '@/components/projects/ProjectSubmissionModal';
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -39,64 +42,63 @@ export default function ProjectDetailPage() {
   const { user } = useAuth();
   const { currentWorkspace } = useWorkspace();
   
-  const [project, setProject] = useState<any>(null);
-  const [tasks, setTasks] = useState<any[]>([]);
+  const [project, setProject] = useState<Project | null>(null);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [showTaskModal, setShowTaskModal] = useState(false);
+  const [showSubmissionModal, setShowSubmissionModal] = useState(false);
   const [activeTaskMenu, setActiveTaskMenu] = useState<string | null>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [projectSubmission, setProjectSubmission] = useState<ProjectSubmission | null>(null);
+  const [isSubmittingProject, setIsSubmittingProject] = useState(false);
   const [activeTab, setActiveTab] = useState<'tasks' | 'discussions'>('tasks');
   const [viewMode, setViewMode] = useState<'team' | 'focus'>('focus');
   const [canManageTasks, setCanManageTasks] = useState(false);
 
-  const loadProject = useCallback(async () => {
-    if (!params.id || !currentWorkspace?.id) return;
-    
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('projects')
-        .select(`
-          *,
-          team:teams(*)
-        `)
-        .eq('id', params.id)
-        .eq('workspace_id', currentWorkspace.id)
-        .single();
-
-      if (error) throw error;
-      setProject(data);
-    } catch (error) {
-      console.error('Error loading project:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [params.id, currentWorkspace?.id]);
+  const [discussions, setDiscussions] = useState<ProjectDiscussion[]>([]);
 
   const loadTasks = useCallback(async () => {
     if (!params.id) return;
-    
     try {
       const data = await getProjectTasks(params.id as string);
       setTasks(data || []);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error loading tasks:', error);
     }
   }, [params.id]);
 
   useEffect(() => {
-    loadProject();
-    loadTasks();
-  }, [loadProject, loadTasks]);
+    async function loadAllProjectData() {
+      if (!params.id || !currentWorkspace?.id) return;
 
-  // Check permissions
-  useEffect(() => {
-    async function checkPermissions() {
-      if (!user?.id || !currentWorkspace?.id || !project?.team_id) return;
-      const canManage = await isTeamLeaderOrInstructor(user.id, project.team_id, currentWorkspace.id);
-      setCanManageTasks(canManage);
+      try {
+        setLoading(true);
+        const [projectData, tasksData, discussionsData, submissionData] = await Promise.all([
+          getProject(params.id as string, currentWorkspace.id), // Assuming getProject takes workspace_id
+          getProjectTasks(params.id as string),
+          getProjectDiscussions(params.id as string),
+          getProjectSubmission(params.id as string)
+        ]);
+
+        if (projectData) {
+          setProject(projectData);
+          // Check permissions
+          if (user) {
+            const canManage = await isTeamLeaderOrInstructor(user.id, projectData.team_id, projectData.workspace_id);
+            setCanManageTasks(canManage);
+          }
+        }
+        if (tasksData) setTasks(tasksData);
+        if (discussionsData) setDiscussions(discussionsData);
+        if (submissionData) setProjectSubmission(submissionData);
+      } catch (error) {
+        console.error('Error loading project data:', error);
+      } finally {
+        setLoading(false);
+      }
     }
-    checkPermissions();
-  }, [user?.id, currentWorkspace?.id, project?.team_id]);
+    loadAllProjectData();
+  }, [params.id, currentWorkspace?.id, user]);
 
   // Real-time subscriptions
   useEffect(() => {
@@ -205,29 +207,57 @@ export default function ProjectDetailPage() {
             </div>
             
             {/* View Toggle */}
-            <div className="hidden md:flex bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
-              <button
-                onClick={() => setViewMode('focus')}
-                className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                  viewMode === 'focus'
-                    ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-                }`}
-              >
-                <ListChecks size={16} className="mr-2" />
-                My Focus
-              </button>
-              <button
-                onClick={() => setViewMode('team')}
-                className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                  viewMode === 'team'
-                    ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-                }`}
-              >
-                <LayoutTemplate size={16} className="mr-2" />
-                Team Board
-              </button>
+            <div className="flex items-center gap-3">
+              <div className="hidden md:flex bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
+                <button
+                  onClick={() => setViewMode('focus')}
+                  className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                    viewMode === 'focus'
+                      ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                  }`}
+                >
+                  <ListChecks size={16} className="mr-2" />
+                  My Focus
+                </button>
+                <button
+                  onClick={() => setViewMode('team')}
+                  className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                    viewMode === 'team'
+                      ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm'
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                  }`}
+                >
+                  <LayoutTemplate size={16} className="mr-2" />
+                  Team Board
+                </button>
+              </div>
+              
+              {/* Create Task Button (for group leaders/instructors) */}
+              {canManageTasks && (
+                <div className="flex gap-2">
+                  {!projectSubmission ? (
+                    <button
+                      onClick={() => setShowSubmissionModal(true)}
+                      className="flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm font-medium shadow-sm"
+                    >
+                      Submit Project
+                    </button>
+                  ) : (
+                    <div className="flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-lg text-sm font-medium border border-green-200">
+                      <CheckCircle2 size={16} className="mr-2" />
+                      Submitted
+                    </div>
+                  )}
+                  <button
+                    onClick={() => setShowTaskModal(true)}
+                    className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium shadow-sm"
+                  >
+                    <Plus size={16} className="mr-2" />
+                    Create Task
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -540,6 +570,17 @@ export default function ProjectDetailPage() {
           projectId={project.id}
           teamId={project.team_id}
           onTaskCreated={loadTasks}
+        />
+      )}
+
+      {/* Project Submission Modal */}
+      {showSubmissionModal && user && (
+        <ProjectSubmissionModal
+          isOpen={showSubmissionModal}
+          onClose={() => setShowSubmissionModal(false)}
+          projectId={project.id}
+          userId={user.id}
+          onSubmissionComplete={(submission) => setProjectSubmission(submission)}
         />
       )}
     </DashboardLayout>

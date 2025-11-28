@@ -217,7 +217,7 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
         // 1. Regular users
         // 2. Instructors assigning other instructors (for collaboration)
         // Note: Role will be set when the invitation is approved
-        const invitationMessage = `Join as ${assignmentRole === 'leader' ? 'team leader' : 'member'}`
+        const invitationMessage = `Join as ${assignmentRole === 'leader' ? 'group leader' : 'member'}`
         result = await bulkInviteToTeam(selectedTeam, memberIds, user.id, invitationMessage)
         
         // Handle validation results

@@ -5,7 +5,7 @@
 CREATE TABLE IF NOT EXISTS task_submissions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   task_id UUID REFERENCES tasks(id) ON DELETE CASCADE,
-  submitted_by UUID REFERENCES users(id),
+  submitted_by UUID REFERENCES profiles(id),
   
   -- Submission data
   url TEXT NOT NULL,
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS task_submissions (
   -- Manual review
   status TEXT CHECK (status IN ('pending', 'approved', 'rejected')) DEFAULT 'pending',
   feedback TEXT,
-  reviewed_by UUID REFERENCES users(id),
+  reviewed_by UUID REFERENCES profiles(id),
   reviewed_at TIMESTAMPTZ,
   
   submitted_at TIMESTAMPTZ DEFAULT NOW(),

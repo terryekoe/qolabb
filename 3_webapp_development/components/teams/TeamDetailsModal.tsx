@@ -191,14 +191,14 @@ export default function TeamDetailsModal({
                   </div>
                 ) : (
                   <div className="space-y-8">
-                {/* Team Leaders */}
+                {/* Group Leaders */}
                 {leaders.length > 0 && (
                   <div>
                     <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-3">
                       <div className="p-2 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg shadow-sm">
                         <Crown className="w-5 h-5 text-white" />
                       </div>
-                      Team Leaders ({leaders.length})
+                      Group Leaders ({leaders.length})
                     </h3>
                     <div className="grid gap-3">
                       {leaders.map((member) => (
@@ -243,6 +243,9 @@ export default function TeamDetailsModal({
                   </div>
                 )}
 
+                  </div>
+                )}
+
                 {members.length === 0 && (
                   <div className="text-center py-12">
                     <div className="p-4 bg-gray-200 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
@@ -252,6 +255,37 @@ export default function TeamDetailsModal({
                     <p className="text-gray-500 dark:text-gray-500 text-sm mt-1">Add members to get started</p>
                   </div>
                 )}
+
+                {/* No Leaders - Volunteer Option */}
+                {leaders.length === 0 && members.length > 0 && (
+                  <div className="mt-8 p-6 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800 text-center">
+                    <div className="p-3 bg-blue-100 dark:bg-blue-800 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                      <Crown className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">No Group Leader Selected</h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                      This group needs a leader to manage tasks and submit the final project. Discuss with your team and select a leader.
+                    </p>
+                    
+                    {!canManageTeam && user?.id && (
+                      <button
+                        onClick={() => handleRoleChange(user.id, 'leader', 'Yourself')}
+                        disabled={updatingRole === user.id}
+                        className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium shadow-sm transition-all hover:shadow-md disabled:opacity-50 flex items-center justify-center gap-2 mx-auto"
+                      >
+                        {updatingRole === user.id ? (
+                          <>
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                            Updating...
+                          </>
+                        ) : (
+                          <>
+                            <Crown className="w-5 h-5" />
+                            Volunteer as Leader
+                          </>
+                        )}
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -363,7 +397,7 @@ function MemberCard({
               <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">You</span>
             )}
           </div>
-          <p className="text-sm text-gray-600">{member.role === 'leader' ? 'Team Leader' : 'Team Member'}</p>
+          <p className="text-sm text-gray-600">{member.role === 'leader' ? 'Group Leader' : 'Group Member'}</p>
           {member.user.institution && (
             <p className="text-xs text-gray-500 mt-1">{member.user.institution}</p>
           )}

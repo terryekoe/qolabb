@@ -5747,7 +5747,7 @@ export async function sendTeamChatMessage(
         if (defaultChannel) {
           insertData.channel_id = defaultChannel.id
         } else {
-          throw new Error('No channel available. Please contact your team leader to create a channel.')
+          throw new Error('No channel available. Please contact your group leader to create a channel.')
         }
       }
 
@@ -6533,5 +6533,90 @@ export async function getUnreadDirectMessageCount(userId: string): Promise<numbe
   } catch (error: any) {
     console.error('getUnreadDirectMessageCount error:', error?.message || JSON.stringify(error, null, 2))
     return 0
+  }
+}
+
+// =====================================================
+// PROJECT SUBMISSIONS (Final Assignment Submission)
+// =====================================================
+
+export async function submitProject(
+  projectId: string,
+  userId: string,
+  content: string | null,
+  resources: ProjectResource[] = []
+): Promise<ProjectSubmission | null> {
+  try {
+    // Check if user is group leader
+    const isLeader = await isTeamLeaderOrInstructor(userId, projectId, ''); // We might need teamId, but let's check permissions inside RLS or here
+    // Actually isTeamLeaderOrInstructor takes (userId, teamId, workspaceId). 
+    // We need to fetch project details first to get teamId and workspaceId if we want to check here.
+    // But RLS policies handle security. Let's trust RLS or fetch if needed.
+    
+    // Let's fetch project to get team_id
+    const { data: project } = await supabase
+      .from('projects')
+      .select('team_id, workspace_id')
+      .eq('id', projectId)
+      .single();
+      
+    if (!project) throw new Error('Project not found');
+    
+    const canSubmit = await isTeamLeaderOrInstructor(userId, project.team_id, project.workspace_id);
+    if (!canSubmit) {
+      throw new Error('Only group leaders can submit the project');
+    }
+
+    const { data, error } = await supabase
+      .from('project_submissions')
+      .insert({
+        project_id: projectId,
+        submitted_by: userId,
+        content,
+        resources,
+        status: 'submitted'
+      })
+      .select('*')
+      .single();
+
+    if (error) throw error;
+    return data as ProjectSubmission;
+  } catch (error: any) {
+    console.error('submitProject error:', error?.message || JSON.stringify(error, null, 2));
+    throw error;
+  }
+}
+
+export async function getProjectSubmission(projectId: string): Promise<ProjectSubmission | null> {
+  try {
+    const { data, error } = await supabase
+      .from('project_submissions')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "no rows returned"
+    return data as ProjectSubmission;
+  } catch (error: any) {
+    console.error('getProjectSubmission error:', error?.message || JSON.stringify(error, null, 2));
+    return null;
+  }
+}
+
+export async function getProject(projectId: string, workspaceId?: string) {
+  try {
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('id', projectId)
+      .single();
+
+    if (error) throw error;
+    return data as Project;
+  } catch (error: any) {
+    console.error('getProject error:', error?.message || JSON.stringify(error, null, 2));
+    return null;
   }
 }

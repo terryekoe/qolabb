@@ -682,7 +682,7 @@ function TasksPageContent() {
       setSelectedTaskProject(project);
       setShowTaskModal(true);
     } else {
-      alert('Only team leaders and instructors can create tasks');
+      alert('Only group leaders and instructors can create tasks');
     }
   }
   
