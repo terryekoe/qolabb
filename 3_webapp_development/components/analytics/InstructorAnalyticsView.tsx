@@ -268,7 +268,7 @@ export function InstructorAnalyticsView() {
   );
 
   return (
-    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
+    <div className="h-full overflow-y-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-qolabb-beige-600 rounded-2xl p-4 sm:p-8 text-white">
         <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">

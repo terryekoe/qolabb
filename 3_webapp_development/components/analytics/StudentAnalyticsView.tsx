@@ -92,7 +92,7 @@ export function StudentAnalyticsView() {
     : 0;
 
   return (
-    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
+    <div className="h-full overflow-y-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl p-4 sm:p-8 text-white">
         <h1 className="text-2xl sm:text-3xl font-bold mb-2">My Analytics</h1>

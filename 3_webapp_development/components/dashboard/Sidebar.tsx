@@ -38,7 +38,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
   const router = useRouter();
   const { user, profile, signOut } = useAuth();
   const { currentWorkspace } = useWorkspace();
-  const { canAccess } = usePermissions();
+  const { isInstructor } = usePermissions();
   const [showWorkspaceSwitcher, setShowWorkspaceSwitcher] = useState(false);
   const [pendingTasksCount, setPendingTasksCount] = useState(0);
 
@@ -105,7 +105,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
   ].filter((item): item is typeof item & { feature: string } => isFeatureEnabled(item.feature));
 
   // Analytics - only show if user has access
-  if (canAccess.analytics()) {
+  // Analytics - only show for instructors
+  if (isInstructor) {
     baseNavigationItems.splice(1, 0, { 
       icon: BarChart3, 
       label: 'Analytics', 
