@@ -21,6 +21,12 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+/**
+ * AuthProvider component that wraps the app and provides authentication state.
+ * Manages user session, profile loading, and auth actions (sign in, sign up, etc.).
+ * 
+ * @param children - Child components to wrap
+ */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -238,6 +244,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
+/**
+ * Hook to access the authentication context.
+ * @returns AuthContextType containing user, profile, and auth methods
+ * @throws Error if used outside of AuthProvider
+ */
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {

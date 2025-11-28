@@ -238,6 +238,13 @@ export async function updateProfile(userId: string, updates: Partial<Profile>) {
 // WORKSPACE FUNCTIONS
 // =====================================================
 
+/**
+ * Create a new workspace with the current user as owner
+ * Uses an RPC function to bypass RLS restrictions during creation
+ * @param workspace - Workspace data to insert
+ * @param userId - Owner's user ID
+ * @returns The created workspace
+ */
 export async function createWorkspace(workspace: WorkspaceInsert, userId: string) {
   // Use RPC function to bypass RLS restrictions
   const { data: newWorkspace, error: workspaceError } = await supabase
@@ -272,6 +279,12 @@ interface WorkspaceRPCResponse {
   workspace_updated_at: string;
 }
 
+/**
+ * Upload a workspace icon to storage and update the workspace record
+ * @param workspaceId - Workspace ID
+ * @param file - Image file to upload
+ * @returns Public URL of the uploaded icon
+ */
 export async function uploadWorkspaceIcon(workspaceId: string, file: File): Promise<string> {
   try {
     // Create unique filename
@@ -311,6 +324,10 @@ export async function uploadWorkspaceIcon(workspaceId: string, file: File): Prom
   }
 }
 
+/**
+ * Remove a workspace icon from storage and update the workspace record
+ * @param workspaceId - Workspace ID
+ */
 export async function removeWorkspaceIcon(workspaceId: string): Promise<void> {
   try {
     // Get current icon URL from workspace
@@ -354,6 +371,12 @@ export async function removeWorkspaceIcon(workspaceId: string): Promise<void> {
   }
 }
 
+/**
+ * Get a workspace by ID
+ * Uses RPC to bypass RLS issues and ensure access
+ * @param workspaceId - Workspace ID
+ * @returns Workspace data
+ */
 export async function getWorkspace(workspaceId: string) {
   console.log('🔍 getWorkspace called with workspaceId:', workspaceId);
   
@@ -451,6 +474,11 @@ export async function getWorkspace(workspaceId: string) {
   throw new Error('No workspace data returned from RPC');
 }
 
+/**
+ * Get all workspaces for a user
+ * @param userId - User ID
+ * @returns List of workspace memberships with workspace details
+ */
 export async function getUserWorkspaces(userId: string) {
   console.log('🔍 getUserWorkspaces called with userId:', userId);
   
@@ -484,6 +512,11 @@ export async function getUserWorkspaces(userId: string) {
 }
 
 // Alternative RPC-based function to get user workspaces (bypasses RLS)
+/**
+ * Get all workspaces for a user using RPC (bypasses RLS)
+ * @param userId - User ID
+ * @returns List of workspace memberships with workspace details
+ */
 export async function getUserWorkspacesRPC(userId: string) {
   console.log('🔍 getUserWorkspacesRPC called with userId:', userId);
   
@@ -508,6 +541,12 @@ export async function getUserWorkspacesRPC(userId: string) {
   }
 }
 
+/**
+ * Join a workspace using an invite code
+ * @param inviteCode - The invite code
+ * @param userId - User ID
+ * @returns The joined workspace
+ */
 export async function joinWorkspaceByCode(inviteCode: string, userId: string) {
   // Ensure profile exists before joining workspace
   // This is important because RLS policies require profiles for visibility
@@ -554,6 +593,11 @@ export async function joinWorkspaceByCode(inviteCode: string, userId: string) {
 }
 
 // Updated getWorkspaceMembers function to fetch with profile data
+/**
+ * Get all members of a workspace
+ * @param workspaceId - Workspace ID
+ * @returns List of workspace members with profile data
+ */
 export async function getWorkspaceMembers(workspaceId: string) {
   console.log('🔍 [CLIENT] getWorkspaceMembers called with workspaceId:', workspaceId)
   
@@ -614,6 +658,12 @@ export async function getWorkspaceMembers(workspaceId: string) {
 }
 
 // Add a function to check if user can view workspace members
+/**
+ * Check if a user has permission to view workspace members
+ * @param workspaceId - Workspace ID
+ * @param userId - User ID
+ * @returns True if user can view members, false otherwise
+ */
 export async function canViewWorkspaceMembers(workspaceId: string, userId: string) {
   try {
     const { data, error } = await supabase
@@ -638,6 +688,13 @@ export async function canViewWorkspaceMembers(workspaceId: string, userId: strin
 // TEAM FUNCTIONS
 // =====================================================
 
+/**
+ * Create a new team in a workspace
+ * Auto-adds the creator as a leader unless they are an instructor
+ * @param team - Team data to insert
+ * @param userId - Creator's user ID
+ * @returns The created team
+ */
 export async function createTeam(team: TeamInsert, userId: string) {
   const { data, error } = await supabase
     .from('teams')
@@ -685,6 +742,11 @@ export async function createTeam(team: TeamInsert, userId: string) {
   return data as Team
 }
 
+/**
+ * Get all teams in a workspace
+ * @param workspaceId - Workspace ID
+ * @returns List of teams with members
+ */
 export async function getWorkspaceTeams(workspaceId: string) {
   try {
     const { data, error } = await supabase
@@ -709,6 +771,12 @@ export async function getWorkspaceTeams(workspaceId: string) {
   }
 }
 
+/**
+ * Get teams a user belongs to
+ * @param userId - User ID
+ * @param workspaceId - Optional workspace ID to filter by
+ * @returns List of team memberships with team details
+ */
 export async function getUserTeams(userId: string, workspaceId?: string) {
   let query = supabase
     .from('team_members')
@@ -732,6 +800,13 @@ export async function getUserTeams(userId: string, workspaceId?: string) {
 // PROJECT FUNCTIONS
 // =====================================================
 
+/**
+ * Create a new project
+ * Logs activity and notifies team members
+ * @param project - Project data to insert
+ * @param userId - Creator's user ID
+ * @returns The created project
+ */
 export async function createProject(project: ProjectInsert, userId: string) {
   const { data, error} = await supabase
     .from('projects')
@@ -774,6 +849,11 @@ export async function createProject(project: ProjectInsert, userId: string) {
   return data as Project
 }
 
+/**
+ * Get all projects for a team
+ * @param teamId - Team ID
+ * @returns List of projects with tasks and contributions
+ */
 export async function getTeamProjects(teamId: string) {
   const { data, error } = await supabase
     .from('projects')
@@ -789,6 +869,12 @@ export async function getTeamProjects(teamId: string) {
   return data
 }
 
+/**
+ * Get all projects in a workspace
+ * Uses RPC to ensure access
+ * @param workspaceId - Workspace ID
+ * @returns List of projects
+ */
 export async function getWorkspaceProjects(workspaceId: string) {
   try {
     const { data: { user } } = await supabase.auth.getUser();
@@ -813,6 +899,13 @@ export async function getWorkspaceProjects(workspaceId: string) {
   }
 }
 
+/**
+ * Update a project
+ * Notifications are sent to team members based on changes
+ * @param projectId - Project ID
+ * @param updates - Fields to update
+ * @returns Updated project
+ */
 export async function updateProject(projectId: string, updates: Partial<Project>) {
   // Get current project to check for status changes
   const { data: currentProject } = await supabase
@@ -883,6 +976,13 @@ export async function updateProject(projectId: string, updates: Partial<Project>
 // TASK FUNCTIONS
 // =====================================================
 
+/**
+ * Create a new task
+ * Logs activity and notifies assignee if applicable
+ * @param task - Task data to insert
+ * @param userId - Creator's user ID
+ * @returns The created task
+ */
 export async function createTask(task: TaskInsert, userId: string) {
   const { data, error } = await supabase
     .from('tasks')
@@ -930,6 +1030,11 @@ export async function createTask(task: TaskInsert, userId: string) {
   return data as Task
 }
 
+/**
+ * Get all tasks for a project
+ * @param projectId - Project ID
+ * @returns List of tasks with assignees and creator details
+ */
 export async function getProjectTasks(projectId: string) {
   try {
     const { data, error } = await supabase
@@ -959,6 +1064,12 @@ export async function getProjectTasks(projectId: string) {
   }
 }
 
+/**
+ * Get all tasks assigned to a user
+ * Handles both single assignee (legacy) and multiple assignees
+ * @param userId - User ID
+ * @returns List of unique tasks sorted by creation date
+ */
 export async function getUserTasks(userId: string) {
   // Get tasks where user is assigned (either via old assigned_to or new task_assignees)
   const { data: tasksByOld, error: error1 } = await supabase
@@ -1064,6 +1175,13 @@ export async function getUserPendingTasksCount(userId: string) {
   }
 }
 
+/**
+ * Update a task
+ * Logs activity and sends notifications for status changes
+ * @param taskId - Task ID
+ * @param updates - Fields to update
+ * @returns Updated task
+ */
 export async function updateTask(taskId: string, updates: Partial<Task>) {
   try {
     // Get current task to detect changes
@@ -1273,6 +1391,10 @@ export async function updateTask(taskId: string, updates: Partial<Task>) {
   }
 }
 
+/**
+ * Delete a task
+ * @param taskId - Task ID
+ */
 export async function deleteTask(taskId: string) {
   const { error } = await supabase
     .from('tasks')
@@ -1286,6 +1408,13 @@ export async function deleteTask(taskId: string) {
 // TEAM MEMBER ROLE FUNCTIONS
 // =====================================================
 
+/**
+ * Update a team member's role
+ * @param teamId - Team ID
+ * @param userId - User ID
+ * @param role - New role ('leader' or 'member')
+ * @returns Updated team member record
+ */
 export async function updateTeamMemberRole(teamId: string, userId: string, role: 'leader' | 'member') {
   const { data, error } = await supabase
     .from('team_members')
@@ -1299,6 +1428,11 @@ export async function updateTeamMemberRole(teamId: string, userId: string, role:
   return data
 }
 
+/**
+ * Get all members of a team
+ * @param teamId - Team ID
+ * @returns List of team members with profile data
+ */
 export async function getTeamMembers(teamId: string) {
   const { data, error } = await supabase
     .from('team_members')
@@ -1331,6 +1465,13 @@ export async function getTeamMembers(teamId: string) {
   }))
 }
 
+/**
+ * Check if a user is a team leader or instructor/admin
+ * @param userId - User ID
+ * @param teamId - Team ID
+ * @param workspaceId - Workspace ID
+ * @returns True if user has elevated permissions
+ */
 export async function isTeamLeaderOrInstructor(userId: string, teamId: string, workspaceId: string) {
   // Check if user is workspace owner/instructor
   const { data: workspaceMember } = await supabase
@@ -1356,6 +1497,16 @@ export async function isTeamLeaderOrInstructor(userId: string, teamId: string, w
 }
 
 // Update the addTeamMember function to ensure workspace membership
+/**
+ * Add a member to a team
+ * Ensures user is a workspace member first
+ * Checks team capacity limits
+ * @param teamId - Team ID
+ * @param userId - User ID to add
+ * @param role - Role in team (default: 'member')
+ * @param assignedBy - ID of user performing the action (for notifications)
+ * @returns The new team member record
+ */
 export async function addTeamMember(
   teamId: string,
   userId: string,
@@ -1467,6 +1618,13 @@ export async function addTeamMember(
   }
 }
 
+/**
+ * Remove a member from a team
+ * Logs activity
+ * @param teamId - Team ID
+ * @param userId - User ID to remove
+ * @returns Deleted team member record
+ */
 export async function removeTeamMember(teamId: string, userId: string) {
   const { data, error } = await supabase
     .from('team_members')
@@ -1499,6 +1657,12 @@ export async function removeTeamMember(teamId: string, userId: string) {
   return data
 }
 
+/**
+ * Get workspace members who are NOT in a specific team
+ * @param workspaceId - Workspace ID
+ * @param teamId - Team ID to exclude members from
+ * @returns List of available workspace members
+ */
 export async function getAvailableWorkspaceMembers(workspaceId: string, teamId: string) {
   try {
     console.log('🔍 getAvailableWorkspaceMembers called with:', { workspaceId, teamId })
@@ -1568,6 +1732,11 @@ export async function getAvailableWorkspaceMembers(workspaceId: string, teamId: 
 }
 
 // Debug function to check all workspace members
+/**
+ * Debug function to get all workspace members
+ * @param workspaceId - Workspace ID
+ * @returns List of workspace members
+ */
 export async function debugWorkspaceMembers(workspaceId: string) {
   try {
     console.log('🔍 DEBUG: Checking all workspace members for workspace:', workspaceId)
@@ -1596,6 +1765,13 @@ export async function debugWorkspaceMembers(workspaceId: string) {
   }
 }
 
+/**
+ * Fix data consistency issues where team members are not workspace members
+ * Adds missing workspace memberships or removes invalid team memberships
+ * @param workspaceId - Workspace ID
+ * @param teamId - Team ID
+ * @returns Result object indicating if fixes were made
+ */
 export async function fixTeamMemberDataConsistency(workspaceId: string, teamId: string) {
   try {
     console.log('🔧 FIXING: Checking data consistency for team:', teamId, 'in workspace:', workspaceId)
@@ -1680,6 +1856,12 @@ export async function fixTeamMemberDataConsistency(workspaceId: string, teamId: 
 // CONTRIBUTION FUNCTIONS
 // =====================================================
 
+/**
+ * Create a new contribution
+ * Logs activity and sends motivational message
+ * @param contribution - Contribution data to insert
+ * @returns The created contribution
+ */
 export async function createContribution(contribution: ContributionInsert) {
   const { data, error } = await supabase
     .from('contributions')
@@ -1726,6 +1908,12 @@ export async function createContribution(contribution: ContributionInsert) {
   return data as Contribution
 }
 
+/**
+ * Get contributions for a user
+ * @param userId - User ID
+ * @param projectId - Optional project ID to filter by
+ * @returns List of contributions with project and task details
+ */
 export async function getUserContributions(userId: string, projectId?: string) {
   let query = supabase
     .from('contributions')
@@ -1747,6 +1935,11 @@ export async function getUserContributions(userId: string, projectId?: string) {
   return data
 }
 
+/**
+ * Get all contributions for a project
+ * @param projectId - Project ID
+ * @returns List of contributions with user profiles
+ */
 export async function getProjectContributions(projectId: string) {
   const { data, error } = await supabase
     .from('contributions')
@@ -1761,6 +1954,13 @@ export async function getProjectContributions(projectId: string) {
   return data
 }
 
+/**
+ * Update a contribution
+ * Logs activity
+ * @param contributionId - Contribution ID
+ * @param updates - Fields to update
+ * @returns Updated contribution
+ */
 export async function updateContribution(contributionId: string, updates: Partial<Contribution>) {
   const { data, error } = await supabase
     .from('contributions')
@@ -1795,6 +1995,12 @@ export async function updateContribution(contributionId: string, updates: Partia
   return data as Contribution
 }
 
+/**
+ * Delete a contribution
+ * Logs activity before deletion
+ * @param contributionId - Contribution ID
+ * @returns True if successful
+ */
 export async function deleteContribution(contributionId: string) {
   // Get contribution info before deleting for activity log
   const { data: contribution } = await supabase
@@ -1836,6 +2042,11 @@ export async function deleteContribution(contributionId: string) {
   return true
 }
 
+/**
+ * Get a contribution with full details
+ * @param contributionId - Contribution ID
+ * @returns Contribution with project, task, and user details
+ */
 export async function getContributionWithDetails(contributionId: string) {
   const { data, error } = await supabase
     .from('contributions')
@@ -1856,6 +2067,10 @@ export async function getContributionWithDetails(contributionId: string) {
 // ACTIVITY LOG FUNCTIONS
 // =====================================================
 
+/**
+ * Log an activity in the workspace
+ * @param activity - Activity data to insert
+ */
 export async function logActivity(activity: ActivityLogInsert) {
   const { error } = await supabase
     .from('activity_log')
@@ -1864,6 +2079,12 @@ export async function logActivity(activity: ActivityLogInsert) {
   if (error) console.error('Failed to log activity:', error)
 }
 
+/**
+ * Get activity log for a workspace
+ * @param workspaceId - Workspace ID
+ * @param limit - Number of activities to return (default: 20)
+ * @returns List of activities with user profiles
+ */
 export async function getWorkspaceActivity(workspaceId: string, limit = 20) {
   try {
     const { data: { user } } = await supabase.auth.getUser();
@@ -1932,6 +2153,17 @@ export async function getWorkspaceActivity(workspaceId: string, limit = 20) {
 // TEAM JOIN REQUEST FUNCTIONS
 // =====================================================
 
+/**
+ * Create a request to join a team
+ * Handles both self-requests and owner invitations
+ * Checks for existing memberships and pending requests
+ * @param teamId - Team ID
+ * @param userId - User ID
+ * @param requestedBy - ID of user making the request
+ * @param requestType - Type of request ('self_request' or 'owner_invitation')
+ * @param message - Optional message
+ * @returns The created join request
+ */
 export async function createJoinRequest(
   teamId: string, 
   userId: string, 
@@ -2036,6 +2268,12 @@ export async function createJoinRequest(
   }
 }
 
+/**
+ * Get join requests for a team
+ * @param teamId - Team ID
+ * @param status - Optional status to filter by
+ * @returns List of join requests with user profiles
+ */
 export async function getTeamJoinRequests(teamId: string, status?: string) {
   try {
     // First, get the join requests with team data
@@ -2089,6 +2327,12 @@ export async function getTeamJoinRequests(teamId: string, status?: string) {
   }
 }
 
+/**
+ * Get join requests for a user
+ * @param userId - User ID
+ * @param status - Optional status to filter by
+ * @returns List of join requests with team and profile details
+ */
 export async function getUserJoinRequests(userId: string, status?: string) {
   try {
     // First get the join requests
@@ -2147,6 +2391,12 @@ export async function getUserJoinRequests(userId: string, status?: string) {
   }
 }
 
+/**
+ * Get all join requests in a workspace
+ * @param workspaceId - Workspace ID
+ * @param status - Optional status to filter by
+ * @returns List of join requests with team and profile details
+ */
 export async function getWorkspaceJoinRequests(workspaceId: string, status?: string) {
   try {
     // First get the join requests with team info
@@ -2205,6 +2455,16 @@ export async function getWorkspaceJoinRequests(workspaceId: string, status?: str
   }
 }
 
+/**
+ * Respond to a join request (approve/reject)
+ * Updates request status and adds user to team if approved
+ * Logs activity
+ * @param requestId - Request ID
+ * @param status - New status ('approved' or 'rejected')
+ * @param respondedBy - ID of user responding
+ * @param responseMessage - Optional response message
+ * @returns Updated request
+ */
 export async function respondToJoinRequest(
   requestId: string,
   status: 'approved' | 'rejected',
@@ -2256,6 +2516,13 @@ export async function respondToJoinRequest(
   }
 }
 
+/**
+ * Cancel a pending join request
+ * Logs activity
+ * @param requestId - Request ID
+ * @param userId - User ID cancelling the request
+ * @returns Cancelled request
+ */
 export async function cancelJoinRequest(requestId: string, userId: string) {
   try {
     const { data, error } = await supabase
@@ -2293,6 +2560,12 @@ export async function cancelJoinRequest(requestId: string, userId: string) {
   }
 }
 
+/**
+ * Get public teams in a workspace that user can join
+ * @param workspaceId - Workspace ID
+ * @param userId - User ID
+ * @returns List of discoverable teams with member counts and status
+ */
 export async function getDiscoverableTeams(workspaceId: string, userId: string) {
   try {
     const { data, error } = await supabase
@@ -2345,6 +2618,16 @@ export async function getDiscoverableTeams(workspaceId: string, userId: string) 
   }
 }
 
+/**
+ * Bulk invite users to a team
+ * Checks for existing memberships and pending requests
+ * Verifies workspace membership
+ * @param teamId - Team ID
+ * @param userIds - List of user IDs to invite
+ * @param invitedBy - ID of user sending invites
+ * @param message - Optional invitation message
+ * @returns Result object with successful and skipped counts
+ */
 export async function bulkInviteToTeam(
   teamId: string,
   userIds: string[],
@@ -2485,6 +2768,15 @@ export async function bulkInviteToTeam(
  * Bulk add team members directly (for instructors/admins)
  * This bypasses join requests and directly adds members to the team
  */
+/**
+ * Bulk add team members directly (for instructors/admins)
+ * Bypasses join requests and directly adds members
+ * @param teamId - Team ID
+ * @param userIds - List of user IDs to add
+ * @param role - Role in team (default: 'member')
+ * @param assignedBy - ID of user performing the action
+ * @returns Result object with successful and skipped counts
+ */
 export async function bulkAddTeamMembers(
   teamId: string,
   userIds: string[],
@@ -2609,6 +2901,14 @@ export async function bulkAddTeamMembers(
 // TEAM ASSIGNMENT AUDIT FUNCTIONS
 // =====================================================
 
+/**
+ * Log a team assignment audit event
+ * @param teamId - Team ID
+ * @param userId - User ID affected
+ * @param action - Action type
+ * @param performedBy - User ID performing the action
+ * @param details - Additional details
+ */
 export async function logTeamAssignmentAudit(
   teamId: string,
   userId: string,
@@ -2634,6 +2934,12 @@ export async function logTeamAssignmentAudit(
   }
 }
 
+/**
+ * Get audit log for a team
+ * @param teamId - Team ID
+ * @param limit - Number of records to return (default: 50)
+ * @returns List of audit records with user profiles
+ */
 export async function getTeamAssignmentAudit(teamId: string, limit = 50) {
   try {
     const { data, error } = await supabase
@@ -2656,6 +2962,12 @@ export async function getTeamAssignmentAudit(teamId: string, limit = 50) {
   }
 }
 
+/**
+ * Get audit log for a workspace
+ * @param workspaceId - Workspace ID
+ * @param limit - Number of records to return (default: 100)
+ * @returns List of audit records with user profiles
+ */
 export async function getWorkspaceAssignmentAudit(workspaceId: string, limit = 100) {
   try {
     const { data, error } = await supabase
@@ -2682,6 +2994,13 @@ export async function getWorkspaceAssignmentAudit(workspaceId: string, limit = 1
 // ENHANCED TEAM MANAGEMENT FUNCTIONS
 // =====================================================
 
+/**
+ * Update team settings
+ * @param teamId - Team ID
+ * @param settings - Settings object (allow_self_join, require_approval, max_members)
+ * @param isPublic - Whether team is discoverable
+ * @returns Updated team record
+ */
 export async function updateTeamSettings(
   teamId: string,
   settings: {
@@ -2717,6 +3036,11 @@ export async function updateTeamSettings(
   }
 }
 
+/**
+ * Get team with settings and members
+ * @param teamId - Team ID
+ * @returns Team data with members and settings
+ */
 export async function getTeamWithSettings(teamId: string) {
   try {
     const { data, error } = await supabase
@@ -2751,6 +3075,11 @@ export async function getTeamWithSettings(teamId: string) {
 // ANALYTICS FUNCTIONS
 // =====================================================
 
+/**
+ * Get basic statistics for a workspace
+ * @param workspaceId - Workspace ID
+ * @returns Object containing active projects, total members, completed tasks, and avg participation
+ */
 export async function getWorkspaceStats(workspaceId: string) {
   try {
     // Get active projects count
@@ -2801,6 +3130,12 @@ export async function getWorkspaceStats(workspaceId: string) {
 }
 
 // Get detailed analytics for a workspace
+/**
+ * Get detailed analytics for a workspace
+ * Includes team data, contribution stats, and participation metrics
+ * @param workspaceId - Workspace ID
+ * @returns Comprehensive analytics object
+ */
 export async function getWorkspaceAnalytics(workspaceId: string) {
   try {
     const stats = await getWorkspaceStats(workspaceId)
@@ -2928,6 +3263,12 @@ export async function getWorkspaceAnalytics(workspaceId: string) {
 }
 
 // Get team analytics
+/**
+ * Get analytics for a specific team
+ * Includes member participation, project stats, and fairness score
+ * @param teamId - Team ID
+ * @returns Team analytics object
+ */
 export async function getTeamAnalytics(teamId: string) {
   try {
     // Get team with members (excluding instructors)
@@ -3059,6 +3400,13 @@ export async function getTeamAnalytics(teamId: string) {
 }
 
 // Get user's personal analytics
+/**
+ * Get personal analytics for a user
+ * Includes contribution breakdown, weekly hours, and participation score
+ * @param userId - User ID
+ * @param workspaceId - Optional workspace ID to filter by
+ * @returns User analytics object
+ */
 export async function getUserAnalytics(userId: string, workspaceId?: string) {
   try {
     // Get user's contributions
@@ -3202,6 +3550,13 @@ export async function getUserAnalytics(userId: string, workspaceId?: string) {
 }
 
 // Get student performance data for instructors/TAs
+/**
+ * Get student performance data for instructors/TAs
+ * Aggregates analytics for all students in a workspace
+ * @param workspaceId - Workspace ID
+ * @param userId - Optional User ID (unused but kept for signature compatibility)
+ * @returns List of student performance records
+ */
 export async function getStudentPerformance(workspaceId: string, userId?: string) {
   try {
     // Get all workspace members (excluding instructors and TAs)
@@ -3316,6 +3671,11 @@ export async function getStudentPerformance(workspaceId: string, userId?: string
 // TASK ASSIGNEE FUNCTIONS
 // =====================================================
 
+/**
+ * Get assignees for a task
+ * @param taskId - Task ID
+ * @returns List of assignees with user profiles
+ */
 export async function getTaskAssignees(taskId: string) {
   try {
     const { data, error } = await supabase
@@ -3338,6 +3698,14 @@ export async function getTaskAssignees(taskId: string) {
   }
 }
 
+/**
+ * Add assignees to a task
+ * Logs activity and sends notifications
+ * @param taskId - Task ID
+ * @param userIds - List of user IDs to assign
+ * @param assignedBy - ID of user performing the assignment
+ * @returns List of new assignee records
+ */
 export async function addTaskAssignees(taskId: string, userIds: string[], assignedBy: string) {
   try {
     // Get current assignees to avoid duplicates
@@ -3431,6 +3799,14 @@ export async function addTaskAssignees(taskId: string, userIds: string[], assign
   }
 }
 
+/**
+ * Remove an assignee from a task
+ * Logs activity
+ * @param taskId - Task ID
+ * @param userId - User ID to remove
+ * @param removedBy - ID of user performing the removal
+ * @returns True if successful
+ */
 export async function removeTaskAssignee(taskId: string, userId: string, removedBy: string) {
   try {
     const { data: attachment, error } = await supabase
@@ -3482,6 +3858,11 @@ export async function removeTaskAssignee(taskId: string, userId: string, removed
 // TASK ATTACHMENT FUNCTIONS
 // =====================================================
 
+/**
+ * Get attachments for a task
+ * @param taskId - Task ID
+ * @returns List of attachments with uploader profiles
+ */
 export async function getTaskAttachments(taskId: string) {
   try {
     const { data, error } = await supabase
@@ -3501,6 +3882,15 @@ export async function getTaskAttachments(taskId: string) {
   }
 }
 
+/**
+ * Upload a file attachment for a task
+ * Uploads to storage and creates database record
+ * Logs activity
+ * @param taskId - Task ID
+ * @param userId - User ID uploading
+ * @param file - File object to upload
+ * @returns Attachment record with public URL
+ */
 export async function uploadTaskAttachment(
   taskId: string,
   userId: string,
@@ -3576,6 +3966,15 @@ export async function uploadTaskAttachment(
   }
 }
 
+/**
+ * Add a link attachment to a task
+ * Logs activity
+ * @param taskId - Task ID
+ * @param userId - User ID adding the link
+ * @param url - External URL
+ * @param fileName - Optional name for the link
+ * @returns Attachment record
+ */
 export async function addTaskAttachmentLink(
   taskId: string,
   userId: string,
@@ -3652,6 +4051,14 @@ export async function addTaskAttachmentLink(
   }
 }
 
+/**
+ * Delete a task attachment
+ * Removes from storage if it's a file
+ * Logs activity
+ * @param attachmentId - Attachment ID
+ * @param userId - User ID requesting deletion
+ * @returns True if successful
+ */
 export async function deleteTaskAttachment(attachmentId: string, userId: string) {
   try {
     // Get attachment info
@@ -3738,6 +4145,11 @@ export async function deleteTaskAttachment(attachmentId: string, userId: string)
 // TASK SUBTASK FUNCTIONS
 // =====================================================
 
+/**
+ * Get subtasks for a task
+ * @param taskId - Task ID
+ * @returns List of subtasks ordered by position
+ */
 export async function getTaskSubtasks(taskId: string) {
   try {
     const { data, error } = await supabase
@@ -3755,6 +4167,15 @@ export async function getTaskSubtasks(taskId: string) {
   }
 }
 
+/**
+ * Create a subtask
+ * Logs activity
+ * @param taskId - Task ID
+ * @param title - Subtask title
+ * @param userId - Creator's user ID
+ * @param position - Optional position (auto-calculated if omitted)
+ * @returns Created subtask
+ */
 export async function createTaskSubtask(
   taskId: string,
   title: string,
@@ -3813,6 +4234,13 @@ export async function createTaskSubtask(
   }
 }
 
+/**
+ * Update a subtask
+ * Logs activity for completion status changes
+ * @param subtaskId - Subtask ID
+ * @param updates - Fields to update (title, completed, position)
+ * @returns Updated subtask
+ */
 export async function updateTaskSubtask(
   subtaskId: string,
   updates: { title?: string; completed?: boolean; position?: number }
@@ -3865,6 +4293,12 @@ export async function updateTaskSubtask(
   }
 }
 
+/**
+ * Delete a subtask
+ * Logs activity
+ * @param subtaskId - Subtask ID
+ * @returns True if successful
+ */
 export async function deleteTaskSubtask(subtaskId: string) {
   try {
     const { data: subtask } = await supabase
@@ -3932,6 +4366,12 @@ export interface Notification {
 /**
  * Create a new notification
  * Uses the SQL function create_notification which has SECURITY DEFINER and bypasses RLS
+ */
+/**
+ * Create a new notification
+ * Uses the SQL function create_notification which has SECURITY DEFINER and bypasses RLS
+ * @param notification - Notification data
+ * @returns Created notification object or null if disabled
  */
 export async function createNotification(notification: {
   user_id: string
@@ -4004,6 +4444,12 @@ export async function createNotification(notification: {
 /**
  * Get user notifications with pagination and filtering
  */
+/**
+ * Get user notifications with pagination and filtering
+ * @param userId - User ID
+ * @param options - Pagination and filtering options
+ * @returns List of notifications
+ */
 export async function getUserNotifications(
   userId: string,
   options: {
@@ -4044,6 +4490,12 @@ export async function getUserNotifications(
 /**
  * Mark a notification as read
  */
+/**
+ * Mark a notification as read
+ * @param notificationId - Notification ID
+ * @param userId - User ID
+ * @returns Updated notification
+ */
 export async function markNotificationAsRead(notificationId: string, userId: string) {
   try {
     const { data, error } = await supabase
@@ -4065,6 +4517,11 @@ export async function markNotificationAsRead(notificationId: string, userId: str
 /**
  * Mark all notifications as read for a user
  */
+/**
+ * Mark all notifications as read for a user
+ * @param userId - User ID
+ * @returns List of updated notifications
+ */
 export async function markAllNotificationsAsRead(userId: string) {
   try {
     const { data, error } = await supabase
@@ -4083,6 +4540,12 @@ export async function markAllNotificationsAsRead(userId: string) {
 
 /**
  * Delete a notification
+ */
+/**
+ * Delete a notification
+ * @param notificationId - Notification ID
+ * @param userId - User ID
+ * @returns True if successful
  */
 export async function deleteNotification(notificationId: string, userId: string) {
   try {
@@ -4103,6 +4566,11 @@ export async function deleteNotification(notificationId: string, userId: string)
 /**
  * Get unread notification count for a user
  */
+/**
+ * Get unread notification count for a user
+ * @param userId - User ID
+ * @returns Count of unread notifications
+ */
 export async function getUnreadNotificationCount(userId: string) {
   try {
     const { count, error } = await supabase
@@ -4121,6 +4589,14 @@ export async function getUnreadNotificationCount(userId: string) {
 
 /**
  * Create team assignment notification
+ */
+/**
+ * Create team assignment notification
+ * @param userId - User ID to notify
+ * @param teamName - Name of the team
+ * @param assignedBy - ID of user who assigned
+ * @param role - Role assigned (default: 'member')
+ * @returns Created notification
  */
 export async function createTeamAssignmentNotification(
   userId: string,
@@ -4170,6 +4646,13 @@ export async function createTeamAssignmentNotification(
 /**
  * Create team invitation notification
  */
+/**
+ * Create team invitation notification
+ * @param userId - User ID to notify
+ * @param teamName - Name of the team
+ * @param invitedBy - ID of user who invited
+ * @returns Created notification
+ */
 export async function createTeamInvitationNotification(
   userId: string,
   teamName: string,
@@ -4189,6 +4672,15 @@ export async function createTeamInvitationNotification(
 
 /**
  * Create task assignment notification
+ */
+/**
+ * Create task assignment notification
+ * @param userId - User ID to notify
+ * @param taskTitle - Title of the task
+ * @param taskId - Task ID
+ * @param assignedBy - ID of user who assigned
+ * @param projectName - Optional project name
+ * @returns Created notification
  */
 export async function createTaskAssignmentNotification(
   userId: string,
@@ -4242,6 +4734,14 @@ export async function createTaskAssignmentNotification(
 /**
  * Create join request notification
  */
+/**
+ * Create join request notification
+ * @param userId - User ID to notify
+ * @param teamName - Name of the team
+ * @param requesterName - Name of the user requesting to join
+ * @param status - Status of the request
+ * @returns Created notification
+ */
 export async function createJoinRequestNotification(
   userId: string,
   teamName: string,
@@ -4269,6 +4769,15 @@ export async function createJoinRequestNotification(
 
 /**
  * Create task completion notification
+ */
+/**
+ * Create task completion notification
+ * @param userId - User ID to notify
+ * @param taskTitle - Title of the task
+ * @param taskId - Task ID
+ * @param completedBy - ID of user who completed the task
+ * @param projectName - Optional project name
+ * @returns Created notification
  */
 export async function createTaskCompletedNotification(
   userId: string,
@@ -4304,6 +4813,26 @@ export async function createTaskCompletedNotification(
 
 /**
  * Create project update notification
+ */
+/**
+ * Create project update notification
+ * @param userIds - List of user IDs to notify
+ * @param projectName - Name of the project
+ * @param projectId - Project ID
+ * @param updateType - Type of update
+ * @param updatedBy - ID of user who updated
+ * @param message - Optional custom message
+ * @returns List of created notifications
+ */
+/**
+ * Create project update notification
+ * @param userIds - List of user IDs to notify
+ * @param projectName - Name of the project
+ * @param projectId - Project ID
+ * @param updateType - Type of update
+ * @param updatedBy - ID of user who updated
+ * @param message - Optional custom message
+ * @returns List of created notifications
  */
 export async function createProjectUpdateNotification(
   userIds: string[],
@@ -4361,6 +4890,22 @@ export async function createProjectUpdateNotification(
 /**
  * Create contribution logged notification
  */
+/**
+ * Create contribution logged notification
+ * @param userId - User ID to notify
+ * @param contributionType - Type of contribution
+ * @param hours - Hours spent
+ * @param loggedBy - ID of user who logged (usually self)
+ * @returns Created notification
+ */
+/**
+ * Create contribution logged notification
+ * @param userId - User ID to notify
+ * @param contributionType - Type of contribution
+ * @param hours - Hours spent
+ * @param loggedBy - ID of user who logged (usually self)
+ * @returns Created notification
+ */
 export async function createContributionLoggedNotification(
   userId: string,
   contributionType: string,
@@ -4391,6 +4936,17 @@ export async function createContributionLoggedNotification(
 
 /**
  * Create task status changed notification
+ */
+/**
+ * Create task status changed notification
+ * @param userId - User ID to notify
+ * @param taskTitle - Title of the task
+ * @param taskId - Task ID
+ * @param oldStatus - Previous status
+ * @param newStatus - New status
+ * @param changedBy - ID of user who changed status
+ * @param projectName - Optional project name
+ * @returns Created notification
  */
 export async function createTaskStatusChangedNotification(
   userId: string,
@@ -4446,6 +5002,13 @@ export interface SearchResult {
   url?: string
 }
 
+/**
+ * Search across all workspace entities (tasks, projects, teams, members)
+ * @param workspaceId - Workspace ID to search within
+ * @param query - Search query string
+ * @param limit - Maximum number of results per category (default: 5)
+ * @returns Search results grouped by type
+ */
 /**
  * Search across all workspace entities (tasks, projects, teams, members)
  * @param workspaceId - Workspace ID to search within
@@ -4654,6 +5217,12 @@ export interface MotivationalMessage {
 /**
  * Send a motivational message to a user
  */
+/**
+ * Send a motivational message to a user
+ * Uses RPC function send_motivational_message
+ * @param params - Message parameters including type, content, and triggers
+ * @returns Message ID or null
+ */
 export async function sendMotivationalMessage(params: {
   userId: string
   messageType: MotivationalMessage['message_type']
@@ -4690,6 +5259,12 @@ export async function sendMotivationalMessage(params: {
 
 /**
  * Get motivational messages for a user
+ */
+/**
+ * Get motivational messages for a user
+ * @param userId - User ID
+ * @param options - Filtering and pagination options
+ * @returns List of motivational messages
  */
 export async function getMotivationalMessages(
   userId: string,
@@ -4743,6 +5318,11 @@ export async function getMotivationalMessages(
 /**
  * Get unread message count
  */
+/**
+ * Get unread message count
+ * @param userId - User ID
+ * @returns Count of unread messages
+ */
 export async function getUnreadMotivationalMessageCount(userId: string): Promise<number> {
   try {
     const { count, error } = await supabase
@@ -4774,6 +5354,12 @@ export async function getUnreadMotivationalMessageCount(userId: string): Promise
 /**
  * Mark motivational message as read
  */
+/**
+ * Mark motivational message as read
+ * @param messageId - Message ID
+ * @param userId - User ID
+ * @returns True if successful
+ */
 export async function markMotivationalMessageAsRead(messageId: string, userId: string): Promise<boolean> {
   try {
     const { data, error } = await supabase.rpc('mark_motivational_message_read', {
@@ -4791,6 +5377,10 @@ export async function markMotivationalMessageAsRead(messageId: string, userId: s
 
 /**
  * Mark all motivational messages as read for a user
+ */
+/**
+ * Mark all motivational messages as read for a user
+ * @param userId - User ID
  */
 export async function markAllMotivationalMessagesAsRead(userId: string): Promise<void> {
   try {
@@ -4864,6 +5454,11 @@ export interface EvaluationResponse {
 /**
  * Create an evaluation period for a team
  */
+/**
+ * Create an evaluation period for a team
+ * @param params - Period parameters (dates, type, settings)
+ * @returns Created evaluation period
+ */
 export async function createEvaluationPeriod(params: {
   teamId: string
   workspaceId: string
@@ -4901,6 +5496,11 @@ export async function createEvaluationPeriod(params: {
 
 /**
  * Submit a peer evaluation
+ */
+/**
+ * Submit a peer evaluation
+ * @param params - Evaluation data (scores, comments)
+ * @returns Submitted evaluation
  */
 export async function submitPeerEvaluation(params: {
   evaluationPeriodId: string
@@ -4989,6 +5589,12 @@ export interface PendingEvaluationWithDetails extends EvaluationResponse {
 
 /**
  * Get pending evaluations for a user (optionally filtered by workspace)
+ */
+/**
+ * Get pending evaluations for a user (optionally filtered by workspace)
+ * @param userId - User ID
+ * @param workspaceId - Optional workspace ID to filter by
+ * @returns List of pending evaluations with details
  */
 export async function getPendingEvaluations(userId: string, workspaceId?: string): Promise<PendingEvaluationWithDetails[]> {
   try {
@@ -5132,6 +5738,13 @@ export async function getPendingEvaluations(userId: string, workspaceId?: string
 /**
  * Get evaluation results for a user (aggregated, optionally filtered by workspace)
  */
+/**
+ * Get evaluation results for a user (aggregated, optionally filtered by workspace)
+ * @param userId - User ID
+ * @param workspaceId - Optional workspace ID to filter by
+ * @param evaluationPeriodId - Optional period ID to filter by
+ * @returns Aggregated evaluation results
+ */
 export async function getEvaluationResults(
   userId: string,
   workspaceId?: string,
@@ -5256,6 +5869,12 @@ export async function getEvaluationResults(
 /**
  * Get evaluation statistics for a team
  */
+/**
+ * Get evaluation statistics for a team
+ * @param teamId - Team ID
+ * @param evaluationPeriodId - Optional period ID to filter by
+ * @returns Evaluation statistics
+ */
 export async function getEvaluationStats(teamId: string, evaluationPeriodId?: string): Promise<any> {
   try {
     let query = supabase
@@ -5285,6 +5904,11 @@ export async function getEvaluationStats(teamId: string, evaluationPeriodId?: st
 /**
  * Get evaluation periods for a team
  */
+/**
+ * Get evaluation periods for a team
+ * @param teamId - Team ID
+ * @returns List of evaluation periods
+ */
 export async function getTeamEvaluationPeriods(teamId: string): Promise<EvaluationPeriod[]> {
   try {
     const { data, error } = await supabase
@@ -5304,6 +5928,15 @@ export async function getTeamEvaluationPeriods(teamId: string): Promise<Evaluati
 /**
  * Get all peer evaluations for teams managed by an instructor/team leader
  * This allows instructors to view student comments and feedback
+ */
+/**
+ * Get all peer evaluations for teams managed by an instructor/team leader
+ * This allows instructors to view student comments and feedback
+ * @param userId - Instructor/Leader User ID
+ * @param workspaceId - Workspace ID
+ * @param teamId - Optional Team ID to filter by
+ * @param evaluationPeriodId - Optional Period ID to filter by
+ * @returns List of evaluations with details
  */
 export async function getTeamEvaluationsForInstructor(
   userId: string,
@@ -5517,6 +6150,11 @@ export interface TeamChatMessage {
 /**
  * Get team chat channels
  */
+/**
+ * Get team chat channels
+ * @param teamId - Team ID
+ * @returns List of chat channels
+ */
 export async function getTeamChatChannels(teamId: string): Promise<TeamChatChannel[]> {
   try {
     const { data, error } = await supabase
@@ -5536,6 +6174,11 @@ export async function getTeamChatChannels(teamId: string): Promise<TeamChatChann
 
 /**
  * Get default channel for a team (or create it if it doesn't exist)
+ */
+/**
+ * Get default channel for a team (or create it if it doesn't exist)
+ * @param teamId - Team ID
+ * @returns Default channel or null
  */
 export async function getOrCreateDefaultChannel(teamId: string): Promise<TeamChatChannel | null> {
   try {
@@ -5581,6 +6224,14 @@ export async function getOrCreateDefaultChannel(teamId: string): Promise<TeamCha
 
 /**
  * Get team chat messages for a channel
+ */
+/**
+ * Get team chat messages for a channel
+ * @param teamId - Team ID
+ * @param channelId - Optional Channel ID
+ * @param limit - Max messages to retrieve (default: 50)
+ * @param before - Timestamp to fetch messages before (for pagination)
+ * @returns List of chat messages with user details
  */
 export async function getTeamChatMessages(
   teamId: string,
@@ -5709,6 +6360,16 @@ async function enrichTeamChatMessages(messages: any[]): Promise<TeamChatMessage[
 /**
  * Send a team chat message
  */
+/**
+ * Send a team chat message
+ * @param teamId - Team ID
+ * @param userId - Sender User ID
+ * @param message - Message content
+ * @param channelId - Optional Channel ID
+ * @param replyToId - Optional ID of message being replied to
+ * @param attachments - Optional attachments
+ * @returns Sent message with user details
+ */
 export async function sendTeamChatMessage(
   teamId: string,
   userId: string,
@@ -5782,6 +6443,13 @@ export async function sendTeamChatMessage(
 /**
  * Update a team chat message
  */
+/**
+ * Update a team chat message
+ * @param messageId - Message ID
+ * @param userId - User ID (must match sender)
+ * @param newMessage - New message content
+ * @returns Updated message
+ */
 export async function updateTeamChatMessage(
   messageId: string,
   userId: string,
@@ -5814,6 +6482,12 @@ export async function updateTeamChatMessage(
 /**
  * Delete a team chat message
  */
+/**
+ * Delete a team chat message
+ * @param messageId - Message ID
+ * @param userId - User ID (must match sender)
+ * @returns True if successful
+ */
 export async function deleteTeamChatMessage(messageId: string, userId: string): Promise<boolean> {
   try {
     const { error } = await supabase
@@ -5832,6 +6506,11 @@ export async function deleteTeamChatMessage(messageId: string, userId: string): 
 
 /**
  * Mark team chat messages as read
+ */
+/**
+ * Mark team chat messages as read
+ * @param messageIds - List of message IDs
+ * @param userId - User ID
  */
 export async function markTeamChatMessagesAsRead(
   messageIds: string[],
@@ -5901,6 +6580,12 @@ export interface ProjectDiscussionComment {
 
 /**
  * Get project discussions
+ */
+/**
+ * Get project discussions
+ * @param projectId - Project ID
+ * @param limit - Max discussions to retrieve (default: 20)
+ * @returns List of discussions with user details and comment counts
  */
 export async function getProjectDiscussions(
   projectId: string,
@@ -5975,6 +6660,11 @@ export async function getProjectDiscussions(
 
 /**
  * Get a single project discussion with comments
+ */
+/**
+ * Get a single project discussion with comments
+ * @param discussionId - Discussion ID
+ * @returns Discussion object and list of comments (threaded)
  */
 export async function getProjectDiscussion(
   discussionId: string
@@ -6076,6 +6766,15 @@ export async function getProjectDiscussion(
 /**
  * Create a project discussion
  */
+/**
+ * Create a project discussion
+ * @param projectId - Project ID
+ * @param userId - Creator User ID
+ * @param title - Discussion title
+ * @param content - Discussion content
+ * @param tags - Optional tags
+ * @returns Created discussion
+ */
 export async function createProjectDiscussion(
   projectId: string,
   userId: string,
@@ -6126,6 +6825,14 @@ export async function createProjectDiscussion(
 /**
  * Add a comment to a project discussion
  */
+/**
+ * Add a comment to a project discussion
+ * @param discussionId - Discussion ID
+ * @param userId - Commenter User ID
+ * @param content - Comment content
+ * @param parentCommentId - Optional parent comment ID (for replies)
+ * @returns Created comment
+ */
 export async function addProjectDiscussionComment(
   discussionId: string,
   userId: string,
@@ -6173,6 +6880,13 @@ export async function addProjectDiscussionComment(
 
 /**
  * Update a project discussion
+ */
+/**
+ * Update a project discussion
+ * @param discussionId - Discussion ID
+ * @param userId - User ID (must match creator)
+ * @param updates - Fields to update
+ * @returns Updated discussion
  */
 export async function updateProjectDiscussion(
   discussionId: string,
@@ -6223,6 +6937,12 @@ export async function updateProjectDiscussion(
 
 /**
  * Delete a project discussion
+ */
+/**
+ * Delete a project discussion
+ * @param discussionId - Discussion ID
+ * @param userId - User ID (must match creator)
+ * @returns True if successful
  */
 export async function deleteProjectDiscussion(discussionId: string, userId: string): Promise<boolean> {
   try {
@@ -6281,6 +7001,11 @@ export interface Conversation {
 
 /**
  * Get conversations for a user (list of people they've messaged or been messaged by)
+ */
+/**
+ * Get conversations for a user (list of people they've messaged or been messaged by)
+ * @param userId - User ID
+ * @returns List of conversations sorted by latest message
  */
 export async function getDirectMessageConversations(userId: string): Promise<Conversation[]> {
   try {
@@ -6356,6 +7081,14 @@ export async function getDirectMessageConversations(userId: string): Promise<Con
 
 /**
  * Get messages between two users
+ */
+/**
+ * Get messages between two users
+ * @param userId - Current User ID
+ * @param otherUserId - Other User ID
+ * @param limit - Max messages to retrieve (default: 50)
+ * @param before - Timestamp to fetch messages before (for pagination)
+ * @returns List of messages
  */
 export async function getDirectMessages(
   userId: string,
@@ -6461,6 +7194,15 @@ export async function getDirectMessages(
 /**
  * Send a direct message
  */
+/**
+ * Send a direct message
+ * @param senderId - Sender User ID
+ * @param recipientId - Recipient User ID
+ * @param message - Message content
+ * @param replyToId - Optional ID of message being replied to
+ * @param attachments - Optional attachments
+ * @returns Sent message with user details
+ */
 export async function sendDirectMessage(
   senderId: string,
   recipientId: string,
@@ -6497,6 +7239,11 @@ export async function sendDirectMessage(
 /**
  * Mark direct messages as read
  */
+/**
+ * Mark direct messages as read
+ * @param messageIds - List of message IDs
+ * @param userId - User ID (recipient)
+ */
 export async function markDirectMessagesAsRead(
   messageIds: string[],
   userId: string
@@ -6523,6 +7270,11 @@ export async function markDirectMessagesAsRead(
 /**
  * Get unread direct message count
  */
+/**
+ * Get unread direct message count
+ * @param userId - User ID
+ * @returns Count of unread messages
+ */
 export async function getUnreadDirectMessageCount(userId: string): Promise<number> {
   try {
     const { count, error } = await supabase
@@ -6543,6 +7295,15 @@ export async function getUnreadDirectMessageCount(userId: string): Promise<numbe
 // PROJECT SUBMISSIONS (Final Assignment Submission)
 // =====================================================
 
+/**
+ * Submit a project (Final Assignment)
+ * Only group leaders or instructors can submit
+ * @param projectId - Project ID
+ * @param userId - User ID submitting
+ * @param content - Submission content/notes
+ * @param resources - List of resources/files
+ * @returns Submission record
+ */
 export async function submitProject(
   projectId: string,
   userId: string,
@@ -6590,6 +7351,11 @@ export async function submitProject(
   }
 }
 
+/**
+ * Get project submission details
+ * @param projectId - Project ID
+ * @returns Submission record or null
+ */
 export async function getProjectSubmission(projectId: string): Promise<ProjectSubmission | null> {
   try {
     const { data, error } = await supabase
@@ -6608,6 +7374,12 @@ export async function getProjectSubmission(projectId: string): Promise<ProjectSu
   }
 }
 
+/**
+ * Get project details with team info
+ * @param projectId - Project ID
+ * @param workspaceId - Optional Workspace ID (unused but kept for signature compatibility)
+ * @returns Project with team details
+ */
 export async function getProject(projectId: string, workspaceId?: string) {
   try {
     const { data, error } = await supabase

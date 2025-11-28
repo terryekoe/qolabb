@@ -14,6 +14,11 @@ interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
+/**
+ * Main layout for the dashboard
+ * Includes Sidebar, Header, and main content area
+ * Handles authentication checks and responsive layout logic
+ */
 export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // Start expanded on desktop
   const { user, loading } = useAuth();

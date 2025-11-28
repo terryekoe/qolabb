@@ -48,6 +48,12 @@ type TabType = 'assignments' | 'reviews';
 // Force dynamic rendering to prevent prerender errors
 export const dynamic = 'force-dynamic';
 
+/**
+ * Projects Page Content
+ * Main component for the Assignments (Projects) page
+ * Displays a grid of projects and pending peer reviews
+ * Handles project creation and filtering
+ */
 function ProjectsPageContent() {
   const { user } = useAuth();
   const { currentWorkspace } = useWorkspace();

@@ -68,7 +68,11 @@ import { CSS } from '@dnd-kit/utilities';
 
 type FilterType = 'all' | 'my_tasks' | 'todo' | 'in_progress' | 'completed';
 
-// Draggable Task Card Component
+/**
+ * Draggable Task Card Component
+ * Represents a single task card in the Kanban board
+ * Supports drag and drop, context menu, and click interactions
+ */
 interface DraggableTaskCardProps {
   task: any;
   user: any;
@@ -248,7 +252,11 @@ function DraggableTaskCard({
   );
 }
 
-// Kanban Column Component
+/**
+ * Kanban Column Component
+ * Represents a column in the Kanban board (Todo, In Progress, Completed)
+ * Acts as a droppable area for tasks
+ */
 interface KanbanColumnProps {
   id: string;
   title: string;
@@ -338,6 +346,12 @@ function KanbanColumn({
   );
 }
 
+/**
+ * Tasks Page Content
+ * Main component for the Tasks page
+ * Displays tasks in a Kanban board or list view
+ * Handles task creation, updates, deletion, and filtering
+ */
 function TasksPageContent() {
   const { user, profile } = useAuth();
   const { currentWorkspace } = useWorkspace();

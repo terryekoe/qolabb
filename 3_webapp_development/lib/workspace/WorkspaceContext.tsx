@@ -15,6 +15,12 @@ interface WorkspaceContextType {
 
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
 
+/**
+ * WorkspaceProvider component that wraps the app and provides workspace state.
+ * Manages current workspace, list of user workspaces, and workspace switching.
+ * 
+ * @param children - Child components to wrap
+ */
 export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const [currentWorkspace, setCurrentWorkspace] = useState<Workspace | null>(null);
@@ -104,6 +110,11 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>;
 }
 
+/**
+ * Hook to access the workspace context.
+ * @returns WorkspaceContextType containing current workspace and workspace methods
+ * @throws Error if used outside of WorkspaceProvider
+ */
 export function useWorkspace() {
   const context = useContext(WorkspaceContext);
   if (context === undefined) {

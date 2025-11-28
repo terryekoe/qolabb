@@ -33,6 +33,11 @@ interface SidebarProps {
   onClose?: () => void;
 }
 
+/**
+ * Sidebar navigation component
+ * Displays navigation links, workspace switcher, and user profile
+ * Adapts to mobile and desktop layouts
+ */
 export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
   const pathname = usePathname();
   const router = useRouter();
