@@ -299,9 +299,9 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
     return (
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
-          <Users size={64} className="mx-auto text-gray-300 mb-4" />
+          <Users size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">No Workspace Selected</h2>
-          <p className="text-gray-600">Select a workspace to manage team assignments</p>
+          <p className="text-gray-600 dark:text-gray-400">Select a workspace to manage team assignments</p>
         </div>
       </div>
     )
@@ -312,8 +312,8 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Bulk Team Assignment</h2>
-          <p className="text-gray-600 mt-1">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Bulk Team Assignment</h2>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
             Efficiently assign multiple members to teams in {currentWorkspace.name}
           </p>
         </div>
@@ -326,19 +326,19 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
       </div>
 
       {/* Assignment Controls */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Assignment Settings</h3>
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 p-6 space-y-4">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Assignment Settings</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Team Selection */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Target Team
             </label>
             <select
               value={selectedTeam}
               onChange={(e) => setSelectedTeam(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="">Select a team...</option>
               {teams.map(team => (
@@ -351,13 +351,13 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
 
           {/* Role Selection */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Assignment Role
             </label>
             <select
               value={assignmentRole}
               onChange={(e) => setAssignmentRole(e.target.value as 'member' | 'leader')}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="member">Member</option>
               <option value="leader">Leader</option>
@@ -384,7 +384,7 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
       </div>
 
       {/* Filters and Search */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 p-4 space-y-4">
         <div className="flex flex-col sm:flex-row gap-4">
           {/* Search */}
           <div className="flex-1">
@@ -395,7 +395,7 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
                 placeholder="Search members by name, email, or institution..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
@@ -404,7 +404,7 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
           <div className="relative">
             <button
               onClick={() => setShowTeamFilter(!showTeamFilter)}
-              className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
             >
               <Filter size={16} />
               <span>Filter by Team</span>
@@ -412,12 +412,12 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
             </button>
             
             {showTeamFilter && (
-              <div className="absolute top-full mt-1 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[200px]">
+              <div className="absolute top-full mt-1 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-10 min-w-[200px]">
                 <div className="p-2 space-y-1">
                   <button
                     onClick={() => { setTeamFilter('all'); setShowTeamFilter(false) }}
                     className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
-                      teamFilter === 'all' ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-50'
+                      teamFilter === 'all' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                     }`}
                   >
                     All Members
@@ -425,7 +425,7 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
                   <button
                     onClick={() => { setTeamFilter('unassigned'); setShowTeamFilter(false) }}
                     className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
-                      teamFilter === 'unassigned' ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-50'
+                      teamFilter === 'unassigned' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                     }`}
                   >
                     Unassigned Members
@@ -433,7 +433,7 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
                   <button
                     onClick={() => { setTeamFilter('assigned'); setShowTeamFilter(false) }}
                     className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
-                      teamFilter === 'assigned' ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-50'
+                      teamFilter === 'assigned' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                     }`}
                   >
                     Assigned Members
@@ -444,7 +444,7 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
                       key={team.id}
                       onClick={() => { setTeamFilter(team.id); setShowTeamFilter(false) }}
                       className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
-                        teamFilter === team.id ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-50'
+                        teamFilter === team.id ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                       }`}
                     >
                       {team.name}
@@ -458,7 +458,7 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
 
         {/* Selection Controls */}
         {filteredMembers.length > 0 && (
-          <div className="flex items-center justify-between pt-2 border-t border-gray-200">
+          <div className="flex items-center justify-between pt-2 border-t border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-4">
               <Button
                 variant="secondary"
@@ -481,7 +481,7 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
                 </Button>
               )}
             </div>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               {filteredMembers.length} members shown
             </p>
           </div>
@@ -492,14 +492,14 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
       {loading ? (
         <div className="space-y-4">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="bg-white rounded-xl p-4 border border-gray-200 animate-pulse">
+            <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 animate-pulse">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+                <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
                 <div className="flex-1">
-                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                  <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
+                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
                 </div>
-                <div className="w-6 h-6 bg-gray-200 rounded"></div>
+                <div className="w-6 h-6 bg-gray-200 dark:bg-gray-700 rounded"></div>
               </div>
             </div>
           ))}
@@ -508,11 +508,11 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-xl p-12 text-center border-2 border-dashed border-gray-300"
+          className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border-2 border-dashed border-gray-300 dark:border-gray-600"
         >
-          <Users size={64} className="mx-auto text-gray-300 mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">No Members Found</h3>
-          <p className="text-gray-600">
+          <Users size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">No Members Found</h3>
+          <p className="text-gray-600 dark:text-gray-400">
             {searchQuery || teamFilter !== 'all' 
               ? 'Try adjusting your search or filter criteria'
               : 'No members available in this workspace'
@@ -594,10 +594,10 @@ function MemberCard({ member, teams, isSelected, onToggleSelection, index }: Mem
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.02 }}
-      className={`bg-white rounded-xl border p-4 transition-all duration-200 cursor-pointer hover:shadow-md ${
+      className={`bg-white dark:bg-gray-800 rounded-xl border p-4 transition-all duration-200 cursor-pointer hover:shadow-md ${
         isSelected 
-          ? 'border-blue-300 bg-blue-50' 
-          : 'border-gray-200 hover:border-blue-200'
+          ? 'border-blue-300 dark:border-blue-600 bg-blue-50 dark:bg-blue-900/20' 
+          : 'border-gray-200 dark:border-gray-700 hover:border-blue-200 dark:hover:border-blue-700'
       }`}
       onClick={onToggleSelection}
     >
@@ -606,7 +606,7 @@ function MemberCard({ member, teams, isSelected, onToggleSelection, index }: Mem
         <div className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
           isSelected 
             ? 'bg-blue-500 border-blue-500' 
-            : 'border-gray-300 hover:border-blue-400'
+            : 'border-gray-300 dark:border-gray-600 hover:border-blue-400'
         }`}>
           {isSelected && <Check size={16} className="text-white" />}
         </div>
@@ -624,7 +624,7 @@ function MemberCard({ member, teams, isSelected, onToggleSelection, index }: Mem
         {/* Member Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-semibold text-gray-900 truncate">
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100 truncate">
               {fullName}
             </h3>
             {(role.toLowerCase() === 'instructor' || role.toLowerCase() === 'teaching_assistant') && (
@@ -634,9 +634,9 @@ function MemberCard({ member, teams, isSelected, onToggleSelection, index }: Mem
               </div>
             )}
           </div>
-          <p className="text-sm text-gray-600 truncate">{email}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{email}</p>
           {institution && (
-            <p className="text-xs text-gray-500 truncate">{institution}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{institution}</p>
           )}
         </div>
 
@@ -647,20 +647,20 @@ function MemberCard({ member, teams, isSelected, onToggleSelection, index }: Mem
               {memberTeams.slice(0, 2).map(team => (
                 <div
                   key={team.id}
-                  className="flex items-center gap-1 px-2 py-1 bg-gray-100 rounded-full text-xs"
+                  className="flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-xs text-gray-700 dark:text-gray-300"
                 >
                   <div 
                     className="w-2 h-2 rounded-full"
                     style={{ backgroundColor: team.avatar_color }}
                   />
-                  <span className="truncate max-w-[80px]">{team.name}</span>
+                  <span className="truncate max-w-[80px] text-gray-700 dark:text-gray-300">{team.name}</span>
                   {teamRoles[team.id] === 'leader' && (
                     <Crown size={10} className="text-yellow-600" />
                   )}
                 </div>
               ))}
               {memberTeams.length > 2 && (
-                <div className="px-2 py-1 bg-gray-100 rounded-full text-xs text-gray-600">
+                <div className="px-2 py-1 bg-gray-100 rounded-full text-xs text-gray-600 dark:text-gray-400">
                   +{memberTeams.length - 2}
                 </div>
               )}

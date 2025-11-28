@@ -124,9 +124,9 @@ export default function JoinRequestManager({ teamId, onRequestProcessed }: JoinR
     return (
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
-          <Users size={64} className="mx-auto text-gray-300 mb-4" />
+          <Users size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">No Workspace Selected</h2>
-          <p className="text-gray-600">Select a workspace to manage join requests</p>
+          <p className="text-gray-600 dark:text-gray-400">Select a workspace to manage join requests</p>
         </div>
       </div>
     )
@@ -134,10 +134,10 @@ export default function JoinRequestManager({ teamId, onRequestProcessed }: JoinR
 
   if (!canManageRequests) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-        <AlertCircle size={48} className="mx-auto text-gray-300 mb-4" />
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 p-8 text-center">
+        <AlertCircle size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
         <h3 className="text-lg font-semibold text-gray-900 mb-2">Access Denied</h3>
-        <p className="text-gray-600">You don't have permission to manage join requests</p>
+        <p className="text-gray-600 dark:text-gray-400">You don't have permission to manage join requests</p>
       </div>
     )
   }
@@ -164,16 +164,16 @@ export default function JoinRequestManager({ teamId, onRequestProcessed }: JoinR
       {loading ? (
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white rounded-xl p-6 border border-gray-200 animate-pulse">
+            <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 animate-pulse">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+                <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
                 <div className="flex-1">
-                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                  <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
+                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
                 </div>
                 <div className="flex gap-2">
-                  <div className="w-20 h-8 bg-gray-200 rounded"></div>
-                  <div className="w-20 h-8 bg-gray-200 rounded"></div>
+                  <div className="w-20 h-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  <div className="w-20 h-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
                 </div>
               </div>
             </div>
@@ -183,11 +183,11 @@ export default function JoinRequestManager({ teamId, onRequestProcessed }: JoinR
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-xl p-12 text-center border-2 border-dashed border-gray-300"
+          className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border-2 border-dashed border-gray-300 dark:border-gray-600"
         >
-          <UserPlus size={64} className="mx-auto text-gray-300 mb-4" />
+          <UserPlus size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
           <h3 className="text-xl font-semibold text-gray-900 mb-2">No Pending Requests</h3>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-400">
             {teamId 
               ? 'There are no pending join requests for this team'
               : 'There are no pending join requests in this workspace'
@@ -253,7 +253,7 @@ function RequestCard({ request, onApprove, onReject, isProcessing }: RequestCard
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md hover:border-blue-200 transition-all duration-200"
+      className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 p-6 hover:shadow-md hover:border-blue-200 transition-all duration-200"
     >
       <div className="flex items-start gap-4">
         {/* User Avatar */}
@@ -273,14 +273,14 @@ function RequestCard({ request, onApprove, onReject, isProcessing }: RequestCard
               <h3 className="font-semibold text-gray-900 text-lg">
                 {request.user.full_name}
               </h3>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 {getRequestTypeText()} <span className="font-medium">{request.team.name}</span>
               </p>
               {request.user.institution && (
                 <p className="text-xs text-gray-500 mt-1">{request.user.institution}</p>
               )}
             </div>
-            <div className="flex items-center gap-1 text-xs text-gray-500">
+            <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
               <Calendar className="w-3 h-3" />
               {formatDate(request.created_at)}
             </div>
@@ -288,17 +288,17 @@ function RequestCard({ request, onApprove, onReject, isProcessing }: RequestCard
 
           {/* Message */}
           {request.message && (
-            <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+            <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
               <div className="flex items-center gap-2 mb-1">
                 <MessageSquare className="w-4 h-4 text-gray-400" />
                 <span className="text-sm font-medium text-gray-700">Message</span>
               </div>
-              <p className="text-sm text-gray-600">{request.message}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{request.message}</p>
             </div>
           )}
 
           {/* Team Info */}
-          <div className="flex items-center gap-3 mb-4 p-3 bg-gray-50 rounded-lg">
+          <div className="flex items-center gap-3 mb-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
             <div 
               className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
               style={{ backgroundColor: request.team.avatar_color }}

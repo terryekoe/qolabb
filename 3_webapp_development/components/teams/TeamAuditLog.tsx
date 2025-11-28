@@ -173,7 +173,7 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
       case 'demoted_from_leader':
         return 'bg-blue-50 text-blue-700 border-blue-200'
       default:
-        return 'bg-gray-50 text-gray-700 border-gray-200'
+        return 'bg-gray-50 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 border-gray-200'
     }
   }
 
@@ -193,7 +193,7 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
       case 'demote_to_member':
         return <User className="w-4 h-4 text-blue-600" />
       default:
-        return <Users className="w-4 h-4 text-gray-600" />
+        return <Users className="w-4 h-4 text-gray-600 dark:text-gray-400" />
     }
   }
 
@@ -218,9 +218,9 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
-          <History size={64} className="mx-auto text-gray-300 mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">No Workspace Selected</h2>
-          <p className="text-gray-600">Select a workspace to view audit logs</p>
+          <History size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">No Workspace Selected</h2>
+          <p className="text-gray-600 dark:text-gray-400">Select a workspace to view audit logs</p>
         </div>
       </div>
     )
@@ -231,8 +231,8 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Team Assignment Audit Log</h2>
-          <p className="text-gray-600 mt-1">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Team Assignment Audit Log</h2>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
             Track all team assignment activities in {currentWorkspace.name}
           </p>
         </div>
@@ -259,7 +259,7 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 p-4 space-y-4">
         <div className="flex flex-col sm:flex-row gap-4">
           {/* Search */}
           <div className="flex-1">
@@ -270,7 +270,7 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
                 placeholder="Search by user, team, action, or details..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
@@ -278,7 +278,7 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
           {/* Filter Toggle */}
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
           >
             <Filter size={16} />
             <span>Filters</span>
@@ -292,17 +292,17 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-200"
+            className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700"
           >
             {/* Action Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Action Type
               </label>
               <select
                 value={actionFilter}
                 onChange={(e) => setActionFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="all">All Actions</option>
                 <option value="add_member">Add Member</option>
@@ -315,13 +315,13 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
 
             {/* Date Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Time Period
               </label>
               <select
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="all">All Time</option>
                 <option value="today">Today</option>
@@ -337,14 +337,14 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
       {loading && auditEntries.length === 0 ? (
         <div className="space-y-4">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="bg-white rounded-xl p-4 border border-gray-200 animate-pulse">
+            <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 animate-pulse">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+                <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
                 <div className="flex-1">
-                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                  <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
+                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
                 </div>
-                <div className="w-20 h-6 bg-gray-200 rounded"></div>
+                <div className="w-20 h-6 bg-gray-200 dark:bg-gray-700 rounded"></div>
               </div>
             </div>
           ))}
@@ -353,11 +353,11 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-xl p-12 text-center border-2 border-dashed border-gray-300"
+          className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border-2 border-dashed border-gray-300 dark:border-gray-600"
         >
-          <History size={64} className="mx-auto text-gray-300 mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">No Audit Entries Found</h3>
-          <p className="text-gray-600">
+          <History size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">No Audit Entries Found</h3>
+          <p className="text-gray-600 dark:text-gray-400">
             {searchQuery || actionFilter !== 'all' || dateFilter !== 'all'
               ? 'Try adjusting your search or filter criteria'
               : 'No team assignment activities have been recorded yet'
@@ -372,7 +372,7 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.02 }}
-              className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow"
+              className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow"
             >
               <div className="flex items-start gap-4">
                 {/* Action Icon */}
@@ -387,7 +387,7 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
                       {/* Action Description */}
                       <div className="flex items-center gap-2 mb-2">
                         {getActionIcon(entry.action)}
-                        <span className="text-sm text-gray-600">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
                           {formatAction(entry.action)}
                         </span>
                       </div>
@@ -403,7 +403,7 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
                         <span className="font-medium text-gray-900">
                           {entry.performer?.full_name || 'Unknown User'}
                         </span>
-                        <span className="text-gray-600">{getActionVerb(entry.action)}</span>
+                        <span className="text-gray-600 dark:text-gray-400">{getActionVerb(entry.action)}</span>
                         <Avatar
                           userId={entry.user_id}
                           name={entry.user?.full_name || 'Unknown'}
@@ -414,7 +414,7 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
                           {entry.user?.full_name || 'Unknown User'}
                         </span>
                         {entry.action.includes('leader') && (
-                          <span className="text-gray-600">as</span>
+                          <span className="text-gray-600 dark:text-gray-400">as</span>
                         )}
                         {entry.details && typeof entry.details === 'object' && 'role' in entry.details && (
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -425,7 +425,7 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
                             {String(entry.details.role)}
                           </span>
                         )}
-                        <span className="text-gray-600">in</span>
+                        <span className="text-gray-600 dark:text-gray-400">in</span>
                         <span className="font-medium text-gray-900">
                           {entry.team?.name || 'Unknown Team'}
                         </span>
@@ -433,7 +433,7 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
 
                       {/* Details */}
                       {entry.details && typeof entry.details === 'object' && (
-                        <p className="text-sm text-gray-600 mb-2">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                           {(() => {
                             const details = entry.details as any;
                             // If there's a message field, display it
@@ -454,7 +454,7 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
                       )}
 
                       {/* Timestamp */}
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                         <Clock size={12} />
                         <span>{new Date(entry.created_at).toLocaleString()}</span>
                       </div>
@@ -485,7 +485,7 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
 
           {loading && auditEntries.length > 0 && (
             <div className="text-center py-4">
-              <div className="inline-flex items-center gap-2 text-gray-600">
+              <div className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400">
                 <RefreshCw className="w-4 h-4 animate-spin" />
                 Loading more entries...
               </div>

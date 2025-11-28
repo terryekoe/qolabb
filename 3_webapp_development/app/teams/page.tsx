@@ -309,7 +309,7 @@ export default function TeamsPage() {
                   placeholder="Search groups..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
             </div>
@@ -492,14 +492,14 @@ export default function TeamsPage() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto"
+              className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center">
-                  <div className="bg-blue-100 p-3 rounded-lg mr-4">
-                    <Users className="text-blue-700" size={24} />
+                  <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-lg mr-4">
+                    <Users className="text-blue-700 dark:text-blue-400" size={24} />
                   </div>
-                  <h2 className="text-2xl font-bold text-gray-900">Create Group</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Create Group</h2>
                 </div>
                 <button
                   onClick={() => {
@@ -509,21 +509,21 @@ export default function TeamsPage() {
                     setTeamColor('#334e68');
                     setError('');
                   }}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 >
-                  <X size={20} className="text-gray-500" />
+                  <X size={20} className="text-gray-500 dark:text-gray-400" />
                 </button>
               </div>
 
               <div className="space-y-4 mb-6">
                 {error && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-800">
+                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 text-sm text-red-800 dark:text-red-300">
                     {error}
                   </div>
                 )}
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Group Name *
                   </label>
                   <input
@@ -531,12 +531,12 @@ export default function TeamsPage() {
                     value={teamName}
                     onChange={(e) => setTeamName(e.target.value)}
                     placeholder="e.g., Study Group A"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Description (optional)
                   </label>
                   <textarea
@@ -544,12 +544,12 @@ export default function TeamsPage() {
                     onChange={(e) => setTeamDescription(e.target.value)}
                     placeholder="What does this group do?"
                     rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Group Color
                   </label>
                   <div className="grid grid-cols-6 gap-3">
@@ -559,7 +559,7 @@ export default function TeamsPage() {
                         onClick={() => setTeamColor(color.value)}
                         className={`w-full aspect-square rounded-lg transition-all ${
                           teamColor === color.value
-                            ? 'ring-2 ring-offset-2 ring-gray-900 scale-110'
+                            ? 'ring-2 ring-offset-2 ring-blue-500 dark:ring-blue-400 scale-110'
                             : 'hover:scale-105'
                         }`}
                         style={{ backgroundColor: color.value }}

@@ -197,7 +197,7 @@ export default function ProjectDetailPage() {
                     </span>
                   )}
                   {project.due_date && (
-                    <span className="text-sm text-gray-500 flex items-center">
+                    <span className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
                       <Calendar size={16} className="mr-1" />
                       Due: {new Date(project.due_date).toLocaleDateString()}
                     </span>
@@ -244,7 +244,7 @@ export default function ProjectDetailPage() {
                       Submit Project
                     </button>
                   ) : (
-                    <div className="flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-lg text-sm font-medium border border-green-200">
+                    <div className="flex items-center px-4 py-2 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-lg text-sm font-medium border border-green-200 dark:border-green-800">
                       <CheckCircle2 size={16} className="mr-2" />
                       Submitted
                     </div>
@@ -267,13 +267,13 @@ export default function ProjectDetailPage() {
               <span>Overall Progress</span>
               <span className="font-semibold">{completionPercentage}%</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-3">
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
               <div
                 className="bg-gradient-to-r from-blue-600 to-blue-400 h-3 rounded-full transition-all"
                 style={{ width: `${completionPercentage}%` }}
               />
             </div>
-            <div className="flex justify-between text-xs text-gray-500 mt-2">
+            <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-2">
               <span>{tasksByStatus.completed.length} completed</span>
               <span>{tasksByStatus.in_progress.length} in progress</span>
               <span>{tasksByStatus.todo.length} to do</span>
@@ -308,12 +308,12 @@ export default function ProjectDetailPage() {
                       rel="noopener noreferrer"
                       className="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                     >
-                      <div className="bg-blue-100 text-blue-600 p-2 rounded mr-3">
+                      <div className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 p-2 rounded mr-3">
                         <LinkIcon size={16} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{resource.name}</div>
-                        <div className="text-xs text-gray-500 truncate">{resource.url}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{resource.url}</div>
                       </div>
                     </a>
                   ))
@@ -336,12 +336,12 @@ export default function ProjectDetailPage() {
                 {loading ? (
                   <div className="space-y-4">
                     {[1, 2, 3].map((i) => (
-                      <div key={i} className="h-16 bg-gray-200 rounded-xl animate-pulse"></div>
+                      <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse"></div>
                     ))}
                   </div>
                 ) : tasks.filter(t => t.assigned_to === user?.id).length === 0 ? (
                   <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
-                    <CheckCircle2 size={48} className="mx-auto text-gray-300 mb-4" />
+                    <CheckCircle2 size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
                     <p className="text-gray-600 dark:text-gray-400 mb-4">You have no tasks assigned yet.</p>
                     {canManageTasks && (
                       <Button
@@ -370,35 +370,35 @@ export default function ProjectDetailPage() {
                             className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
                               task.status === 'completed'
                                 ? 'bg-green-500 border-green-500 text-white'
-                                : 'border-gray-300 hover:border-blue-500'
+                                : 'border-gray-300 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-400'
                             }`}
                           >
                             {task.status === 'completed' && <CheckCircle2 size={12} />}
                           </button>
                           <div className="flex-1">
                             <div className={`text-sm font-medium mb-1 ${
-                              task.status === 'completed' ? 'text-gray-500 line-through' : 'text-gray-900 dark:text-gray-100'
+                              task.status === 'completed' ? 'text-gray-500 dark:text-gray-600 line-through' : 'text-gray-900 dark:text-gray-100'
                             }`}>
                               {task.title}
                             </div>
                             {task.description && (
-                              <p className="text-xs text-gray-500 mb-2 line-clamp-2">{task.description}</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 line-clamp-2">{task.description}</p>
                             )}
                             <div className="flex items-center gap-3">
                               {task.due_date && (
                                 <span className={`text-xs flex items-center ${
                                   new Date(task.due_date) < new Date() && task.status !== 'completed'
-                                    ? 'text-red-600'
-                                    : 'text-gray-500'
+                                    ? 'text-red-600 dark:text-red-400'
+                                    : 'text-gray-500 dark:text-gray-400'
                                 }`}>
                                   <Clock size={12} className="mr-1" />
                                   {new Date(task.due_date).toLocaleDateString()}
                                 </span>
                               )}
                               <span className={`text-xs px-2 py-0.5 rounded-full ${
-                                task.priority === 'high' ? 'bg-red-100 text-red-700' :
-                                task.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                                'bg-gray-100 text-gray-700'
+                                task.priority === 'high' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' :
+                                task.priority === 'medium' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' :
+                                'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                               }`}>
                                 {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
                               </span>
@@ -482,16 +482,16 @@ export default function ProjectDetailPage() {
                   {loading ? (
                     <div className="space-y-4">
                       {[1, 2, 3].map((i) => (
-                        <div key={i} className="bg-gray-50 rounded-xl p-4 animate-pulse">
-                          <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                          <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                        <div key={i} className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 animate-pulse">
+                          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
+                          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
                         </div>
                       ))}
                     </div>
                   ) : tasks.length === 0 ? (
                     <div className="text-center py-12">
-                      <CheckCircle2 size={48} className="mx-auto text-gray-300 mb-4" />
-                      <p className="text-gray-600 mb-4">No tasks yet</p>
+                      <CheckCircle2 size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+                      <p className="text-gray-600 dark:text-gray-400 mb-4">No tasks yet</p>
                       {canManageTasks && (
                         <Button
                           variant="primary"
@@ -509,18 +509,18 @@ export default function ProjectDetailPage() {
                       {(['todo', 'in_progress', 'completed'] as const).map((status) => (
                         <div key={status}>
                           <div className="flex items-center mb-4">
-                            {status === 'todo' && <AlertCircle size={18} className="text-orange-600 mr-2" />}
-                            {status === 'in_progress' && <Clock size={18} className="text-blue-600 mr-2" />}
-                            {status === 'completed' && <CheckCircle2 size={18} className="text-green-600 mr-2" />}
-                            <h4 className="font-semibold text-gray-900">
+                            {status === 'todo' && <AlertCircle size={18} className="text-orange-600 dark:text-orange-400 mr-2" />}
+                            {status === 'in_progress' && <Clock size={18} className="text-blue-600 dark:text-blue-400 mr-2" />}
+                            {status === 'completed' && <CheckCircle2 size={18} className="text-green-600 dark:text-green-400 mr-2" />}
+                            <h4 className="font-semibold text-gray-900 dark:text-gray-100">
                               {status === 'todo' && 'To Do'}
                               {status === 'in_progress' && 'In Progress'}
                               {status === 'completed' && 'Completed'}
                             </h4>
                             <span className={`ml-auto px-2 py-0.5 rounded-full text-xs font-semibold ${
-                              status === 'todo' ? 'bg-orange-100 text-orange-700' :
-                              status === 'in_progress' ? 'bg-blue-100 text-blue-700' :
-                              'bg-green-100 text-green-700'
+                              status === 'todo' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' :
+                              status === 'in_progress' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' :
+                              'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
                             }`}>
                               {tasksByStatus[status].length}
                             </span>
@@ -611,27 +611,27 @@ const TaskCard: React.FC<TaskCardProps> = ({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
-      className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all group relative"
+      className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-all group relative"
     >
       <div className="flex items-start justify-between mb-2">
-        <h5 className="font-semibold text-gray-900 text-sm flex-1 pr-2">{task.title}</h5>
+        <h5 className="font-semibold text-gray-900 dark:text-gray-100 text-sm flex-1 pr-2">{task.title}</h5>
         {canManage && (
           <div className="relative">
             <button
               onClick={() => setActiveMenu(activeMenu === task.id ? null : task.id)}
-              className="p-1 hover:bg-gray-100 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded opacity-0 group-hover:opacity-100 transition-opacity"
             >
               <MoreVertical size={16} className="text-gray-400" />
             </button>
             
             {activeMenu === task.id && (
-              <div className="absolute right-0 top-6 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-10 min-w-[150px]">
+              <div className="absolute right-0 top-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1 z-10 min-w-[150px]">
                 <button
                   onClick={() => {
                     onDelete(task.id);
                     setActiveMenu(null);
                   }}
-                  className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center"
+                  className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center"
                 >
                   <Trash2 size={14} className="mr-2" />
                   Delete
@@ -643,10 +643,10 @@ const TaskCard: React.FC<TaskCardProps> = ({
       </div>
 
       {task.description && (
-        <p className="text-xs text-gray-600 mb-3 line-clamp-2">{task.description}</p>
+        <p className="text-xs text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">{task.description}</p>
       )}
 
-      <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
+      <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-3">
         {task.assignee && (
           <div className="flex items-center">
             <Avatar
@@ -678,7 +678,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
           value={task.status}
           onChange={(e) => onUpdateStatus(task.id, e.target.value as TaskStatus)}
           disabled={!canManage}
-          className="text-xs px-2 py-1 rounded border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="text-xs px-2 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
         >
           <option value="todo">To Do</option>
           <option value="in_progress">In Progress</option>

@@ -148,14 +148,14 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
           <div className="space-y-4 mb-6">
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-800">
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 text-sm text-red-800 dark:text-red-300">
                 {error}
               </div>
             )}
 
             {/* Task Title */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Task Title *
               </label>
               <input
@@ -163,13 +163,13 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g., Design homepage mockup"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Description (optional)
               </label>
               <textarea
@@ -177,13 +177,13 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Task details and requirements..."
                 rows={3}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
 
             {/* Assign To */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
                 <User size={16} className="mr-2" />
                 Assignees (Multiple)
               </label>
@@ -194,7 +194,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                   const values = Array.from(e.target.selectedOptions, option => option.value);
                   setSelectedAssignees(values);
                 }}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[120px]"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[120px]"
                 size={Math.min(teamMembers.length + 1, 6)}
               >
                 {teamMembers.map((member) => (
@@ -204,7 +204,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                   </option>
                 ))}
               </select>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 Hold Cmd/Ctrl to select multiple assignees
               </p>
             </div>
@@ -212,14 +212,14 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             {/* Status and Priority */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
                   <Clock size={16} className="mr-2" />
                   Status
                 </label>
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value as TaskStatus)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="todo">To Do</option>
                   <option value="in_progress">In Progress</option>
@@ -228,14 +228,14 @@ export const TaskModal: React.FC<TaskModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
                   <Flag size={16} className="mr-2" />
                   Priority
                 </label>
                 <select
                   value={priority}
                   onChange={(e) => setPriority(e.target.value as TaskPriority)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="low">Low</option>
                   <option value="medium">Medium</option>
@@ -246,7 +246,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
             {/* Due Date */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
                 <Calendar size={16} className="mr-2" />
                 Due Date (optional)
               </label>
@@ -254,7 +254,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>

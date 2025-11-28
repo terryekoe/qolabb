@@ -121,9 +121,9 @@ export default function TeamDiscovery({ onTeamJoined }: TeamDiscoveryProps) {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
-          <Users size={64} className="mx-auto text-gray-300 mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">No Workspace Selected</h2>
-          <p className="text-gray-600">Select a workspace to discover teams</p>
+          <Users size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">No Workspace Selected</h2>
+          <p className="text-gray-600 dark:text-gray-400">Select a workspace to discover teams</p>
         </div>
       </div>
     )
@@ -134,15 +134,15 @@ export default function TeamDiscovery({ onTeamJoined }: TeamDiscoveryProps) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Discover Teams</h2>
-          <p className="text-gray-600 mt-1">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Discover Teams</h2>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
             Find and join teams in {currentWorkspace.name}
           </p>
         </div>
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-4">
         <div className="flex flex-col sm:flex-row gap-4">
           {/* Search */}
           <div className="relative flex-1">
@@ -152,7 +152,7 @@ export default function TeamDiscovery({ onTeamJoined }: TeamDiscoveryProps) {
               placeholder="Search teams..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
           
@@ -162,7 +162,7 @@ export default function TeamDiscovery({ onTeamJoined }: TeamDiscoveryProps) {
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value as 'all' | 'public' | 'joinable')}
-              className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="all">All Teams</option>
               <option value="public">Public Teams</option>
@@ -176,11 +176,11 @@ export default function TeamDiscovery({ onTeamJoined }: TeamDiscoveryProps) {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white rounded-xl p-6 border border-gray-200 animate-pulse">
-              <div className="h-12 bg-gray-200 rounded mb-4"></div>
-              <div className="h-4 bg-gray-200 rounded mb-2"></div>
-              <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-              <div className="h-10 bg-gray-200 rounded"></div>
+            <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 animate-pulse">
+              <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded mb-4"></div>
+              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
+              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
+              <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
             </div>
           ))}
         </div>
@@ -188,13 +188,13 @@ export default function TeamDiscovery({ onTeamJoined }: TeamDiscoveryProps) {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-xl p-12 text-center border-2 border-dashed border-gray-300"
+          className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border-2 border-dashed border-gray-300 dark:border-gray-600"
         >
-          <Users size={64} className="mx-auto text-gray-300 mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+          <Users size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
             {searchQuery || filterType !== 'all' ? 'No teams found' : 'No teams available'}
           </h3>
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
             {searchQuery || filterType !== 'all'
               ? 'Try adjusting your search or filter criteria'
               : 'There are no teams available to join at the moment'}
@@ -330,7 +330,7 @@ function TeamCard({ team, joinRequest, onJoinRequest, isRequesting }: TeamCardPr
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-blue-200 transition-all duration-200"
+      className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg hover:border-blue-200 dark:hover:border-blue-700 transition-all duration-200"
     >
       {/* Team Header */}
       <div className="flex items-start justify-between mb-4">
@@ -343,7 +343,7 @@ function TeamCard({ team, joinRequest, onJoinRequest, isRequesting }: TeamCardPr
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <h3 className="font-bold text-gray-900 text-lg">{team.name}</h3>
+              <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg">{team.name}</h3>
               {team.is_public ? (
                 <Globe className="w-4 h-4 text-green-500" />
               ) : (
@@ -353,7 +353,7 @@ function TeamCard({ team, joinRequest, onJoinRequest, isRequesting }: TeamCardPr
             {getStatusText() && (
               <div className="flex items-center gap-1 mt-1">
                 {getStatusIcon()}
-                <span className="text-sm font-medium text-gray-600">{getStatusText()}</span>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">{getStatusText()}</span>
               </div>
             )}
           </div>
@@ -362,13 +362,13 @@ function TeamCard({ team, joinRequest, onJoinRequest, isRequesting }: TeamCardPr
 
       {/* Description */}
       {team.description && (
-        <p className="text-gray-600 text-sm mb-4 line-clamp-2">{team.description}</p>
+        <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2">{team.description}</p>
       )}
 
       {/* Team Settings Info */}
       {team.settings && (
-        <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-          <div className="flex items-center gap-2 text-xs text-gray-600">
+        <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+          <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
             <Settings className="w-3 h-3" />
             <span>
               {team.settings.allow_self_join ? 'Self-join enabled' : 'Approval required'}
@@ -381,14 +381,14 @@ function TeamCard({ team, joinRequest, onJoinRequest, isRequesting }: TeamCardPr
       {/* Members */}
       <div className="mb-4">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-gray-700">Members</span>
-          <span className="text-sm text-gray-500">{team.member_count}</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Members</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">{team.member_count}</span>
         </div>
         {loadingMembers ? (
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
-            <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
-            <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
+            <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"></div>
+            <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"></div>
+            <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"></div>
           </div>
         ) : members.length > 0 ? (
           <AvatarGroup
@@ -401,7 +401,7 @@ function TeamCard({ team, joinRequest, onJoinRequest, isRequesting }: TeamCardPr
             size="sm"
           />
         ) : (
-          <div className="text-sm text-gray-500">No members yet</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">No members yet</div>
         )}
       </div>
 
