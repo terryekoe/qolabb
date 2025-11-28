@@ -119,7 +119,7 @@ export const WorkspaceSwitcher: React.FC<WorkspaceSwitcherProps> = ({ isOpen, on
                 {workspaces.length === 0 && (
                   <div className="text-center py-8 text-gray-500">
                     <Building2 className="mx-auto mb-2" size={40} />
-                    <p>No workspaces yet</p>
+                    <p>No classes yet</p>
                   </div>
                 )}
               </div>

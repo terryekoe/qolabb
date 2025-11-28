@@ -223,7 +223,7 @@ export default function WorkspacePage() {
                       value={workspaceName}
                       onChange={(e) => setWorkspaceName(e.target.value)}
                       placeholder="e.g., CS101 Spring 2025"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                     />
                   </div>
 
@@ -236,7 +236,7 @@ export default function WorkspacePage() {
                       onChange={(e) => setWorkspaceDescription(e.target.value)}
                       placeholder="Brief description of this class..."
                       rows={3}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                     />
                   </div>
                 </div>
@@ -312,8 +312,8 @@ export default function WorkspacePage() {
                       type="text"
                       value={inviteCode}
                       onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-                      placeholder="XXXX-XXXX-XXXX"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-beige-500 focus:border-transparent font-mono text-lg tracking-wider"
+                      placeholder="e.g. X7K9P2"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-qolabb-beige-500 focus:border-transparent font-mono text-lg tracking-wider text-gray-900"
                     />
                     <p className="text-sm text-gray-500 mt-2">
                       Enter the class code shared by your instructor

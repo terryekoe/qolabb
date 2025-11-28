@@ -97,9 +97,9 @@ const settingsSections: SettingsSection[] = [
   },
   {
     id: "workspace",
-    label: "Workspace",
+    label: "Class",
     icon: Building2,
-    description: "Workspace settings and member management",
+    description: "Class settings and member management",
   },
   {
     id: "notifications",
@@ -1139,10 +1139,10 @@ function SettingsPageContent() {
     <div className="space-y-4 sm:space-y-6">
       <div>
         <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
-          Workspace Settings
+          Class Settings
         </h2>
         <p className="text-sm sm:text-base text-gray-600">
-          Manage {currentWorkspace?.name || "your workspace"}
+          Manage {currentWorkspace?.name || "your class"}
         </p>
       </div>
 
@@ -1224,14 +1224,15 @@ function SettingsPageContent() {
 
       {/* Workspace Info */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+
         <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-          Workspace Information
+          Class Information
         </h3>
 
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Workspace Name
+              Class Name
             </label>
             <input
               type="text"
@@ -1262,7 +1263,7 @@ function SettingsPageContent() {
               disabled={!isOwnerOrAdmin}
               rows={3}
               className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:cursor-not-allowed disabled:text-gray-500 dark:disabled:text-gray-400"
-              placeholder="Add a description for this workspace..."
+              placeholder="Add a description for this class..."
             />
           </div>
 
@@ -1287,7 +1288,7 @@ function SettingsPageContent() {
           Invite Code
         </h3>
         <p className="text-gray-600 mb-4">
-          Share this code with others to invite them to your workspace
+          Share this code with others to invite them to your class
         </p>
 
         <div className="flex items-center space-x-3">
@@ -1320,7 +1321,7 @@ function SettingsPageContent() {
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Members</h3>
           <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
             {members.length} member{members.length !== 1 ? "s" : ""} in this
-            workspace
+            class
           </p>
         </div>
 
@@ -1430,10 +1431,10 @@ function SettingsPageContent() {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <h4 className="font-semibold text-gray-900 mb-1">
-                      Delete Workspace
+                      Delete Class
                     </h4>
                     <p className="text-sm text-gray-600 mb-3">
-                      Permanently delete this workspace and all associated data. This action cannot be reversed.
+                      Permanently delete this class and all associated data. This action cannot be reversed.
                     </p>
                   </div>
                   <Button 
@@ -1441,7 +1442,7 @@ function SettingsPageContent() {
                     className="text-red-600 hover:text-white hover:bg-red-600 border border-red-300 hover:border-red-600 transition-all duration-200 whitespace-nowrap ml-4"
                   >
                     <Trash2 size={18} className="mr-2" />
-                    Delete Workspace
+                    Delete Class
                   </Button>
                 </div>
               </div>
@@ -1592,7 +1593,7 @@ function SettingsPageContent() {
               className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
             >
               <option value="public">Everyone</option>
-              <option value="workspace">Workspace Members Only</option>
+              <option value="workspace">Class Members Only</option>
               <option value="team">Team Members Only</option>
               <option value="private">Only Me</option>
             </select>
