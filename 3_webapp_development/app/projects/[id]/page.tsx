@@ -31,7 +31,7 @@ import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'react-hot-toast';
-import { Project, Task, ProjectResource, ProjectSubmission, TaskStatus } from '@/lib/types/database';
+import { Project, Task, ProjectResource, ProjectSubmission, TaskStatus, Team } from '@/lib/types/database';
 import { ProjectDiscussion } from '@/lib/db/queries'; // Import from queries as it's defined there
 import { ProjectDiscussions } from '@/components/communication/ProjectDiscussions';
 import { ProjectSubmissionModal } from '@/components/projects/ProjectSubmissionModal';
@@ -42,7 +42,7 @@ export default function ProjectDetailPage() {
   const { user } = useAuth();
   const { currentWorkspace } = useWorkspace();
   
-  const [project, setProject] = useState<Project | null>(null);
+  const [project, setProject] = useState<(Project & { team: Team }) | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [showTaskModal, setShowTaskModal] = useState(false);

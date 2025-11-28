@@ -18,6 +18,8 @@ import type {
   Contribution,
   ContributionInsert,
   ActivityLogInsert,
+  ProjectResource,
+  ProjectSubmission
 } from '../types/database'
 
 // =====================================================
@@ -6609,12 +6611,12 @@ export async function getProject(projectId: string, workspaceId?: string) {
   try {
     const { data, error } = await supabase
       .from('projects')
-      .select('*')
+      .select('*, team:teams(*)')
       .eq('id', projectId)
       .single();
 
     if (error) throw error;
-    return data as Project;
+    return data as Project & { team: Team };
   } catch (error: any) {
     console.error('getProject error:', error?.message || JSON.stringify(error, null, 2));
     return null;
