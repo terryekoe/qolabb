@@ -1809,7 +1809,7 @@ function TasksPageContent() {
 
   return (
     <DashboardLayout>
-      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+      <div className="h-full overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-6">
         {/* View Tabs Navigation */}
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-2 shadow-sm">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
