@@ -64,7 +64,7 @@ export const FeaturesSection: React.FC = () => {
   };
 
   return (
-    <section id="features" className="py-20 md:py-32 bg-white">
+    <section id="features" className="py-20 md:py-32 bg-white dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <motion.div
@@ -74,10 +74,10 @@ export const FeaturesSection: React.FC = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            Why Choose <span className="text-blue-600">Qolabb</span>?
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900 dark:text-white">
+            Why Choose <span className="text-blue-600 dark:text-blue-400">Qolabb</span>?
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
             Everything you need to promote fair collaboration and accountability
             in student group projects.
           </p>
@@ -96,15 +96,15 @@ export const FeaturesSection: React.FC = () => {
               key={feature.title}
               variants={itemVariants}
               whileHover={{ y: -5, transition: { duration: 0.2 } }}
-              className="bg-gray-50 rounded-2xl p-8 hover:shadow-lg transition-shadow"
+              className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-8 hover:shadow-lg transition-shadow"
             >
-              <div className="bg-blue-100 w-14 h-14 rounded-xl flex items-center justify-center mb-6">
-                <feature.icon className="text-blue-700" size={28} />
+              <div className="bg-blue-100 dark:bg-blue-900/30 w-14 h-14 rounded-xl flex items-center justify-center mb-6">
+                <feature.icon className="text-blue-700 dark:text-blue-400" size={28} />
               </div>
-              <h3 className="text-xl font-bold mb-3 text-gray-900">
+              <h3 className="text-xl font-bold mb-3 text-gray-900 dark:text-white">
                 {feature.title}
               </h3>
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
                 {feature.description}
               </p>
             </motion.div>
@@ -119,14 +119,14 @@ export const FeaturesSection: React.FC = () => {
           transition={{ duration: 0.6, delay: 0.3 }}
           className="text-center mt-16"
         >
-          <p className="text-lg text-gray-600 mb-6">
+          <p className="text-lg text-gray-600 dark:text-gray-300 mb-6">
             Ready to transform your team collaboration?
           </p>
           <motion.a
             href="/signup"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="inline-block bg-black text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-800 transition-colors"
+            className="inline-block bg-black dark:bg-white text-white dark:text-black px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
           >
             Use For Free!
           </motion.a>

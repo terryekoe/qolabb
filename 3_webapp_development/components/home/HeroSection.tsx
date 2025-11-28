@@ -26,13 +26,13 @@ export const HeroSection: React.FC = () => {
     });
   }, []);
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-white via-gray-50 to-qolabb-beige-50">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-white via-gray-50 to-qolabb-beige-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         {backgroundElements.map((element, i) => (
           <motion.div
             key={i}
-            className="absolute bg-blue-100 rounded-full opacity-20"
+            className="absolute bg-blue-100 dark:bg-blue-900/20 rounded-full opacity-20"
             style={{
               width: element.width,
               height: element.height,
@@ -68,17 +68,17 @@ export const HeroSection: React.FC = () => {
               transition={{ delay: 0.2 }}
               className="inline-block mb-6"
             >
-              <span className="bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-semibold">
+              <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 px-4 py-2 rounded-full text-sm font-semibold">
                 ✨ Fair Teamwork Starts Here
               </span>
             </motion.div>
 
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-              <span className="text-gray-900">Make Group Projects</span>{' '}
-              <span className="text-blue-600">Fair & Engaging</span>
+              <span className="text-gray-900 dark:text-white">Make Group Projects</span>{' '}
+              <span className="text-blue-600 dark:text-blue-400">Fair & Engaging</span>
             </h1>
 
-            <p className="text-xl md:text-2xl text-gray-600 mb-8 leading-relaxed">
+            <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
               Track contributions, visualize engagement, and promote equitable participation in student team projects with data-driven insights.
             </p>
 
@@ -96,7 +96,7 @@ export const HeroSection: React.FC = () => {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-6 pt-8 border-t border-gray-200">
+            <div className="grid grid-cols-3 gap-6 pt-8 border-t border-gray-200 dark:border-gray-700">
               {[
                 { value: '1000+', label: 'Students' },
                 { value: '250+', label: 'Projects' },
@@ -108,10 +108,10 @@ export const HeroSection: React.FC = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 + index * 0.1 }}
                 >
-                  <div className="text-3xl md:text-4xl font-bold text-blue-700">
+                  <div className="text-3xl md:text-4xl font-bold text-blue-700 dark:text-blue-400">
                     {stat.value}
                   </div>
-                  <div className="text-sm text-gray-600 mt-1">{stat.label}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">{stat.label}</div>
                 </motion.div>
               ))}
             </div>
@@ -126,7 +126,7 @@ export const HeroSection: React.FC = () => {
           >
             <div className="relative rounded-2xl overflow-hidden shadow-2xl">
               {/* Student collaboration image */}
-              <div className="aspect-square bg-gradient-to-br from-blue-400 to-qolabb-beige-400 flex items-center justify-center relative">
+              <div className="aspect-square bg-gradient-to-br from-blue-400 to-qolabb-beige-400 dark:from-blue-600 dark:to-gray-800 flex items-center justify-center relative">
                 {!imageError ? (
                   <Image
                     src="/students.jpg"
@@ -158,25 +158,25 @@ export const HeroSection: React.FC = () => {
               <motion.div
                 animate={{ y: [0, -10, 0] }}
                 transition={{ duration: 3, repeat: Infinity }}
-                className="absolute -top-4 -left-4 bg-white rounded-lg shadow-lg p-4"
+                className="absolute -top-4 -left-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4"
               >
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <span className="text-sm font-semibold">Active Teams</span>
+                  <span className="text-sm font-semibold text-gray-900 dark:text-white">Active Teams</span>
                 </div>
-                <div className="text-2xl font-bold mt-1">24</div>
+                <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">24</div>
               </motion.div>
 
               <motion.div
                 animate={{ y: [0, 10, 0] }}
                 transition={{ duration: 3, repeat: Infinity, delay: 1 }}
-                className="absolute -bottom-4 -right-4 bg-white rounded-lg shadow-lg p-4"
+                className="absolute -bottom-4 -right-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4"
               >
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                  <span className="text-sm font-semibold">Engagement</span>
+                  <span className="text-sm font-semibold text-gray-900 dark:text-white">Engagement</span>
                 </div>
-                <div className="text-2xl font-bold mt-1">95%</div>
+                <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">95%</div>
               </motion.div>
             </div>
           </motion.div>
