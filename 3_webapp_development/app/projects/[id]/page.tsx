@@ -22,6 +22,7 @@ import {
   Link as LinkIcon,
   MessageSquare,
   Lock,
+  BarChart3,
 } from 'lucide-react';
 
 
@@ -162,6 +163,28 @@ export default function ProjectDetailPage() {
     }
   }
 
+  // Helper function to format time remaining until due date
+  const getTimeRemaining = (dueDate: string) => {
+    const now = new Date();
+    const due = new Date(dueDate);
+    const diffInMs = due.getTime() - now.getTime();
+    const diffInDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
+
+    if (diffInDays < 0) {
+      return { text: `Overdue by ${Math.abs(diffInDays)} day${Math.abs(diffInDays) !== 1 ? 's' : ''}`, isOverdue: true };
+    } else if (diffInDays === 0) {
+      return { text: 'Due today', isOverdue: false, isUrgent: true };
+    } else if (diffInDays === 1) {
+      return { text: 'Due tomorrow', isOverdue: false, isUrgent: true };
+    } else if (diffInDays <= 3) {
+      return { text: `Due in ${diffInDays} days`, isOverdue: false, isUrgent: true };
+    } else if (diffInDays <= 7) {
+      return { text: `Due in ${diffInDays} days`, isOverdue: false, isUrgent: false };
+    } else {
+      return { text: due.toLocaleDateString(), isOverdue: false, isUrgent: false };
+    }
+  };
+
   const tasksByStatus = {
     todo: tasks.filter(t => t.status === 'todo'),
     in_progress: tasks.filter(t => t.status === 'in_progress'),
@@ -189,7 +212,7 @@ export default function ProjectDetailPage() {
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col h-full md:overflow-hidden overflow-y-auto bg-gray-50 dark:bg-gray-900">
+      <div className="flex flex-col h-full overflow-y-auto bg-gray-50 dark:bg-gray-900">
         {/* Header */}
         <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
@@ -260,9 +283,10 @@ export default function ProjectDetailPage() {
             </div>
           </div>
             
-            {/* View Toggle */}
-            <div className="flex items-center gap-3">
-              <div className="hidden md:flex bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
+            {/* Action Buttons Section - Improved Hierarchy */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              {/* View Toggle - More Subtle */}
+              <div className="hidden lg:flex bg-gray-100 dark:bg-gray-700 p-1 rounded-lg order-1">
                 <button
                   onClick={() => setViewMode('focus')}
                   className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
@@ -287,25 +311,40 @@ export default function ProjectDetailPage() {
                 </button>
               </div>
               
-              {/* Create Task Button (for group leaders/instructors) */}
+              {/* Primary Action Buttons - Only for managers */}
               {canManageTasks && (
-                <div className="flex gap-2">
+                <div className="flex gap-2 order-2">
+                  {/* Submit Project - Make it prominent when not submitted */}
                   {!projectSubmission ? (
                     <button
                       onClick={() => setShowSubmissionModal(true)}
-                      className="flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm font-medium shadow-sm"
+                      className="flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white rounded-lg transition-all text-sm font-semibold shadow-md hover:shadow-lg transform hover:scale-[1.02]"
                     >
+                      <CheckCircle2 size={18} className="mr-2" />
                       Submit Project
                     </button>
                   ) : (
-                    <div className="flex items-center px-4 py-2 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-lg text-sm font-medium border border-green-200 dark:border-green-800">
+                    <div className="flex items-center px-4 py-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-lg text-sm font-medium border border-green-200 dark:border-green-800">
                       <CheckCircle2 size={16} className="mr-2" />
                       Submitted
                     </div>
                   )}
+                  
+                  {/* Create Task - Secondary Action */}
                   <button
-                    onClick={() => setShowTaskModal(true)}
-                    className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium shadow-sm"
+                    onClick={() => {
+                      if (isLocked) {
+                        toast.error('Cannot create tasks - project is locked due to submission or deadline');
+                        return;
+                      }
+                      setShowTaskModal(true);
+                    }}
+                    disabled={isLocked}
+                    className={`flex items-center px-4 py-2 rounded-lg transition-colors text-sm font-medium shadow-sm ${
+                      isLocked
+                        ? 'bg-gray-400 dark:bg-gray-600 text-gray-200 dark:text-gray-400 cursor-not-allowed'
+                        : 'bg-blue-600 hover:bg-blue-700 text-white'
+                    }`}
                   >
                     <Plus size={16} className="mr-2" />
                     Create Task
@@ -315,31 +354,51 @@ export default function ProjectDetailPage() {
             </div>
           </div>
 
-          {/* Progress Bar */}
-          <div className="mt-6">
-            <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
-              <span>Overall Progress</span>
-              <span className="font-semibold">{completionPercentage}%</span>
-            </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
-              <div
-                className="bg-gradient-to-r from-blue-600 to-blue-400 h-3 rounded-full transition-all"
-                style={{ width: `${completionPercentage}%` }}
-              />
-            </div>
-            <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-2">
-              <span>{tasksByStatus.completed.length} completed</span>
-              <span>{tasksByStatus.in_progress.length} in progress</span>
-              <span>{tasksByStatus.todo.length} to do</span>
+
+          {/* Progress Bar - Horizontal Compact Banner */}
+          <div className="mt-6 bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-lg px-6 py-4">
+            <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+              {/* Left: Label with Icon */}
+              <div className="flex items-center gap-2 min-w-fit">
+                <BarChart3 size={18} className="text-blue-600 dark:text-blue-400" />
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Overall Progress:</span>
+                <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{completionPercentage}%</span>
+              </div>
+              
+              {/* Center: Progress Bar */}
+              <div className="flex-1 min-w-[200px]">
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                  <div
+                    className="bg-gradient-to-r from-blue-600 to-blue-400 h-2 rounded-full transition-all duration-500"
+                    style={{ width: `${completionPercentage}%` }}
+                  />
+                </div>
+              </div>
+              
+              {/* Right: Stats */}
+              <div className="flex items-center gap-4 text-xs text-gray-600 dark:text-gray-400">
+                <span className="flex items-center gap-1.5 whitespace-nowrap">
+                  <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                  {tasksByStatus.completed.length} completed
+                </span>
+                <span className="flex items-center gap-1.5 whitespace-nowrap">
+                  <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                  {tasksByStatus.in_progress.length} in progress
+                </span>
+                <span className="flex items-center gap-1.5 whitespace-nowrap">
+                  <span className="w-2 h-2 rounded-full bg-gray-400"></span>
+                  {tasksByStatus.todo.length} to do
+                </span>
+              </div>
             </div>
           </div>
 
 
-        {/* Content Area */}
+        {/* Content Area - Responsive 2-col on md, 3-col on lg */}
         {viewMode === 'focus' ? (
-          <div className="flex-1 flex flex-col md:flex-row md:overflow-hidden">
-            {/* Column 1: Instructions & Resources */}
-            <div className="w-full md:w-1/4 p-6 border-r border-gray-200 dark:border-gray-700 md:overflow-y-auto bg-white dark:bg-gray-800">
+          <div className="flex-1 flex flex-col md:flex-row md:flex-wrap lg:flex-nowrap">
+            {/* Column 1: Instructions & Resources - Full on mobile, half on tablet, 1/4 on desktop */}
+            <div className="w-full md:w-1/2 lg:w-1/4 p-6 border-r border-gray-200 dark:border-gray-700 md:overflow-y-auto bg-white dark:bg-gray-800">
               {/* Submission Details Section */}
               {projectSubmission && (
                 <div className="mb-8 bg-green-50 dark:bg-green-900/20 rounded-xl p-4 border border-green-100 dark:border-green-800">
@@ -433,8 +492,8 @@ export default function ProjectDetailPage() {
               </div>
             </div>
 
-            {/* Column 2: My Checklist */}
-            <div className="w-full md:w-1/2 p-6 md:overflow-y-auto border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+            {/* Column 2: My Checklist - Full on mobile, half on tablet, half on desktop */}
+            <div className="w-full md:w-1/2 lg:w-1/2 p-6 md:overflow-y-auto border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
               <div className="max-w-2xl mx-auto">
                 <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center">
                   <ListChecks size={18} className="mr-2 text-blue-600" />
@@ -463,79 +522,95 @@ export default function ProjectDetailPage() {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {tasks.filter((t: any) => t.assigned_to === user?.id || (t.assignees && t.assignees.some((a: any) => a.user_id === user?.id))).map((task) => (
-                      <div 
-                        key={task.id}
-                        onClick={() => {
-                          setSelectedTask(task);
-                          setShowTaskDetailModal(true);
-                        }}
-                        className={`bg-white dark:bg-gray-800 p-4 rounded-xl border transition-all cursor-pointer hover:shadow-md ${
-                          task.status === 'completed' 
-                            ? 'border-gray-200 dark:border-gray-700 opacity-75' 
-                            : 'border-blue-200 dark:border-blue-800 shadow-sm'
-                        }`}
-                      >
-                        <div className="flex items-start gap-3">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (projectSubmission || (project?.due_date && new Date(project.due_date) < new Date())) {
-                                toast.error('Project is locked due to submission or deadline');
-                                return;
-                              }
-                              handleUpdateTaskStatus(task.id, task.status === 'completed' ? 'todo' : 'completed');
-                            }}
-                            disabled={!!projectSubmission || (project?.due_date && new Date(project.due_date) < new Date())}
-                            className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
-                              task.status === 'completed'
-                                ? 'bg-green-500 border-green-500 text-white'
-                                : 'border-gray-300 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-400'
-                            } ${
-                              (!!projectSubmission || (project?.due_date && new Date(project.due_date) < new Date())) ? 'opacity-50 cursor-not-allowed' : ''
-                            }`}
-                          >
-                            {task.status === 'completed' && <CheckCircle2 size={12} />}
-                          </button>
-                          <div className="flex-1">
-                            <div className={`text-sm font-medium mb-1 ${
-                              task.status === 'completed' ? 'text-gray-500 dark:text-gray-600 line-through' : 'text-gray-900 dark:text-gray-100'
-                            }`}>
-                              {task.title}
-                            </div>
-                            {task.description && (
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 line-clamp-2">{task.description}</p>
-                            )}
-                            <div className="flex items-center gap-3">
-                              {task.due_date && (
-                                <span className={`text-xs flex items-center ${
-                                  new Date(task.due_date) < new Date() && task.status !== 'completed'
-                                    ? 'text-red-600 dark:text-red-400'
-                                    : 'text-gray-500 dark:text-gray-400'
-                                }`}>
-                                  <Clock size={12} className="mr-1" />
-                                  {new Date(task.due_date).toLocaleDateString()}
-                                </span>
-                              )}
-                              <span className={`text-xs px-2 py-0.5 rounded-full ${
-                                task.priority === 'high' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' :
-                                task.priority === 'medium' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' :
-                                'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                    {tasks.filter((t: any) => t.assigned_to === user?.id || (t.assignees && t.assignees.some((a: any) => a.user_id === user?.id))).map((task) => {
+                        const timeInfo = task.due_date ? getTimeRemaining(task.due_date) : null;
+                        const isOverdue = timeInfo?.isOverdue && task.status !== 'completed';
+                        
+                        return (
+                        <div
+                          key={task.id}
+                          onClick={() => setSelectedTask(task)}
+                          className={`bg-white dark:bg-gray-800 p-4 rounded-xl border transition-all cursor-pointer hover:shadow-md ${ 
+                            task.status === 'completed' 
+                              ? 'border-gray-200 dark:border-gray-700 opacity-75' 
+                              : isOverdue
+                                ? 'border-red-300 dark:border-red-700 bg-red-50/50 dark:bg-red-900/10'
+                                : 'border-blue-200 dark:border-blue-800 shadow-sm'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (isLocked) {
+                                  toast.error('Project is locked due to submission or deadline');
+                                  return;
+                                }
+                                handleUpdateTaskStatus(task.id, task.status === 'completed' ? 'todo' : 'completed');
+                              }}
+                              disabled={isLocked}
+                              className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                                task.status === 'completed'
+                                  ? 'bg-green-500 border-green-500 text-white'
+                                  : 'border-gray-300 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-400'
+                              } ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            >
+                              {task.status === 'completed' && <CheckCircle2 size={12} />}
+                            </button>
+                            <div className="flex-1">
+                              <div className={`text-sm font-medium mb-1 ${
+                                task.status === 'completed' ? 'text-gray-500 dark:text-gray-600 line-through' : 'text-gray-900 dark:text-gray-100'
                               }`}>
-                                {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
-                              </span>
+                                {task.title}
+                              </div>
+                              {task.description && (
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 line-clamp-2">{task.description}</p>
+                              )}
+                              <div className="flex items-center justify-between flex-wrap gap-2">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  {task.due_date && (
+                                    <span className={`text-xs flex items-center px-2 py-0.5 rounded-full font-medium ${
+                                      isOverdue
+                                        ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                                        : timeInfo?.isUrgent
+                                          ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300'
+                                          : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                                    }`}>
+                                      <Clock size={12} className="mr-1" />
+                                      {timeInfo?.text}
+                                    </span>
+                                  )}
+                                  <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                    task.priority === 'high' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' :
+                                    task.priority === 'medium' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' :
+                                    'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                                  }`}>
+                                    {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                                  </span>
+                                </div>
+                                {/* Assignee Avatar */}
+                                {(task as any).assignee && (
+                                  <div className="flex items-center" title={`Assigned to ${(task as any).assignee.full_name}`}>
+                                    <Avatar
+                                      userId={(task as any).assignee.id}
+                                      name={(task as any).assignee.full_name || 'User'}
+                                      src={(task as any).assignee.avatar_url}
+                                      size="xs"
+                                    />
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      )})}
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Column 3: Project Discussions */}
-            <div className="w-full md:w-1/4 bg-white dark:bg-gray-800 flex flex-col h-[500px] md:h-full border-t md:border-t-0 border-gray-200 dark:border-gray-700">
+            {/* Column 3: Project Discussions - Full on mobile, full on tablet, 1/4 on desktop */}
+            <div className="w-full md:w-full lg:w-1/4 bg-white dark:bg-gray-800 flex flex-col h-[500px] md:h-full border-t md:border-t-0 lg:border-t-0 border-gray-200 dark:border-gray-700">
               {user?.id ? (
                 <ProjectDiscussions 
                   projectId={project.id} 
@@ -549,140 +624,102 @@ export default function ProjectDetailPage() {
             </div>
           </div>
         ) : (
-          <>
-            {/* Tabs */}
-            <div className="flex border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-              <button
-                onClick={() => setActiveTab('tasks')}
-                className={`flex-1 px-4 py-3 font-medium text-sm transition-colors ${
-                  activeTab === 'tasks'
-                    ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
-                }`}
-              >
-                <div className="flex items-center justify-center gap-2">
-                  <ListTodo size={18} />
-                  <span>Tasks ({tasks.length})</span>
-                </div>
-              </button>
-              <button
-                onClick={() => setActiveTab('discussions')}
-                className={`flex-1 px-4 py-3 font-medium text-sm transition-colors ${
-                  activeTab === 'discussions'
-                    ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
-                }`}
-              >
-                <div className="flex items-center justify-center gap-2">
-                  <MessageSquare size={18} />
-                  <span>Discussions</span>
-                </div>
-              </button>
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 overflow-hidden flex flex-col bg-white dark:bg-gray-800">
-              {activeTab === 'tasks' ? (
-                <div className="flex-1 overflow-y-auto p-8">
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                      Tasks ({tasks.length})
-                    </h3>
-                    {canManageTasks && (
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        onClick={() => setShowTaskModal(true)}
-                        className="flex items-center"
-                      >
-                        <Plus size={18} className="mr-2" />
-                        Add Task
-                      </Button>
-                    )}
-                  </div>
-
-                  {loading ? (
-                    <div className="space-y-4">
-                      {[1, 2, 3].map((i) => (
-                        <div key={i} className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 animate-pulse">
-                          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-                          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : tasks.length === 0 ? (
-                    <div className="text-center py-12">
-                      <CheckCircle2 size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-                      <p className="text-gray-600 dark:text-gray-400 mb-4">No tasks yet</p>
-                      {canManageTasks && (
-                        <Button
-                          variant="primary"
-                          onClick={() => setShowTaskModal(true)}
-                          className="flex items-center mx-auto"
-                        >
-                          <Plus size={18} className="mr-2" />
-                          Create First Task
-                        </Button>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                      {/* Kanban board columns - simplified for brevity, keeping the task card structure from modal */}
-                      {(['todo', 'in_progress', 'completed'] as const).map((status) => (
-                        <div key={status}>
-                          <div className="flex items-center mb-4">
-                            {status === 'todo' && <AlertCircle size={18} className="text-orange-600 dark:text-orange-400 mr-2" />}
-                            {status === 'in_progress' && <Clock size={18} className="text-blue-600 dark:text-blue-400 mr-2" />}
-                            {status === 'completed' && <CheckCircle2 size={18} className="text-green-600 dark:text-green-400 mr-2" />}
-                            <h4 className="font-semibold text-gray-900 dark:text-gray-100">
-                              {status === 'todo' && 'To Do'}
-                              {status === 'in_progress' && 'In Progress'}
-                              {status === 'completed' && 'Completed'}
-                            </h4>
-                            <span className={`ml-auto px-2 py-0.5 rounded-full text-xs font-semibold ${
-                              status === 'todo' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' :
-                              status === 'in_progress' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' :
-                              'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                            }`}>
-                              {tasksByStatus[status].length}
-                            </span>
-                          </div>
-                          <div className="space-y-3">
-                            {tasksByStatus[status].map((task: any) => (
-                              <TaskCard
-                                key={task.id}
-                                task={task}
-                                onUpdateStatus={handleUpdateTaskStatus}
-                                onDelete={handleDeleteTask}
-                                canManage={canManageTasks}
-                                activeMenu={activeTaskMenu}
-                                setActiveMenu={setActiveTaskMenu}
-                                isLocked={isLocked}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="flex-1 overflow-hidden">
-                  {user?.id ? (
-                    <ProjectDiscussions 
-                      projectId={project.id} 
-                      userId={user.id}
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-full">
-                      <p className="text-gray-600 dark:text-gray-400">Please log in to view discussions</p>
-                    </div>
-                  )}
-                </div>
+          <div className="flex-1 overflow-y-auto p-8 bg-white dark:bg-gray-800">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                Team Task Board ({tasks.length})
+              </h3>
+              {canManageTasks && (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => {
+                    if (isLocked) {
+                      toast.error('Cannot create tasks - project is locked due to submission or deadline');
+                      return;
+                    }
+                    setShowTaskModal(true);
+                  }}
+                  disabled={isLocked}
+                  className="flex items-center"
+                >
+                  <Plus size={18} className="mr-2" />
+                  Add Task
+                </Button>
               )}
             </div>
 
-          </>
+            {loading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 animate-pulse">
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
+                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                  </div>
+                ))}
+              </div>
+            ) : tasks.length === 0 ? (
+              <div className="text-center py-12">
+                <CheckCircle2 size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+                <p className="text-gray-600 dark:text-gray-400 mb-4">No tasks yet</p>
+                    {canManageTasks && (
+                      <Button
+                        variant="primary"
+                        onClick={() => {
+                          if (isLocked) {
+                            toast.error('Cannot create tasks - project is locked due to submission or deadline');
+                            return;
+                          }
+                          setShowTaskModal(true);
+                        }}
+                        disabled={isLocked}
+                        className="flex items-center mx-auto"
+                      >
+                        <Plus size={18} className="mr-2" />
+                        Create Task
+                      </Button>
+                    )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {(['todo', 'in_progress', 'completed'] as const).map((status) => (
+                  <div key={status}>
+                    <div className="flex items-center mb-4">
+                      {status === 'todo' && <AlertCircle size={18} className="text-orange-600 dark:text-orange-400 mr-2" />}
+                      {status === 'in_progress' && <Clock size={18} className="text-blue-600 dark:text-blue-400 mr-2" />}
+                      {status === 'completed' && <CheckCircle2 size={18} className="text-green-600 dark:text-green-400 mr-2" />}
+                      <h4 className="font-semibold text-gray-900 dark:text-gray-100">
+                        {status === 'todo' && 'To Do'}
+                        {status === 'in_progress' && 'In Progress'}
+                        {status === 'completed' && 'Completed'}
+                      </h4>
+                      <span className={`ml-auto px-2 py-0.5 rounded-full text-xs font-semibold ${
+                        status === 'todo' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' :
+                        status === 'in_progress' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' :
+                        'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                      }`}>
+                        {tasksByStatus[status].length}
+                      </span>
+                    </div>
+                    <div className="space-y-3">
+                      {tasksByStatus[status].map((task: any) => (
+                        <TaskCard
+                          key={task.id}
+                          task={task}
+                          onUpdateStatus={handleUpdateTaskStatus}
+                          onDelete={handleDeleteTask}
+                          canManage={canManageTasks}
+                          activeMenu={activeTaskMenu}
+                          setActiveMenu={setActiveTaskMenu}
+                          isLocked={isLocked}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         )}
       </div>
 

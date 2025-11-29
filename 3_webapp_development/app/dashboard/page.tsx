@@ -54,6 +54,13 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (currentWorkspace) {
+      // Clear previous workspace data immediately to avoid showing stale data
+      setStats({ activeProjects: 0, totalMembers: 0, tasksCompleted: 0, avgParticipation: 0 });
+      setRecentProjects([]);
+      setRecentActivity([]);
+      setPendingEvaluations([]);
+      
+      // Load new workspace data
       loadDashboardData();
     } else {
       setLoading(false);
