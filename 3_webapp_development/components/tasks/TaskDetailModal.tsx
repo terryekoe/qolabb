@@ -49,6 +49,7 @@ interface TaskDetailModalProps {
   onTaskUpdated: () => void;
   onTaskDeleted: () => void;
   canManage: boolean;
+  simplified?: boolean;
 }
 
 export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
@@ -57,7 +58,9 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   task,
   onTaskUpdated,
   onTaskDeleted,
+
   canManage,
+  simplified = false,
 }) => {
   const { user, profile } = useAuth();
   const { currentWorkspace } = useWorkspace();
@@ -338,30 +341,34 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                     </h2>
                   )}
                   
-                  <div className="flex items-center flex-wrap gap-3 text-sm text-gray-500">
-                    <span className="flex items-center">
-                      <Hash size={14} className="mr-1" />
-                      {task.id?.slice(0, 8)}
-                    </span>
-                    
-                    {task.project_name && (
+
+                  
+                  {!simplified && (
+                    <div className="flex items-center flex-wrap gap-3 text-sm text-gray-500">
                       <span className="flex items-center">
-                        <span className="w-2 h-2 rounded-full bg-gray-300 mr-2"></span>
-                        {task.project_name}
+                        <Hash size={14} className="mr-1" />
+                        {task.id?.slice(0, 8)}
                       </span>
-                    )}
-                    
-                    {task.created_at && (
-                      <span className="flex items-center">
-                        <span className="w-2 h-2 rounded-full bg-gray-300 mr-2"></span>
-                        Created {formatDate(task.created_at)}
-                      </span>
-                    )}
-                  </div>
+                      
+                      {task.project_name && (
+                        <span className="flex items-center">
+                          <span className="w-2 h-2 rounded-full bg-gray-300 mr-2"></span>
+                          {task.project_name}
+                        </span>
+                      )}
+                      
+                      {task.created_at && (
+                        <span className="flex items-center">
+                          <span className="w-2 h-2 rounded-full bg-gray-300 mr-2"></span>
+                          Created {formatDate(task.created_at)}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
                 
                 <div className="flex items-center space-x-2 ml-4">
-                  {canManage && (
+                  {canManage && !simplified && (
                     <>
                       {isEditing ? (
                         <>
@@ -475,7 +482,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                   )}
 
                   {/* Activity Timeline */}
-                  {task?.project_id && (
+                  {task?.project_id && !simplified && (
                     <div>
                       <TaskActivityTimeline
                         taskId={task.id}
@@ -488,7 +495,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                 {/* Right Column - Metadata */}
                 <div className="space-y-6">
                   {/* Time Tracker - Only show for assigned users */}
-                  {user && task?.project_id && (task?.assigned_to === user.id || assignees.some((a: any) => a.user_id === user.id)) && (
+                  {user && task?.project_id && (task?.assigned_to === user.id || assignees.some((a: any) => a.user_id === user.id)) && !simplified && (
                     <TaskTimeTracker
                       taskId={task.id}
                       projectId={task.project_id}
@@ -504,7 +511,49 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                   {/* Status */}
                   <div>
                     <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</h4>
-                    {isEditing ? (
+                    {simplified ? (
+                      <Button
+                        variant={task.status === 'completed' ? 'secondary' : 'primary'}
+                        className={`w-full justify-center py-6 text-lg font-semibold ${
+                          task.status === 'completed' 
+                            ? 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400' 
+                            : ''
+                        }`}
+                        onClick={async () => {
+                          const newStatus = task.status === 'completed' ? 'todo' : 'completed';
+                          setEditStatus(newStatus);
+                          // Immediate update
+                          try {
+                            setLoading(true);
+                            await updateTask(task.id, { status: newStatus });
+                            onTaskUpdated();
+                            if (newStatus === 'completed') {
+                              await loadContributions();
+                              // Close the modal after a short delay to show the success state
+                              setTimeout(() => {
+                                onClose();
+                              }, 500);
+                            }
+                          } catch (err) {
+                            console.error('Error updating status:', err);
+                          } finally {
+                            setLoading(false);
+                          }
+                        }}
+                        disabled={loading}
+                      >
+                        {loading ? (
+                          'Updating...'
+                        ) : task.status === 'completed' ? (
+                          <>
+                            <CheckCircle2 size={24} className="mr-2" />
+                            Completed
+                          </>
+                        ) : (
+                          'Mark as Complete'
+                        )}
+                      </Button>
+                    ) : isEditing ? (
                       <select
                         value={editStatus}
                         onChange={(e) => setEditStatus(e.target.value as TaskStatus)}
@@ -523,103 +572,107 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                   </div>
 
                   {/* Priority */}
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Priority</h4>
-                    {isEditing ? (
-                      <select
-                        value={editPriority}
-                        onChange={(e) => setEditPriority(e.target.value as TaskPriority)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="low">Low</option>
-                        <option value="medium">Medium</option>
-                        <option value="high">High</option>
-                      </select>
-                    ) : (
-                      <div className="flex items-center">
-                        <Flag size={16} className={`mr-2 ${priorityConfig.color}`} />
-                        <span className="text-sm text-gray-700 dark:text-gray-300">{priorityConfig.label}</span>
-                      </div>
-                    )}
-                  </div>
+                  {!simplified && (
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Priority</h4>
+                      {isEditing ? (
+                        <select
+                          value={editPriority}
+                          onChange={(e) => setEditPriority(e.target.value as TaskPriority)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                          <option value="low">Low</option>
+                          <option value="medium">Medium</option>
+                          <option value="high">High</option>
+                        </select>
+                      ) : (
+                        <div className="flex items-center">
+                          <Flag size={16} className={`mr-2 ${priorityConfig.color}`} />
+                          <span className="text-sm text-gray-700 dark:text-gray-300">{priorityConfig.label}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Assignees */}
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Assignees</h4>
-                    {isEditing ? (
-                      <div className="space-y-2">
-                        <select
-                          multiple
-                          value={selectedAssignees}
-                          onChange={(e) => {
-                            const values = Array.from(e.target.selectedOptions, option => option.value);
-                            setSelectedAssignees(values);
-                          }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[100px]"
-                          size={Math.min(teamMembers.length + 1, 6)}
-                        >
-                          <option value="">Unassigned</option>
-                          {teamMembers.map((member) => (
-                            <option key={member.user_id} value={member.user_id}>
-                              {member.profile?.full_name || member.user_id}
-                            </option>
-                          ))}
-                        </select>
-                        <p className="text-xs text-gray-500">
-                          Hold Cmd/Ctrl to select multiple assignees
-                        </p>
-                      </div>
-                    ) : assignees.length > 0 ? (
-                      <div className="space-y-2">
-                        {assignees.map((assignee: any) => {
-                          const isMe = assignee.user_id === user?.id;
-                          return (
-                            <div key={assignee.id} className="flex items-center">
-                              <Avatar
-                                userId={assignee.user_id}
-                                name={assignee.user?.full_name || 'User'}
-                                src={assignee.user?.avatar_url}
-                                size="sm"
-                                className="mr-3"
-                              />
-                              <div className="flex-1">
-                                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                  {assignee.user?.full_name || 'Unknown User'}
-                                  {isMe && (
-                                    <span className="ml-2 text-xs text-blue-600">(You)</span>
-                                  )}
-                                </p>
-                                <p className="text-xs text-gray-500">
-                                  Assigned {new Date(assignee.assigned_at).toLocaleDateString()}
-                                </p>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : task.assignee ? (
-                      // Fallback to old single assignee display
-                      <div className="flex items-center">
-                        <Avatar
-                          userId={task.assignee.id}
-                          name={task.assignee.full_name || 'User'}
-                          src={task.assignee.avatar_url}
-                          size="sm"
-                          className="mr-3"
-                        />
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">
-                            {task.assignee.full_name}
+                  {!simplified && (
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Assignees</h4>
+                      {isEditing ? (
+                        <div className="space-y-2">
+                          <select
+                            multiple
+                            value={selectedAssignees}
+                            onChange={(e) => {
+                              const values = Array.from(e.target.selectedOptions, option => option.value);
+                              setSelectedAssignees(values);
+                            }}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[100px]"
+                            size={Math.min(teamMembers.length + 1, 6)}
+                          >
+                            <option value="">Unassigned</option>
+                            {teamMembers.map((member) => (
+                              <option key={member.user_id} value={member.user_id}>
+                                {member.profile?.full_name || member.user_id}
+                              </option>
+                            ))}
+                          </select>
+                          <p className="text-xs text-gray-500">
+                            Hold Cmd/Ctrl to select multiple assignees
                           </p>
-                          {isMyTask && (
-                            <p className="text-xs text-blue-600">Assigned to you</p>
-                          )}
                         </div>
-                      </div>
-                    ) : (
-                      <p className="text-sm text-gray-500">Unassigned</p>
-                    )}
-                  </div>
+                      ) : assignees.length > 0 ? (
+                        <div className="space-y-2">
+                          {assignees.map((assignee: any) => {
+                            const isMe = assignee.user_id === user?.id;
+                            return (
+                              <div key={assignee.id} className="flex items-center">
+                                <Avatar
+                                  userId={assignee.user_id}
+                                  name={assignee.user?.full_name || 'User'}
+                                  src={assignee.user?.avatar_url}
+                                  size="sm"
+                                  className="mr-3"
+                                />
+                                <div className="flex-1">
+                                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                    {assignee.user?.full_name || 'Unknown User'}
+                                    {isMe && (
+                                      <span className="ml-2 text-xs text-blue-600">(You)</span>
+                                    )}
+                                  </p>
+                                  <p className="text-xs text-gray-500">
+                                    Assigned {new Date(assignee.assigned_at).toLocaleDateString()}
+                                  </p>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : task.assignee ? (
+                        // Fallback to old single assignee display
+                        <div className="flex items-center">
+                          <Avatar
+                            userId={task.assignee.id}
+                            name={task.assignee.full_name || 'User'}
+                            src={task.assignee.avatar_url}
+                            size="sm"
+                            className="mr-3"
+                          />
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">
+                              {task.assignee.full_name}
+                            </p>
+                            {isMyTask && (
+                              <p className="text-xs text-blue-600">Assigned to you</p>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-500">Unassigned</p>
+                      )}
+                    </div>
+                  )}
 
                   {/* Due Date */}
                   <div>
@@ -645,7 +698,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                   </div>
 
                   {/* Contributions */}
-                  {task.status === 'completed' && (
+                  {task.status === 'completed' && !simplified && (
                     <div>
                       <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
                         <Link size={16} className="mr-2" />
@@ -700,11 +753,16 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
 
                   {/* Attachments */}
                   {user && (
-                    <TaskAttachments
-                      taskId={task.id}
-                      userId={user.id}
-                      canManage={canManageAttachments}
-                    />
+                    <div className={simplified ? "order-first" : ""}>
+                      {simplified && (
+                        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Your Work</h4>
+                      )}
+                      <TaskAttachments
+                        taskId={task.id}
+                        userId={user.id}
+                        canManage={canManageAttachments}
+                      />
+                    </div>
                   )}
 
                   {/* Delete Task (Admin Only) */}

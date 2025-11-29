@@ -75,7 +75,7 @@ export default function DashboardPage() {
       setRecentProjects(projectsData?.slice(0, 3) || []);
       
       // Load recent activity
-      const activityData = await getWorkspaceActivity(currentWorkspace.id, 5);
+      const activityData = await getWorkspaceActivity(currentWorkspace.id, 5, user.id);
       setRecentActivity(activityData || []);
       
       // Load pending peer evaluations

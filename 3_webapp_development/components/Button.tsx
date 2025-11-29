@@ -3,14 +3,11 @@
 import React from 'react';
 import { motion, HTMLMotionProps } from 'framer-motion';
 
-interface ButtonProps {
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
   children: React.ReactNode;
   className?: string;
-  onClick?: (event?: React.MouseEvent<HTMLButtonElement>) => void;
-  disabled?: boolean;
-  type?: 'button' | 'submit' | 'reset';
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -21,6 +18,7 @@ export const Button: React.FC<ButtonProps> = ({
   onClick,
   disabled,
   type = 'button',
+  ...props
 }) => {
   const baseStyles = 'font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed';
   
@@ -45,6 +43,7 @@ export const Button: React.FC<ButtonProps> = ({
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
       className={`${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
+      {...props as any}
     >
       {children}
     </motion.button>

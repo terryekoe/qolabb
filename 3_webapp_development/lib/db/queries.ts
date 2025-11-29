@@ -19,7 +19,8 @@ import type {
   ContributionInsert,
   ActivityLogInsert,
   ProjectResource,
-  ProjectSubmission
+  ProjectSubmission,
+  TeamWithMembers
 } from '../types/database'
 
 // =====================================================
@@ -873,19 +874,24 @@ export async function getTeamProjects(teamId: string) {
  * Get all projects in a workspace
  * Uses RPC to ensure access
  * @param workspaceId - Workspace ID
+ * @param userId - Optional User ID (if already known)
  * @returns List of projects
  */
-export async function getWorkspaceProjects(workspaceId: string) {
+export async function getWorkspaceProjects(workspaceId: string, userId?: string) {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      throw new Error('User not authenticated');
+    let uid = userId;
+    if (!uid) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+      uid = user.id;
     }
 
     const { data, error } = await supabase
       .rpc('get_workspace_projects_rpc', { 
         workspace_id_param: workspaceId,
-        user_id_param: user.id
+        user_id_param: uid
       })
 
     if (error) {
@@ -2083,13 +2089,19 @@ export async function logActivity(activity: ActivityLogInsert) {
  * Get activity log for a workspace
  * @param workspaceId - Workspace ID
  * @param limit - Number of activities to return (default: 20)
+ * @param userId - Optional User ID (if already known)
  * @returns List of activities with user profiles
  */
-export async function getWorkspaceActivity(workspaceId: string, limit = 20) {
+export async function getWorkspaceActivity(workspaceId: string, limit = 20, userId?: string) {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      throw new Error('User not authenticated');
+    // We don't strictly need the user ID for the query itself if RLS allows it,
+    // but we might want to verify auth.
+    // If userId is provided, we assume auth is handled by caller.
+    if (!userId) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
     }
 
     // Fetch activity log with user profile data using direct query
@@ -7296,6 +7308,38 @@ export async function getUnreadDirectMessageCount(userId: string): Promise<numbe
 // =====================================================
 
 /**
+ * Upload a project submission file
+ * @param projectId - Project ID
+ * @param file - File to upload
+ * @returns Public URL of the uploaded file
+ */
+export async function uploadProjectFile(projectId: string, file: File): Promise<string> {
+  try {
+    // Create unique filename
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${projectId}-${Date.now()}.${fileExt}`
+    const filePath = `${projectId}/${fileName}`
+
+    // Upload to Supabase Storage
+    const { error: uploadError } = await supabase.storage
+      .from('project-submissions')
+      .upload(filePath, file)
+
+    if (uploadError) throw uploadError
+
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from('project-submissions')
+      .getPublicUrl(filePath)
+
+    return urlData.publicUrl
+  } catch (error: any) {
+    console.error('uploadProjectFile error:', error?.message || JSON.stringify(error, null, 2))
+    throw error
+  }
+}
+
+/**
  * Submit a project (Final Assignment)
  * Only group leaders or instructors can submit
  * @param projectId - Project ID
@@ -7331,12 +7375,37 @@ export async function submitProject(
       throw new Error('Only group leaders can submit the project');
     }
 
+    // Fetch completed tasks to generate a contribution report
+    const { data: completedTasks } = await supabase
+      .from('tasks')
+      .select(`
+        title,
+        status,
+        assignees:task_assignees(
+          user:profiles(full_name)
+        )
+      `)
+      .eq('project_id', projectId)
+      .eq('status', 'completed');
+
+    let contributionReport = '';
+    if (completedTasks && completedTasks.length > 0) {
+      contributionReport = '\n\n--- Team Contribution Report ---\n';
+      completedTasks.forEach((task: any) => {
+        const assignees = task.assignees?.map((a: any) => a.user?.full_name).join(', ') || 'Unassigned';
+        contributionReport += `- ${task.title} (Completed by: ${assignees})\n`;
+      });
+      contributionReport += `Total Completed Tasks: ${completedTasks.length}\n----------------------------------`;
+    }
+
+    const finalContent = content ? content + contributionReport : contributionReport;
+
     const { data, error } = await supabase
       .from('project_submissions')
       .insert({
         project_id: projectId,
         submitted_by: userId,
-        content,
+        content: finalContent,
         resources,
         status: 'submitted'
       })
@@ -7348,6 +7417,81 @@ export async function submitProject(
   } catch (error: any) {
     console.error('submitProject error:', error?.message || JSON.stringify(error, null, 2));
     throw error;
+  }
+}
+
+/**
+ * Get all teams and their submissions for a project (Instructor View)
+ * @param projectId - Project ID
+ * @returns List of teams with members and submission details
+ */
+export async function getProjectTeamsAndSubmissions(projectId: string) {
+  try {
+    // 1. Get the project to find the workspace
+    const { data: project } = await supabase
+      .from('projects')
+      .select('workspace_id, team_id')
+      .eq('id', projectId)
+      .single();
+
+    if (!project) throw new Error('Project not found');
+
+    // 2. Get all teams in the workspace (or just the assigned team if it's a single-team project)
+    // For now, assuming projects are assigned to a specific team, but in a class setting, 
+    // an "Assignment" might be a template project copied to multiple teams.
+    // However, the current schema links a project to a SINGLE team.
+    // If the user wants to view "All Teams working on this Assignment", we might need to rethink the schema 
+    // or assume "Assignment" is a parent concept.
+    
+    // Based on current schema: One Project = One Team.
+    // BUT, the user request implies an "Instructor View" for *multiple* teams.
+    // This suggests we might be moving towards a "Class Assignment" model where multiple teams have their own "Project" instance.
+    // OR, we are just viewing the one team for this specific project.
+    
+    // Let's assume for now we are viewing the ONE team assigned to this project, 
+    // but I'll structure the return to be a list, so it's future-proof if we add multi-team assignments.
+
+    const { data: team } = await supabase
+      .from('teams')
+      .select(`
+        id,
+        name,
+        members:team_members(
+          user:profiles(
+            id,
+            full_name,
+            avatar_url
+          )
+        )
+      `)
+      .eq('id', project.team_id)
+      .single();
+
+    if (!team) return [];
+
+    // 3. Get the submission for this project
+    const { data: submission, error: submissionError } = await supabase
+      .from('project_submissions')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('submitted_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (submissionError) {
+      console.error('Error fetching submission:', submissionError);
+    }
+
+    // Return as a list (even if just one for now)
+    return [{
+      team,
+      project,
+      submission
+    }];
+
+  } catch (error) {
+    console.error('Error fetching project teams:', error);
+    return [];
   }
 }
 
@@ -7384,12 +7528,58 @@ export async function getProject(projectId: string, workspaceId?: string) {
   try {
     const { data, error } = await supabase
       .from('projects')
-      .select('*, team:teams(*)')
+      .select(`
+        *,
+        team:teams(
+          *,
+          members:team_members(
+            *,
+            user:profiles(*)
+          )
+        )
+      `)
       .eq('id', projectId)
       .single();
 
     if (error) throw error;
-    return data as Project & { team: Team };
+    
+    // Transform to match TeamWithMembers (add member_count if missing, though we might not use it)
+    const project = data as any;
+    if (project && project.team) {
+      project.team.member_count = project.team.members?.length || 0;
+      // Map members to match the structure if needed, but Supabase returns nested objects
+      // TeamWithMembers expects members: (TeamMember & { profile: Profile })[]
+      // The query returns members with nested user: Profile.
+      // We might need to map user to profile if the type expects 'profile' property, 
+      // but TeamWithMembers definition says: members: (TeamMember & { profile: Profile })[]
+      // Let's check TeamWithMembers definition again.
+      // It says: members: (WorkspaceMember & { profile: Profile })[] for WorkspaceWithMembers
+      // For TeamWithMembers: members: (TeamMember & { profile: Profile })[]
+      
+      // The query returns members with 'user' property (alias for profiles).
+      // So we should map 'user' to 'profile' or update the type.
+      // But wait, the UI uses `m.user.id`.
+      // Let's check the UI usage in app/projects/[id]/page.tsx
+      // line 227: users={project?.team?.members?.map((m: any) => ({ userId: m.user.id ...
+      // So the UI expects `m.user`.
+      
+      // So TeamWithMembers type might be wrong or I misread it?
+      // Let's check lib/types/database.ts again.
+      // line 357: members: (TeamMember & { profile: Profile })[]
+      
+      // If the type says 'profile' but UI uses 'user', then there is a mismatch.
+      // However, I am casting `as TeamWithMembers`.
+      // If I cast it, TS thinks it has `profile`.
+      // But at runtime it has `user`.
+      // The UI uses `m.user`.
+      // So the UI is actually using `any` for `m` in the map: `map((m: any) => ...`
+      // So the UI is bypassing the type check for the member structure.
+      
+      // So I just need to make sure `project.team` satisfies `TeamWithMembers` for the `setProject` call.
+      // And `TeamWithMembers` requires `members` and `member_count`.
+    }
+
+    return project as Project & { team: TeamWithMembers };
   } catch (error: any) {
     console.error('getProject error:', error?.message || JSON.stringify(error, null, 2));
     return null;

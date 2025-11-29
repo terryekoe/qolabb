@@ -121,18 +121,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
   }
 
   // Contextual navigation items (appear based on conditions)
-  const contextualNavigationItems = [
-    // Peer Reviews - only show when there are pending evaluations
-    ...(pendingTasksCount > 0 && isFeatureEnabled('PEER_EVALUATIONS') ? [
-      { 
-        icon: ClipboardCheck, 
-        label: 'Peer Reviews', 
-        href: '/evaluations', 
-        feature: 'PEER_EVALUATIONS' as const,
-        badge: pendingTasksCount 
-      }
-    ] : []),
-  ];
+  const contextualNavigationItems: any[] = [];
 
   // Combine base and contextual items
   const navigationItems = [...baseNavigationItems, ...contextualNavigationItems];

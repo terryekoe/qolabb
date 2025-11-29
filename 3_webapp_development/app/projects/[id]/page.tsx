@@ -24,14 +24,16 @@ import {
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/Button';
-import Avatar from '@/components/ui/Avatar';
+import Avatar, { AvatarGroup } from '@/components/ui/Avatar';
 import { TaskModal } from '@/components/projects/TaskModal';
+import { TaskDetailModal } from '@/components/tasks/TaskDetailModal';
 import { getProjectTasks, updateTask, deleteTask, isTeamLeaderOrInstructor, submitProject, getProjectSubmission, getProject, getProjectDiscussions } from '@/lib/db/queries';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
+import { usePermissions } from '@/lib/hooks/usePermissions';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'react-hot-toast';
-import { Project, Task, ProjectResource, ProjectSubmission, TaskStatus, Team } from '@/lib/types/database';
+import { Project, Task, ProjectResource, ProjectSubmission, TaskStatus, Team, TeamWithMembers } from '@/lib/types/database';
 import { ProjectDiscussion } from '@/lib/db/queries'; // Import from queries as it's defined there
 import { ProjectDiscussions } from '@/components/communication/ProjectDiscussions';
 import { ProjectSubmissionModal } from '@/components/projects/ProjectSubmissionModal';
@@ -40,22 +42,33 @@ export default function ProjectDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
-  const { currentWorkspace } = useWorkspace();
+  const { currentWorkspace, workspaces } = useWorkspace();
+  const { canAccess } = usePermissions();
   
-  const [project, setProject] = useState<(Project & { team: Team }) | null>(null);
+  const [project, setProject] = useState<(Project & { team: TeamWithMembers }) | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [showTaskModal, setShowTaskModal] = useState(false);
+  const [showTaskDetailModal, setShowTaskDetailModal] = useState(false);
   const [showSubmissionModal, setShowSubmissionModal] = useState(false);
-  const [activeTaskMenu, setActiveTaskMenu] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [projectSubmission, setProjectSubmission] = useState<ProjectSubmission | null>(null);
-  const [isSubmittingProject, setIsSubmittingProject] = useState(false);
+  const [viewMode, setViewMode] = useState<'focus' | 'team'>('focus');
   const [activeTab, setActiveTab] = useState<'tasks' | 'discussions'>('tasks');
-  const [viewMode, setViewMode] = useState<'team' | 'focus'>('focus');
   const [canManageTasks, setCanManageTasks] = useState(false);
-
+  const [isInstructor, setIsInstructor] = useState(false);
+  const [projectSubmission, setProjectSubmission] = useState<ProjectSubmission | null>(null);
   const [discussions, setDiscussions] = useState<ProjectDiscussion[]>([]);
+  const [activeTaskMenu, setActiveTaskMenu] = useState<string | null>(null);
+
+  // Check if user is an instructor based on workspace role
+  useEffect(() => {
+    if (currentWorkspace && workspaces.length > 0) {
+      const currentMember = workspaces.find((w: any) => w.workspace.id === currentWorkspace.id);
+      if (currentMember) {
+        setIsInstructor(currentMember.role === 'owner' || currentMember.role === 'admin');
+      }
+    }
+  }, [currentWorkspace, workspaces]);
 
   const loadTasks = useCallback(async () => {
     if (!params.id) return;
@@ -68,37 +81,38 @@ export default function ProjectDetailPage() {
   }, [params.id]);
 
   useEffect(() => {
-    async function loadAllProjectData() {
-      if (!params.id || !currentWorkspace?.id) return;
-
-      try {
-        setLoading(true);
-        const [projectData, tasksData, discussionsData, submissionData] = await Promise.all([
-          getProject(params.id as string, currentWorkspace.id), // Assuming getProject takes workspace_id
-          getProjectTasks(params.id as string),
-          getProjectDiscussions(params.id as string),
-          getProjectSubmission(params.id as string)
-        ]);
-
-        if (projectData) {
-          setProject(projectData);
-          // Check permissions
-          if (user) {
-            const canManage = await isTeamLeaderOrInstructor(user.id, projectData.team_id, projectData.workspace_id);
-            setCanManageTasks(canManage);
-          }
-        }
-        if (tasksData) setTasks(tasksData);
-        if (discussionsData) setDiscussions(discussionsData);
-        if (submissionData) setProjectSubmission(submissionData);
-      } catch (error) {
-        console.error('Error loading project data:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
     loadAllProjectData();
-  }, [params.id, currentWorkspace?.id, user]);
+  }, [params.id, currentWorkspace?.id, user?.id]);
+
+  async function loadAllProjectData() {
+    if (!params.id || !currentWorkspace?.id) return;
+
+    try {
+      setLoading(true);
+      const [projectData, tasksData, discussionsData, submissionData] = await Promise.all([
+        getProject(params.id as string, currentWorkspace.id), // Assuming getProject takes workspace_id
+        getProjectTasks(params.id as string),
+        getProjectDiscussions(params.id as string),
+        getProjectSubmission(params.id as string)
+      ]);
+
+      if (projectData) {
+        setProject(projectData);
+        // Check permissions
+        if (user) {
+          const canManage = await isTeamLeaderOrInstructor(user.id, projectData.team_id, projectData.workspace_id);
+          setCanManageTasks(canManage);
+        }
+      }
+      if (tasksData) setTasks(tasksData);
+      if (discussionsData) setDiscussions(discussionsData);
+      if (submissionData) setProjectSubmission(submissionData);
+    } catch (error) {
+      console.error('Error loading project data:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   // Real-time subscriptions
   useEffect(() => {
@@ -173,38 +187,68 @@ export default function ProjectDetailPage() {
       <div className="flex flex-col h-full md:overflow-hidden overflow-y-auto bg-gray-50 dark:bg-gray-900">
         {/* Header */}
         <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex items-center gap-4 flex-1">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-4">
               <Button
                 variant="ghost"
-                size="sm"
-                onClick={() => router.back()}
-                className="flex items-center"
+                onClick={() => router.push('/projects')}
+                className="p-2"
               >
-                <ArrowLeft size={20} className="mr-2" />
-                Back
+                <ArrowLeft size={20} />
               </Button>
-              <div className="flex-1">
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{project.name}</h1>
-                {project.description && (
-                  <p className="text-gray-600 dark:text-gray-400">{project.description}</p>
-                )}
-                <div className="flex items-center space-x-4 mt-4">
-                  {project.team && (
-                    <span className="text-sm text-gray-500 flex items-center">
-                      <User size={16} className="mr-1" />
-                      {project.team.name}
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                  {project?.name}
+                  {project?.status === 'completed' && (
+                    <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 rounded-full">
+                      Completed
                     </span>
                   )}
-                  {project.due_date && (
-                    <span className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
-                      <Calendar size={16} className="mr-1" />
-                      Due: {new Date(project.due_date).toLocaleDateString()}
+                </h1>
+                <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  <span className="flex items-center mr-4">
+                    <User size={14} className="mr-1" />
+                    {project?.team?.name}
+                  </span>
+                  {project?.due_date && (
+                    <span className="flex items-center">
+                      <Calendar size={14} className="mr-1" />
+                      Due {new Date(project.due_date).toLocaleDateString()}
                     </span>
                   )}
                 </div>
               </div>
             </div>
+
+            <div className="flex items-center gap-2">
+              {/* Instructor View Switcher - Only for Workspace Owners/Admins */}
+              {isInstructor && (
+                <Button
+                  variant="secondary"
+                  onClick={() => router.push(`/instructor/projects/${project?.id}`)}
+                  className="hidden md:flex items-center gap-2 border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800"
+                >
+                  <LayoutTemplate size={18} />
+                  Instructor View
+                </Button>
+              )}
+              
+              <div className="flex -space-x-2 mr-4">
+                <AvatarGroup
+                  users={project?.team?.members?.map((m: any) => ({
+                    userId: m.user.id,
+                    name: m.user.full_name,
+                    src: m.user.avatar_url
+                  })) || []}
+                  max={4}
+                  size="sm"
+                />
+              </div>
+              <Button variant="ghost" className="p-2">
+                <MoreVertical size={20} />
+              </Button>
+            </div>
+          </div>
             
             {/* View Toggle */}
             <div className="flex items-center gap-3">
@@ -279,13 +323,67 @@ export default function ProjectDetailPage() {
               <span>{tasksByStatus.todo.length} to do</span>
             </div>
           </div>
-        </div>
+
 
         {/* Content Area */}
         {viewMode === 'focus' ? (
           <div className="flex-1 flex flex-col md:flex-row md:overflow-hidden">
             {/* Column 1: Instructions & Resources */}
             <div className="w-full md:w-1/4 p-6 border-r border-gray-200 dark:border-gray-700 md:overflow-y-auto bg-white dark:bg-gray-800">
+              {/* Submission Details Section */}
+              {projectSubmission && (
+                <div className="mb-8 bg-green-50 dark:bg-green-900/20 rounded-xl p-4 border border-green-100 dark:border-green-800">
+                  <h3 className="font-bold text-green-800 dark:text-green-300 mb-3 flex items-center">
+                    <CheckCircle2 size={18} className="mr-2" />
+                    Project Submitted
+                  </h3>
+                  
+                  <div className="space-y-3 text-sm">
+                    <div>
+                      <span className="text-gray-500 dark:text-gray-400 block text-xs uppercase tracking-wider font-semibold">Submitted On</span>
+                      <span className="text-gray-900 dark:text-gray-100 font-medium">
+                        {new Date(projectSubmission.submitted_at).toLocaleDateString()} at {new Date(projectSubmission.submitted_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+
+                    {projectSubmission.content && (
+                      <div>
+                        <span className="text-gray-500 dark:text-gray-400 block text-xs uppercase tracking-wider font-semibold mb-1">Notes</span>
+                        <div className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap bg-white dark:bg-gray-800 p-2 rounded border border-green-100 dark:border-green-800/50 text-xs max-h-32 overflow-y-auto">
+                          {projectSubmission.content}
+                        </div>
+                      </div>
+                    )}
+
+                    {projectSubmission.resources && projectSubmission.resources.length > 0 && (
+                      <div>
+                        <span className="text-gray-500 dark:text-gray-400 block text-xs uppercase tracking-wider font-semibold mb-1">Attachments</span>
+                        <div className="space-y-2">
+                          {projectSubmission.resources.map((resource: ProjectResource) => (
+                            <a 
+                              key={resource.id}
+                              href={resource.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center p-2 bg-white dark:bg-gray-800 rounded border border-green-100 dark:border-green-800/50 hover:border-green-300 transition-colors group"
+                            >
+                              {resource.type === 'link' ? (
+                                <LinkIcon size={14} className="text-blue-500 mr-2 flex-shrink-0" />
+                              ) : (
+                                <FileText size={14} className="text-orange-500 mr-2 flex-shrink-0" />
+                              )}
+                              <span className="truncate flex-1 text-gray-700 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                                {resource.name}
+                              </span>
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
                 <FileText size={18} className="mr-2 text-blue-600" />
                 Instructions
@@ -339,7 +437,7 @@ export default function ProjectDetailPage() {
                       <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse"></div>
                     ))}
                   </div>
-                ) : tasks.filter(t => t.assigned_to === user?.id).length === 0 ? (
+                ) : tasks.filter((t: any) => t.assigned_to === user?.id || (t.assignees && t.assignees.some((a: any) => a.user_id === user?.id))).length === 0 ? (
                   <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
                     <CheckCircle2 size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
                     <p className="text-gray-600 dark:text-gray-400 mb-4">You have no tasks assigned yet.</p>
@@ -355,10 +453,14 @@ export default function ProjectDetailPage() {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {tasks.filter(t => t.assigned_to === user?.id).map((task) => (
+                    {tasks.filter((t: any) => t.assigned_to === user?.id || (t.assignees && t.assignees.some((a: any) => a.user_id === user?.id))).map((task) => (
                       <div 
                         key={task.id}
-                        className={`bg-white dark:bg-gray-800 p-4 rounded-xl border transition-all ${
+                        onClick={() => {
+                          setSelectedTask(task);
+                          setShowTaskDetailModal(true);
+                        }}
+                        className={`bg-white dark:bg-gray-800 p-4 rounded-xl border transition-all cursor-pointer hover:shadow-md ${
                           task.status === 'completed' 
                             ? 'border-gray-200 dark:border-gray-700 opacity-75' 
                             : 'border-blue-200 dark:border-blue-800 shadow-sm'
@@ -366,7 +468,10 @@ export default function ProjectDetailPage() {
                       >
                         <div className="flex items-start gap-3">
                           <button
-                            onClick={() => handleUpdateTaskStatus(task.id, task.status === 'completed' ? 'todo' : 'completed')}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleUpdateTaskStatus(task.id, task.status === 'completed' ? 'todo' : 'completed');
+                            }}
                             className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
                               task.status === 'completed'
                                 ? 'bg-green-500 border-green-500 text-white'
@@ -558,6 +663,7 @@ export default function ProjectDetailPage() {
                 </div>
               )}
             </div>
+
           </>
         )}
       </div>
@@ -581,6 +687,22 @@ export default function ProjectDetailPage() {
           projectId={project.id}
           userId={user.id}
           onSubmissionComplete={(submission) => setProjectSubmission(submission)}
+        />
+      )}
+
+      {/* Task Detail Modal */}
+      {selectedTask && (
+        <TaskDetailModal
+          isOpen={showTaskDetailModal}
+          onClose={() => {
+            setShowTaskDetailModal(false);
+            setSelectedTask(null);
+          }}
+          task={selectedTask}
+          onTaskUpdated={loadTasks}
+          onTaskDeleted={loadTasks}
+          canManage={canManageTasks}
+          simplified={true}
         />
       )}
     </DashboardLayout>

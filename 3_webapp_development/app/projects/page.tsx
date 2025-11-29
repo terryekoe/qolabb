@@ -21,6 +21,7 @@ import {
   ClipboardCheck,
   ArrowRight,
   Link as LinkIcon,
+  FileText,
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/Button';
@@ -29,6 +30,7 @@ import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { toast } from 'react-hot-toast';
 import { 
   getWorkspaceProjects, 
   getWorkspaceTeams, 
@@ -56,7 +58,7 @@ export const dynamic = 'force-dynamic';
  */
 function ProjectsPageContent() {
   const { user } = useAuth();
-  const { currentWorkspace } = useWorkspace();
+  const { currentWorkspace, workspaces } = useWorkspace();
   const { canAccess } = usePermissions();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -81,6 +83,16 @@ function ProjectsPageContent() {
   const [resourceUrl, setResourceUrl] = useState('');
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
+
+  // Check if user is an instructor based on workspace role
+  useEffect(() => {
+    if (currentWorkspace && workspaces.length > 0) {
+      const currentMember = workspaces.find((w: any) => w.workspace.id === currentWorkspace.id);
+      if (currentMember) {
+        setIsInstructor(currentMember.role === 'owner' || currentMember.role === 'admin');
+      }
+    }
+  }, [currentWorkspace, workspaces]);
 
   // Check for create parameter and open modal
   useEffect(() => {
@@ -236,7 +248,11 @@ function ProjectsPageContent() {
   }
 
   function handleProjectClick(project: any) {
-    router.push(`/projects/${project.id}`);
+    if (isInstructor) {
+      router.push(`/instructor/projects/${project.id}`);
+    } else {
+      router.push(`/projects/${project.id}`);
+    }
   }
 
   function handleAddResource() {
@@ -818,6 +834,73 @@ function ProjectsPageContent() {
                       >
                         Add
                       </button>
+                    </div>
+
+                    {/* Google Workspace Integration */}
+                    <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Google Workspace Integration
+                      </label>
+                      <div className="flex flex-col gap-3">
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            placeholder="Paste Google Doc/Sheet Template URL"
+                            className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            id="google-template-url"
+                          />
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            className="flex items-center gap-2 whitespace-nowrap"
+                            onClick={async () => {
+                              const input = document.getElementById('google-template-url') as HTMLInputElement;
+                              const url = input.value;
+                              if (!url) return;
+
+                              try {
+                                const btn = document.activeElement as HTMLButtonElement;
+                                const originalText = btn.innerText;
+                                btn.innerText = 'Provisioning...';
+                                btn.disabled = true;
+
+                                const response = await fetch('/api/google/provision', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    projectId: 'temp_id', // API handles this
+                                    teamId: selectedTeam,
+                                    templateUrl: url,
+                                    resourceName: 'Team Project Doc'
+                                  })
+                                });
+
+                                const data = await response.json();
+                                if (!response.ok) throw new Error(data.error);
+
+                                setResources([...resources, data.resource]);
+                                input.value = '';
+                                toast.success('Google Doc provisioned successfully');
+                              } catch (error: any) {
+                                toast.error(error.message || 'Failed to provision Google Doc');
+                              } finally {
+                                const btn = document.activeElement as HTMLButtonElement;
+                                if (btn) {
+                                  btn.innerText = 'Add Google Doc';
+                                  btn.disabled = false;
+                                }
+                              }
+                            }}
+                            disabled={!selectedTeam}
+                          >
+                            <FileText size={16} />
+                            Add Google Doc
+                          </Button>
+                        </div>
+                        {!selectedTeam && (
+                          <p className="text-xs text-orange-600">Select a team first to enable Google Doc provisioning.</p>
+                        )}
+                      </div>
                     </div>
 
                     {/* Resources List */}

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Link as LinkIcon, FileText, Loader2, AlertCircle } from 'lucide-react';
-import { submitProject } from '@/lib/db/queries';
-import { ProjectSubmission } from '@/lib/types/database';
+import { X, Link as LinkIcon, FileText, Loader2, AlertCircle, Upload, CheckSquare } from 'lucide-react';
+import { submitProject, uploadProjectFile } from '@/lib/db/queries';
+import { ProjectSubmission, ProjectResource } from '@/lib/types/database';
 import { toast } from 'react-hot-toast';
 
 interface ProjectSubmissionModalProps {
@@ -22,13 +22,27 @@ export function ProjectSubmissionModal({
 }: ProjectSubmissionModalProps) {
   const [url, setUrl] = useState('');
   const [notes, setNotes] = useState('');
+  const [file, setFile] = useState<File | null>(null);
+  const [confirmed, setConfirmed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0]);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!url.trim()) {
-      setError('Please enter a submission URL');
+    if (!url.trim() && !file) {
+      setError('Please provide a URL or upload a file');
+      return;
+    }
+
+    if (!confirmed) {
+      setError('Please confirm this is the final submission');
       return;
     }
 
@@ -36,25 +50,47 @@ export function ProjectSubmissionModal({
       setIsSubmitting(true);
       setError(null);
 
-      // Combine URL and notes into content or use structure if we change DB
-      // For now, we'll store URL as content and append notes if present
-      const submissionContent = JSON.stringify({
-        url: url.trim(),
-        notes: notes.trim()
-      });
+      let uploadedFileUrl = '';
+      const resources: ProjectResource[] = [];
 
-      // We are using the existing submitProject function which takes (projectId, userId, content, resources)
-      // We'll pass the JSON string as content for now, or just the URL if we want to keep it simple.
-      // Let's stick to passing the URL as the main content for compatibility with simple text, 
-      // but maybe we should format it. 
-      // Actually, let's just pass the URL as content. The notes can be a separate field if we update DB, 
-      // or we can just append it: "URL\n\nNotes: ..."
-      
+      // Upload file if present
+      if (file) {
+        try {
+          uploadedFileUrl = await uploadProjectFile(projectId, file);
+          resources.push({
+            id: crypto.randomUUID(),
+            type: 'file',
+            name: file.name,
+            url: uploadedFileUrl,
+            size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
+            fileType: file.type,
+            addedBy: userId,
+            addedAt: new Date().toISOString()
+          });
+        } catch (uploadErr) {
+          console.error('File upload failed:', uploadErr);
+          throw new Error('Failed to upload file. Please try again.');
+        }
+      }
+
+      // Add URL resource if present
+      if (url.trim()) {
+        resources.push({
+          id: crypto.randomUUID(),
+          type: 'link',
+          name: 'Project Link',
+          url: url.trim(),
+          addedBy: userId,
+          addedAt: new Date().toISOString()
+        });
+      }
+
+      // Content is primarily the notes, but we can include the URL for legacy support
       const finalContent = notes.trim() 
-        ? `${url.trim()}\n\nNotes:\n${notes.trim()}`
-        : url.trim();
+        ? notes.trim()
+        : (url.trim() ? `Submission Link: ${url.trim()}` : 'File Submission');
 
-      const submission = await submitProject(projectId, userId, finalContent);
+      const submission = await submitProject(projectId, userId, finalContent, resources);
       
       if (submission) {
         onSubmissionComplete(submission);
@@ -63,9 +99,9 @@ export function ProjectSubmissionModal({
       } else {
         throw new Error('Submission failed');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error submitting project:', err);
-      setError('Failed to submit project. Please try again.');
+      setError(err.message || 'Failed to submit project. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -102,26 +138,66 @@ export function ProjectSubmissionModal({
               </div>
             )}
 
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Project URL <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <LinkIcon size={18} className="text-gray-400" />
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Project Files (Optional)
+                </label>
+                <div 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 dark:hover:border-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all"
+                >
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                  {file ? (
+                    <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+                      <FileText size={24} />
+                      <span className="font-medium truncate max-w-[200px]">{file.name}</span>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setFile(null);
+                        }}
+                        className="p-1 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-full"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <Upload size={24} className="text-gray-400 mb-2" />
+                      <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                        Click to upload project files
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                        PDF, ZIP, Slides (Max 50MB)
+                      </p>
+                    </>
+                  )}
                 </div>
-                <input
-                  type="url"
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  placeholder="https://github.com/..."
-                  className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all"
-                  required
-                />
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Link to your GitHub repository, Google Doc, or deployed application.
-              </p>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Project Link (Optional)
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <LinkIcon size={18} className="text-gray-400" />
+                  </div>
+                  <input
+                    type="url"
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    placeholder="https://github.com/..."
+                    className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all"
+                  />
+                </div>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -140,6 +216,24 @@ export function ProjectSubmissionModal({
                   className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-all resize-none"
                 />
               </div>
+            </div>
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <div className="flex items-center h-5">
+                  <input
+                    type="checkbox"
+                    checked={confirmed}
+                    onChange={(e) => setConfirmed(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
+                  />
+                </div>
+                <div className="text-sm">
+                  <span className="font-medium text-gray-900 dark:text-gray-100">Final Submission Confirmation</span>
+                  <p className="text-gray-500 dark:text-gray-400 mt-1">
+                    I certify that this is the final submission on behalf of my team and all requirements have been met.
+                  </p>
+                </div>
+              </label>
             </div>
 
             <div className="flex gap-3 pt-2">
