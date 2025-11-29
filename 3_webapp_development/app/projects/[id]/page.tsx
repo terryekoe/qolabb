@@ -21,7 +21,10 @@ import {
   FileText,
   Link as LinkIcon,
   MessageSquare,
+  Lock,
 } from 'lucide-react';
+
+
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/Button';
 import Avatar, { AvatarGroup } from '@/components/ui/Avatar';
@@ -169,6 +172,8 @@ export default function ProjectDetailPage() {
     ? Math.round((tasksByStatus.completed.length / tasks.length) * 100)
     : 0;
 
+  const isLocked = !!projectSubmission || (project?.due_date ? new Date(project.due_date) < new Date() : false);
+
   if (loading || !project) {
     return (
       <DashboardLayout>
@@ -204,6 +209,11 @@ export default function ProjectDetailPage() {
                       Completed
                     </span>
                   )}
+                  {isLocked && (
+                    <span className="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 rounded-full flex items-center gap-1">
+                      <Lock size={12} /> Locked
+                    </span>
+                  )}
                 </h1>
                 <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mt-1">
                   <span className="flex items-center mr-4">
@@ -211,7 +221,7 @@ export default function ProjectDetailPage() {
                     {project?.team?.name}
                   </span>
                   {project?.due_date && (
-                    <span className="flex items-center">
+                    <span className={`flex items-center ${new Date(project.due_date) < new Date() ? 'text-red-600 dark:text-red-400' : ''}`}>
                       <Calendar size={14} className="mr-1" />
                       Due {new Date(project.due_date).toLocaleDateString()}
                     </span>
@@ -470,12 +480,19 @@ export default function ProjectDetailPage() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
+                              if (projectSubmission || (project?.due_date && new Date(project.due_date) < new Date())) {
+                                toast.error('Project is locked due to submission or deadline');
+                                return;
+                              }
                               handleUpdateTaskStatus(task.id, task.status === 'completed' ? 'todo' : 'completed');
                             }}
+                            disabled={!!projectSubmission || (project?.due_date && new Date(project.due_date) < new Date())}
                             className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
                               task.status === 'completed'
                                 ? 'bg-green-500 border-green-500 text-white'
                                 : 'border-gray-300 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-400'
+                            } ${
+                              (!!projectSubmission || (project?.due_date && new Date(project.due_date) < new Date())) ? 'opacity-50 cursor-not-allowed' : ''
                             }`}
                           >
                             {task.status === 'completed' && <CheckCircle2 size={12} />}
@@ -640,6 +657,7 @@ export default function ProjectDetailPage() {
                                 canManage={canManageTasks}
                                 activeMenu={activeTaskMenu}
                                 setActiveMenu={setActiveTaskMenu}
+                                isLocked={isLocked}
                               />
                             ))}
                           </div>
@@ -710,6 +728,7 @@ export default function ProjectDetailPage() {
 }
 
 // Task Card Component (same as in modal)
+// Task Card Component (same as in modal)
 interface TaskCardProps {
   task: any;
   onUpdateStatus: (taskId: string, status: TaskStatus) => void;
@@ -717,6 +736,7 @@ interface TaskCardProps {
   canManage: boolean;
   activeMenu: string | null;
   setActiveMenu: (id: string | null) => void;
+  isLocked?: boolean;
 }
 
 const TaskCard: React.FC<TaskCardProps> = ({
@@ -726,6 +746,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
   canManage,
   activeMenu,
   setActiveMenu,
+  isLocked,
 }) => {
   return (
     <motion.div
@@ -733,11 +754,11 @@ const TaskCard: React.FC<TaskCardProps> = ({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
-      className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-all group relative"
+      className={`bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-all group relative ${isLocked ? 'opacity-75' : ''}`}
     >
       <div className="flex items-start justify-between mb-2">
         <h5 className="font-semibold text-gray-900 dark:text-gray-100 text-sm flex-1 pr-2">{task.title}</h5>
-        {canManage && (
+        {canManage && !isLocked && (
           <div className="relative">
             <button
               onClick={() => setActiveMenu(activeMenu === task.id ? null : task.id)}
@@ -799,8 +820,8 @@ const TaskCard: React.FC<TaskCardProps> = ({
         <select
           value={task.status}
           onChange={(e) => onUpdateStatus(task.id, e.target.value as TaskStatus)}
-          disabled={!canManage}
-          className="text-xs px-2 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          disabled={!canManage || isLocked}
+          className={`text-xs px-2 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500 ${isLocked ? 'cursor-not-allowed opacity-70' : ''}`}
         >
           <option value="todo">To Do</option>
           <option value="in_progress">In Progress</option>

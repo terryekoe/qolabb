@@ -56,7 +56,7 @@ export function TeamTaskBoard({ projectId, teamName }: TeamTaskBoardProps) {
     <div className="h-full flex flex-col">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full overflow-hidden">
         {/* Todo Column */}
-        <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+        <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700 min-h-0">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
               <Circle size={16} className="text-gray-400" />
@@ -66,7 +66,7 @@ export function TeamTaskBoard({ projectId, teamName }: TeamTaskBoardProps) {
               {tasksByStatus.todo.length}
             </span>
           </div>
-          <div className="flex-1 overflow-y-auto space-y-3 pr-2">
+          <div className="flex-1 overflow-y-auto space-y-3 pr-2 min-h-0 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
             {tasksByStatus.todo.map(task => (
               <TaskCard key={task.id} task={task} getPriorityColor={getPriorityColor} />
             ))}
@@ -77,7 +77,7 @@ export function TeamTaskBoard({ projectId, teamName }: TeamTaskBoardProps) {
         </div>
 
         {/* In Progress Column */}
-        <div className="flex flex-col h-full bg-blue-50/50 dark:bg-blue-900/10 rounded-xl p-4 border border-blue-100 dark:border-blue-800/30">
+        <div className="flex flex-col h-full bg-blue-50/50 dark:bg-blue-900/10 rounded-xl p-4 border border-blue-100 dark:border-blue-800/30 min-h-0">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-blue-700 dark:text-blue-300 flex items-center gap-2">
               <Clock size={16} />
@@ -87,7 +87,7 @@ export function TeamTaskBoard({ projectId, teamName }: TeamTaskBoardProps) {
               {tasksByStatus.in_progress.length}
             </span>
           </div>
-          <div className="flex-1 overflow-y-auto space-y-3 pr-2">
+          <div className="flex-1 overflow-y-auto space-y-3 pr-2 min-h-0 scrollbar-thin scrollbar-thumb-blue-200 dark:scrollbar-thumb-blue-800">
             {tasksByStatus.in_progress.map(task => (
               <TaskCard key={task.id} task={task} getPriorityColor={getPriorityColor} />
             ))}
@@ -98,7 +98,7 @@ export function TeamTaskBoard({ projectId, teamName }: TeamTaskBoardProps) {
         </div>
 
         {/* Completed Column */}
-        <div className="flex flex-col h-full bg-green-50/50 dark:bg-green-900/10 rounded-xl p-4 border border-green-100 dark:border-green-800/30">
+        <div className="flex flex-col h-full bg-green-50/50 dark:bg-green-900/10 rounded-xl p-4 border border-green-100 dark:border-green-800/30 min-h-0">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-green-700 dark:text-green-300 flex items-center gap-2">
               <CheckCircle2 size={16} />
@@ -108,7 +108,7 @@ export function TeamTaskBoard({ projectId, teamName }: TeamTaskBoardProps) {
               {tasksByStatus.completed.length}
             </span>
           </div>
-          <div className="flex-1 overflow-y-auto space-y-3 pr-2">
+          <div className="flex-1 overflow-y-auto space-y-3 pr-2 min-h-0 scrollbar-thin scrollbar-thumb-green-200 dark:scrollbar-thumb-green-800">
             {tasksByStatus.completed.map(task => (
               <TaskCard key={task.id} task={task} getPriorityColor={getPriorityColor} />
             ))}
