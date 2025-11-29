@@ -55,6 +55,22 @@ export default function InstructorProjectPage() {
       
       setTeamsData(teams || []);
       setProject(projectData);
+
+      // Check if all teams are graded and update project status if needed
+      if (teams && teams.length > 0 && projectData && projectData.status !== 'completed') {
+        const allGraded = teams.every((t: any) => t.submission && t.submission.status === 'graded');
+        
+        if (allGraded) {
+          console.log('All teams graded, marking project as completed');
+          try {
+            await updateProject(projectData.id, { status: 'completed' });
+            setProject({ ...projectData, status: 'completed' });
+            toast.success('Project marked as completed (all teams graded)');
+          } catch (err) {
+            console.error('Failed to auto-complete project:', err);
+          }
+        }
+      }
     } catch (error) {
       console.error('Error loading instructor data:', error);
     } finally {

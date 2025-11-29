@@ -5660,7 +5660,7 @@ export async function getPendingEvaluations(userId: string, workspaceId?: string
         const { data: profile } = await supabase
           .from('profiles')
           .select('role')
-          .eq('user_id', userId)
+          .eq('id', userId)
           .single()
 
         const userRole = profile?.role?.toLowerCase()
