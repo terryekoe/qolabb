@@ -22,6 +22,7 @@ import {
   ArrowRight,
   Link as LinkIcon,
   FileText,
+  Loader2,
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/Button';
@@ -82,6 +83,7 @@ function ProjectsPageContent() {
   const [resourceName, setResourceName] = useState('');
   const [resourceUrl, setResourceUrl] = useState('');
   const [creating, setCreating] = useState(false);
+  const [provisioning, setProvisioning] = useState(false);
   const [error, setError] = useState('');
 
   // Check if user is an instructor based on workspace role
@@ -905,12 +907,8 @@ function ProjectsPageContent() {
                               const url = input.value;
                               if (!url) return;
 
+                              setProvisioning(true);
                               try {
-                                const btn = document.activeElement as HTMLButtonElement;
-                                const originalText = btn.innerText;
-                                btn.innerText = 'Provisioning...';
-                                btn.disabled = true;
-
                                 const response = await fetch('/api/google/provision', {
                                   method: 'POST',
                                   headers: { 'Content-Type': 'application/json' },
@@ -931,17 +929,22 @@ function ProjectsPageContent() {
                               } catch (error: any) {
                                 toast.error(error.message || 'Failed to provision Google Doc');
                               } finally {
-                                const btn = document.activeElement as HTMLButtonElement;
-                                if (btn) {
-                                  btn.innerText = 'Add Google Doc';
-                                  btn.disabled = false;
-                                }
+                                setProvisioning(false);
                               }
                             }}
-                            disabled={selectedTeams.length === 0}
+                            disabled={selectedTeams.length === 0 || provisioning}
                           >
-                            <FileText size={16} />
-                            Add Google Doc
+                            {provisioning ? (
+                              <>
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                Provisioning...
+                              </>
+                            ) : (
+                              <>
+                                <FileText size={16} />
+                                Add Google Doc
+                              </>
+                            )}
                           </Button>
                         </div>
                         {selectedTeams.length === 0 && (
