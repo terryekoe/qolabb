@@ -51,6 +51,7 @@ export function GroupWorkspaceEditor({ projectId, initialContent, isReadOnly = f
     onUpdate: () => {
       setHasUnsavedChanges(true);
     },
+    immediatelyRender: false,
   });
 
   // Auto-save effect
