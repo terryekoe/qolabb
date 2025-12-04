@@ -74,10 +74,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     applyTheme(newTheme);
   };
 
-  // Prevent flash of wrong theme
-  if (!mounted) {
-    return <>{children}</>;
-  }
+  // Prevent flash of wrong theme - handled by script in layout.tsx
+  // We must render the provider even if not mounted so useTheme works
+  // if (!mounted) {
+  //   return <>{children}</>;
+  // }
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme: handleSetTheme, actualTheme }}>
