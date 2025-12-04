@@ -121,10 +121,16 @@ export class GoogleDriveService {
       const newFileName = `${teamName} - ${title}`;
       
       // 1. Create a blank document
-      const fileMetadata = {
+      const parentFolderId = process.env.GOOGLE_PARENT_FOLDER_ID;
+      
+      const fileMetadata: any = {
         name: newFileName,
         mimeType: 'application/vnd.google-apps.document',
       };
+
+      if (parentFolderId) {
+        fileMetadata.parents = [parentFolderId];
+      }
       
       const createResponse = await this.drive.files.create({
         requestBody: fileMetadata,
