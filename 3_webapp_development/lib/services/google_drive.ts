@@ -1,14 +1,33 @@
+import { google } from 'googleapis';
+
 /**
- * Mock Google Drive Service
+ * Google Drive Service
  * 
- * This service simulates interactions with the Google Drive API.
- * In a real implementation, this would use the 'googleapis' library and a service account.
+ * Handles interactions with the Google Drive API using a Service Account.
+ * Requires GOOGLE_CLIENT_EMAIL and GOOGLE_PRIVATE_KEY environment variables.
  */
 
 export class GoogleDriveService {
   private static instance: GoogleDriveService;
+  private drive: any;
 
-  private constructor() {}
+  private constructor() {
+    const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
+    const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'); // Handle newlines in env var
+
+    if (clientEmail && privateKey) {
+      const auth = new google.auth.GoogleAuth({
+        credentials: {
+          client_email: clientEmail,
+          private_key: privateKey,
+        },
+        scopes: ['https://www.googleapis.com/auth/drive'],
+      });
+      this.drive = google.drive({ version: 'v3', auth });
+    } else {
+      console.warn('[GoogleDriveService] Missing credentials. Running in mock mode.');
+    }
+  }
 
   public static getInstance(): GoogleDriveService {
     if (!GoogleDriveService.instance) {
@@ -18,51 +37,75 @@ export class GoogleDriveService {
   }
 
   /**
-   * Simulates copying a file (template) for a team.
+   * Copies a template file for a team.
    * @param templateId The ID of the master template file.
    * @param teamName The name of the team to include in the new file name.
    * @returns A promise that resolves to the new file ID and webViewLink.
    */
   async createTeamCopy(templateId: string, teamName: string): Promise<{ fileId: string; webViewLink: string; name: string }> {
+    if (!this.drive) {
+      return this.mockCreateTeamCopy(templateId, teamName);
+    }
+
+    try {
+      console.log(`[GoogleDrive] Copying template ${templateId} for team ${teamName}...`);
+      
+      const newFileName = `${teamName} - Assignment Workspace`;
+      
+      const response = await this.drive.files.copy({
+        fileId: templateId,
+        requestBody: {
+          name: newFileName,
+        },
+        fields: 'id, name, webViewLink',
+      });
+
+      const { id, name, webViewLink } = response.data;
+      console.log(`[GoogleDrive] Created file: ${name} (${id})`);
+
+      // Make it editable by anyone with the link (or restrict to domain if needed)
+      // For simplicity in this MVP, we'll make it "anyone with link can edit" 
+      // or we could rely on the folder permissions if we put it in a folder.
+      // Let's add "anyone with link" permission for now to ensure access.
+      await this.drive.permissions.create({
+        fileId: id,
+        requestBody: {
+          role: 'writer',
+          type: 'anyone',
+        },
+      });
+
+      return {
+        fileId: id,
+        webViewLink,
+        name
+      };
+    } catch (error: any) {
+      console.error('[GoogleDrive] Error creating copy:', error);
+      throw new Error(`Failed to provision Google Doc: ${error.message}`);
+    }
+  }
+
+  /**
+   * Fallback mock implementation
+   */
+  private async mockCreateTeamCopy(templateId: string, teamName: string): Promise<{ fileId: string; webViewLink: string; name: string }> {
     console.log(`[Mock GoogleDrive] Copying template ${templateId} for team ${teamName}...`);
-    
-    // Simulate API latency
     await new Promise(resolve => setTimeout(resolve, 1500));
-
-    const newFileId = `mock_file_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-    const newFileName = `${teamName} - Assignment Workspace`;
     
-    // Generate a mock Google Doc URL
-    // Use the templateId so the link actually works (pointing to the template)
-    // instead of a fake ID that returns 404
+    // Return the template itself as a fallback so links work
     const webViewLink = `https://docs.google.com/document/d/${templateId}/edit?usp=sharing`;
-
-    console.log(`[Mock GoogleDrive] Created file: ${newFileName} (${newFileId})`);
+    const newFileName = `${teamName} - Assignment Workspace (Mock)`;
 
     return {
-      fileId: newFileId,
+      fileId: templateId, // Use template ID to avoid 404s
       webViewLink,
       name: newFileName
     };
   }
 
   /**
-   * Simulates granting permissions to a file.
-   * @param fileId The ID of the file to share.
-   * @param emails List of email addresses to grant access to.
-   */
-  async grantPermissions(fileId: string, emails: string[]): Promise<void> {
-    console.log(`[Mock GoogleDrive] Granting permissions on ${fileId} to:`, emails);
-    
-    // Simulate API latency
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    console.log(`[Mock GoogleDrive] Permissions granted.`);
-  }
-
-  /**
    * Helper to extract file ID from a Google Doc URL.
-   * Handles standard URLs.
    */
   extractFileIdFromUrl(url: string): string | null {
     const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
