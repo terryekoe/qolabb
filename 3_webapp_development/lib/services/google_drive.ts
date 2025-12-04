@@ -121,7 +121,12 @@ export class GoogleDriveService {
       const newFileName = `${teamName} - ${title}`;
       
       // 1. Create a blank document
-      const parentFolderId = process.env.GOOGLE_PARENT_FOLDER_ID;
+      let parentFolderId = process.env.GOOGLE_PARENT_FOLDER_ID;
+      
+      // Sanitize folder ID (remove query params if user pasted full URL)
+      if (parentFolderId && parentFolderId.includes('?')) {
+        parentFolderId = parentFolderId.split('?')[0];
+      }
       
       const fileMetadata: any = {
         name: newFileName,
