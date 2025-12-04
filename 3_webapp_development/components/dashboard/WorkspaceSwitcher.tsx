@@ -40,11 +40,11 @@ export const WorkspaceSwitcher: React.FC<WorkspaceSwitcherProps> = ({ isOpen, on
 
           {/* Modal */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: -20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -20 }}
+            initial={{ opacity: 0, scale: 0.95, y: -20, x: '-50%' }}
+            animate={{ opacity: 1, scale: 1, y: 0, x: '-50%' }}
+            exit={{ opacity: 0, scale: 0.95, y: -20, x: '-50%' }}
             transition={{ type: 'spring', duration: 0.3 }}
-            className="fixed top-20 left-1/2 -translate-x-1/2 z-50 w-full max-w-md"
+            className="fixed top-20 left-1/2 z-[60] w-full max-w-md px-4"
           >
             <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
               {/* Header */}

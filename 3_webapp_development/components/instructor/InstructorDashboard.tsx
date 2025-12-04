@@ -37,6 +37,7 @@ import { Button } from '@/components/Button';
 import { usePermissions } from '@/lib/hooks/usePermissions';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 // =====================================================
 // TYPE DEFINITIONS
@@ -262,34 +263,39 @@ export function InstructorDashboard() {
 // =====================================================
 
 function OverviewTab({ overview }: { overview: WorkspaceOverview }) {
+
   const metrics = [
     {
       label: 'Total Students',
       value: overview.totalStudents,
       icon: Users,
       color: 'blue',
-      trend: '+5 this week'
+      trend: '+5 this week',
+      href: '/students'
     },
     {
       label: 'Active Teams',
       value: overview.totalTeams,
       icon: Users,
       color: 'green',
-      trend: '+2 this week'
+      trend: '+2 this week',
+      href: '/teams'
     },
     {
       label: 'Projects',
       value: overview.totalProjects,
       icon: BookOpen,
       color: 'purple',
-      trend: '+1 this week'
+      trend: '+1 this week',
+      href: '/projects'
     },
     {
       label: 'Avg. Participation',
       value: `${overview.averageParticipation}%`,
       icon: TrendingUp,
       color: 'orange',
-      trend: '+3% this week'
+      trend: '+3% this week',
+      href: '/analytics'
     }
   ];
   
@@ -297,14 +303,8 @@ function OverviewTab({ overview }: { overview: WorkspaceOverview }) {
     <div className="space-y-6">
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {metrics.map((metric, index) => (
-          <motion.div
-            key={metric.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm"
-          >
+        {metrics.map((metric, index) => {
+          const Content = (
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">
@@ -327,8 +327,28 @@ function OverviewTab({ overview }: { overview: WorkspaceOverview }) {
                 )} />
               </div>
             </div>
-          </motion.div>
-        ))}
+          );
+
+          return (
+            <motion.div
+              key={metric.label}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
+            >
+              {metric.href ? (
+                <Link href={metric.href} className="block p-6">
+                  {Content}
+                </Link>
+              ) : (
+                <div className="p-6">
+                  {Content}
+                </div>
+              )}
+            </motion.div>
+          );
+        })}
       </div>
       
       {/* Alerts and Quick Actions */}
