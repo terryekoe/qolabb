@@ -10,16 +10,10 @@ import { googleDriveService } from '@/lib/services/google_drive';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { projectId, teamId, templateUrl, resourceName } = body;
+    const { projectId, teamId, templateUrl, resourceName, autoCreate, title, content } = body;
 
-    if (!projectId || !teamId || !templateUrl) {
+    if (!projectId || !teamId) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
-    }
-
-    // 1. Extract Template ID
-    const templateId = googleDriveService.extractFileIdFromUrl(templateUrl);
-    if (!templateId) {
-      return NextResponse.json({ error: 'Invalid Google Doc URL' }, { status: 400 });
     }
 
     // 2. Fetch Team Details (to get name)
@@ -35,8 +29,29 @@ export async function POST(req: NextRequest) {
     // Let's just use a placeholder name if we can't easily fetch without auth context setup.
     const teamName = `Team ${teamId.substring(0, 4)}`; 
 
-    // 3. Call Mock Service to Provision
-    const result = await googleDriveService.createTeamCopy(templateId, teamName);
+    let result;
+
+    if (autoCreate) {
+      // Auto-create doc from content
+      if (!title) {
+        return NextResponse.json({ error: 'Title is required for auto-creation' }, { status: 400 });
+      }
+      result = await googleDriveService.createDocWithContent(title, content || '', teamName);
+    } else {
+      // Create copy from template
+      if (!templateUrl) {
+        return NextResponse.json({ error: 'Template URL is required' }, { status: 400 });
+      }
+
+      // 1. Extract Template ID
+      const templateId = googleDriveService.extractFileIdFromUrl(templateUrl);
+      if (!templateId) {
+        return NextResponse.json({ error: 'Invalid Google Doc URL' }, { status: 400 });
+      }
+
+      // 3. Call Mock Service to Provision
+      result = await googleDriveService.createTeamCopy(templateId, teamName);
+    }
 
     // 4. Return the new resource details
     return NextResponse.json({

@@ -891,22 +891,18 @@ function ProjectsPageContent() {
                         Google Workspace Integration
                       </label>
                       <div className="flex flex-col gap-3">
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            placeholder="Paste Google Doc/Sheet Template URL"
-                            className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            id="google-template-url"
-                          />
+                      <div className="flex flex-col gap-3">
+                        <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+                          <div>
+                            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">Group Google Doc</span>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">Automatically create a blank doc with assignment instructions</p>
+                          </div>
                           <Button
                             type="button"
                             variant="secondary"
+                            size="sm"
                             className="flex items-center gap-2 whitespace-nowrap"
                             onClick={async () => {
-                              const input = document.getElementById('google-template-url') as HTMLInputElement;
-                              const url = input.value;
-                              if (!url) return;
-
                               setProvisioning(true);
                               try {
                                 const response = await fetch('/api/google/provision', {
@@ -915,8 +911,10 @@ function ProjectsPageContent() {
                                   body: JSON.stringify({
                                     projectId: 'temp_id', // API handles this
                                     teamId: selectedTeams[0], // Use first selected team for template
-                                    templateUrl: url,
-                                    resourceName: 'Team Project Doc'
+                                    resourceName: 'Team Project Doc',
+                                    autoCreate: true,
+                                    title: projectName,
+                                    content: projectDescription
                                   })
                                 });
 
@@ -924,25 +922,24 @@ function ProjectsPageContent() {
                                 if (!response.ok) throw new Error(data.error);
 
                                 setResources([...resources, data.resource]);
-                                input.value = '';
-                                toast.success('Google Doc provisioned successfully');
+                                toast.success('Group Google Doc generated successfully');
                               } catch (error: any) {
-                                toast.error(error.message || 'Failed to provision Google Doc');
+                                toast.error(error.message || 'Failed to generate Google Doc');
                               } finally {
                                 setProvisioning(false);
                               }
                             }}
-                            disabled={selectedTeams.length === 0 || provisioning}
+                            disabled={selectedTeams.length === 0 || provisioning || !projectName}
                           >
                             {provisioning ? (
                               <>
                                 <Loader2 className="w-4 h-4 animate-spin" />
-                                Provisioning...
+                                Generating...
                               </>
                             ) : (
                               <>
                                 <FileText size={16} />
-                                Add Google Doc
+                                Generate Group Doc
                               </>
                             )}
                           </Button>
@@ -950,6 +947,7 @@ function ProjectsPageContent() {
                         {selectedTeams.length === 0 && (
                           <p className="text-xs text-orange-600">Select a team first to enable Google Doc provisioning.</p>
                         )}
+                      </div>
                       </div>
                     </div>
 

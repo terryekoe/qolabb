@@ -105,6 +105,111 @@ export class GoogleDriveService {
   }
 
   /**
+   * Creates a new Google Doc with the specified content.
+   * @param title The title of the document.
+   * @param content The text content to insert into the document.
+   * @param teamName The name of the team (for file naming).
+   */
+  async createDocWithContent(title: string, content: string, teamName: string): Promise<{ fileId: string; webViewLink: string; name: string }> {
+    if (!this.drive) {
+      return this.mockCreateDocWithContent(title, content, teamName);
+    }
+
+    try {
+      console.log(`[GoogleDrive] Creating doc "${title}" for team ${teamName}...`);
+      
+      const newFileName = `${teamName} - ${title}`;
+      
+      // 1. Create a blank document
+      const fileMetadata = {
+        name: newFileName,
+        mimeType: 'application/vnd.google-apps.document',
+      };
+      
+      const createResponse = await this.drive.files.create({
+        requestBody: fileMetadata,
+        fields: 'id, name, webViewLink',
+      });
+
+      const { id, name, webViewLink } = createResponse.data;
+      console.log(`[GoogleDrive] Created blank file: ${name} (${id})`);
+
+      // 2. Insert content using the Docs API
+      // We need a separate client for the Docs API
+      // Re-use the auth from the drive client
+      const docs = google.docs({ version: 'v1', auth: this.drive.context._options.auth });
+
+      if (content) {
+        await docs.documents.batchUpdate({
+          documentId: id,
+          requestBody: {
+            requests: [
+              {
+                insertText: {
+                  location: { index: 1 },
+                  text: content + '\n\n',
+                },
+              },
+              {
+                insertText: {
+                  location: { index: 1 },
+                  text: title + '\n',
+                },
+              },
+              // Make title bold and large
+              {
+                updateTextStyle: {
+                  range: { startIndex: 1, endIndex: 1 + title.length },
+                  textStyle: {
+                    bold: true,
+                    fontSize: { magnitude: 18, unit: 'PT' },
+                  },
+                  fields: 'bold,fontSize',
+                },
+              }
+            ],
+          },
+        });
+      }
+
+      // 3. Set permissions
+      await this.drive.permissions.create({
+        fileId: id,
+        requestBody: {
+          role: 'writer',
+          type: 'anyone',
+        },
+      });
+
+      return {
+        fileId: id,
+        webViewLink,
+        name
+      };
+    } catch (error: any) {
+      console.error('[GoogleDrive] Error creating doc:', error);
+      throw new Error(`Failed to create Google Doc: ${error.message}`);
+    }
+  }
+
+  private async mockCreateDocWithContent(title: string, content: string, teamName: string): Promise<{ fileId: string; webViewLink: string; name: string }> {
+    console.log(`[Mock GoogleDrive] Creating doc "${title}" for team ${teamName}...`);
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // For mock, we can't create a real doc with content.
+    // We'll just return a link to a generic "Blank" Google Doc or the user's template if we had one (but we don't here).
+    // Let's return a link to a new blank doc.
+    const webViewLink = `https://docs.google.com/document/create`; 
+    const newFileName = `${teamName} - ${title} (Mock)`;
+
+    return {
+      fileId: 'mock_auto_doc_' + Date.now(),
+      webViewLink,
+      name: newFileName
+    };
+  }
+
+  /**
    * Helper to extract file ID from a Google Doc URL.
    */
   extractFileIdFromUrl(url: string): string | null {
