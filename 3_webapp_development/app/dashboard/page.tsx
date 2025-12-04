@@ -213,7 +213,7 @@ export default function DashboardPage() {
                     color="green"
                   />
                   <StatCard
-                    title="Team Members"
+                    title="Class Members"
                     value={stats.totalMembers.toString()}
                     change={stats.totalMembers > 0 ? 'In your group' : 'Join a group'}
                     changeType={stats.totalMembers > 0 ? 'positive' : 'neutral'}
