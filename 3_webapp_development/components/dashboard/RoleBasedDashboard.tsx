@@ -6,6 +6,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   BarChart3,
@@ -596,18 +597,30 @@ function OverviewWidget() {
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         {[
-          { label: 'Active Teams', value: '3', icon: Users },
-          { label: 'Pending Tasks', value: '7', icon: Target },
-          { label: 'This Week', value: '12h', icon: Clock },
-          { label: 'Contributions', value: '24', icon: Activity }
+          { label: 'Active Teams', value: '3', icon: Users, href: '/teams' },
+          { label: 'Pending Tasks', value: '7', icon: Target, href: '/tasks' },
+          { label: 'This Week', value: '12h', icon: Clock, href: '/analytics' },
+          { label: 'Contributions', value: '24', icon: Activity, href: '/tasks' }
         ].map((stat) => (
-          <div key={stat.label} className="text-center">
-            <div className="flex items-center justify-center mb-2">
-              <stat.icon className="w-4 h-4 text-gray-600" />
+          stat.href ? (
+            <Link key={stat.label} href={stat.href} className="block">
+              <div className="text-center hover:bg-gray-50 rounded-lg p-2 transition-colors cursor-pointer">
+                <div className="flex items-center justify-center mb-2">
+                  <stat.icon className="w-4 h-4 text-gray-600" />
+                </div>
+                <p className="text-lg font-semibold text-gray-900">{stat.value}</p>
+                <p className="text-xs text-gray-600">{stat.label}</p>
+              </div>
+            </Link>
+          ) : (
+            <div key={stat.label} className="text-center">
+              <div className="flex items-center justify-center mb-2">
+                <stat.icon className="w-4 h-4 text-gray-600" />
+              </div>
+              <p className="text-lg font-semibold text-gray-900">{stat.value}</p>
+              <p className="text-xs text-gray-600">{stat.label}</p>
             </div>
-            <p className="text-lg font-semibold text-gray-900">{stat.value}</p>
-            <p className="text-xs text-gray-600">{stat.label}</p>
-          </div>
+          )
         ))}
       </div>
     </div>
@@ -726,16 +739,26 @@ function WorkspaceManagementWidget() {
       </div>
       <div className="grid grid-cols-2 gap-3">
         {[
-          { label: 'Members', value: '24', icon: Users },
-          { label: 'Teams', value: '6', icon: Users },
-          { label: 'Projects', value: '3', icon: BookOpen },
-          { label: 'Active', value: '18', icon: Activity }
+          { label: 'Members', value: '24', icon: Users, href: '/settings' },
+          { label: 'Teams', value: '6', icon: Users, href: '/teams' },
+          { label: 'Projects', value: '3', icon: BookOpen, href: '/projects' },
+          { label: 'Active', value: '18', icon: Activity, href: '/analytics' }
         ].map((stat) => (
-          <div key={stat.label} className="text-center p-2 bg-gray-50 rounded">
-            <stat.icon className="w-4 h-4 text-gray-600 mx-auto mb-1" />
-            <p className="text-sm font-semibold text-gray-900">{stat.value}</p>
-            <p className="text-xs text-gray-600">{stat.label}</p>
-          </div>
+          stat.href ? (
+            <Link key={stat.label} href={stat.href} className="block">
+              <div className="text-center p-2 bg-gray-50 rounded hover:bg-gray-100 transition-colors cursor-pointer h-full">
+                <stat.icon className="w-4 h-4 text-gray-600 mx-auto mb-1" />
+                <p className="text-sm font-semibold text-gray-900">{stat.value}</p>
+                <p className="text-xs text-gray-600">{stat.label}</p>
+              </div>
+            </Link>
+          ) : (
+            <div key={stat.label} className="text-center p-2 bg-gray-50 rounded">
+              <stat.icon className="w-4 h-4 text-gray-600 mx-auto mb-1" />
+              <p className="text-sm font-semibold text-gray-900">{stat.value}</p>
+              <p className="text-xs text-gray-600">{stat.label}</p>
+            </div>
+          )
         ))}
       </div>
     </div>
