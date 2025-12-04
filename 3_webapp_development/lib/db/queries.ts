@@ -896,7 +896,7 @@ export async function getWorkspaceProjects(workspaceId: string, userId?: string)
       .eq('user_id', uid)
       .single();
 
-    const isInstructor = member?.role === 'instructor' || member?.role === 'admin';
+    const isInstructor = member?.role === 'instructor' || member?.role === 'admin' || member?.role === 'owner';
 
     let query = supabase
       .from('projects')

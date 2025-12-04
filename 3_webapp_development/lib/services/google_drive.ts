@@ -33,8 +33,9 @@ export class GoogleDriveService {
     const newFileName = `${teamName} - Assignment Workspace`;
     
     // Generate a mock Google Doc URL
-    // In reality, this would be returned by the Drive API
-    const webViewLink = `https://docs.google.com/document/d/${newFileId}/edit?usp=sharing`;
+    // Use the templateId so the link actually works (pointing to the template)
+    // instead of a fake ID that returns 404
+    const webViewLink = `https://docs.google.com/document/d/${templateId}/edit?usp=sharing`;
 
     console.log(`[Mock GoogleDrive] Created file: ${newFileName} (${newFileId})`);
 
