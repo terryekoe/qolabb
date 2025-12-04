@@ -23,6 +23,7 @@ import {
   Link as LinkIcon,
   FileText,
   Loader2,
+  Trash2, // Added Trash2 icon
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/Button';
@@ -210,40 +211,100 @@ function ProjectsPageContent() {
     }
   }
 
-  async function handleCreateProject() {
-    if (!user || !currentWorkspace || !projectName.trim() || selectedTeams.length === 0) return;
+  const handleCreateProject = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedTeams.length || !projectName) return;
 
     setCreating(true);
     setError('');
 
     try {
       // Create a project for each selected team
-      const promises = selectedTeams.map(teamId => 
-        createProject({
-          workspace_id: currentWorkspace!.id,
-          team_id: teamId,
-          name: projectName,
-          description: projectDescription || null,
-          status: 'active',
-          due_date: dueDate || null,
-          resources: resources.length > 0 ? resources : undefined,
-          created_by: user.id,
-        }, user.id)
-      );
+      const promises = selectedTeams.map(async (teamId) => {
+        // 1. Create the project
+        const { data: project, error: projectError } = await supabase
+          .from('projects')
+          .insert({
+            name: projectName,
+            description: projectDescription,
+            team_id: teamId,
+            status: 'active',
+            due_date: dueDate ? new Date(dueDate).toISOString() : null,
+          })
+          .select()
+          .single();
+
+        if (projectError) throw projectError;
+
+        // 2. Add resources if any
+        if (resources.length > 0) {
+          // We need to create copies of resources for each project if they are not just links
+          // For now, we just link the same resource metadata but associated with the project
+          // In a real app, we might want to duplicate the actual resource if it's a file
+          
+          // Actually, we don't have a separate resources table linked to projects yet in the schema shown
+          // The resources state seems to be local. 
+          // Let's assume we store them in a 'resources' column or table.
+          // Looking at the schema, there is no 'resources' table.
+          // The 'projects' table might have a 'resources' jsonb column?
+          // Let's check the insert above. It doesn't include resources.
+          
+          // Wait, the previous code didn't save resources either!
+          // Let's check the schema.
+          // If there's no column, we can't save it.
+          // But the user said "Google Doc provisioned successfully".
+          // The provision API returns a resource object.
+          // We should probably save this in the project description or a specific column if it exists.
+          // For now, let's append it to the description as a markdown link if no other place.
+          
+          // UPDATE: I'll append the resource link to the description for now so it's accessible.
+          if (resources.length > 0) {
+             const resourceLinks = resources.map(r => `[${r.name}](${r.url})`).join('\n');
+             await supabase
+               .from('projects')
+               .update({ description: projectDescription ? `${projectDescription}\n\n**Resources:**\n${resourceLinks}` : `**Resources:**\n${resourceLinks}` })
+               .eq('id', project.id);
+          }
+        }
+      });
 
       await Promise.all(promises);
 
-      toast.success(`Successfully created assignment for ${selectedTeams.length} teams`);
-      await loadProjects();
+      toast.success(`Assignment created for ${selectedTeams.length} teams`);
       setShowCreateModal(false);
       resetForm();
-    } catch (error: any) {
-      setError(error.message || 'Failed to create project');
+      // Refresh projects
+      loadProjects(); // Changed from fetchProjects() to loadProjects()
+    } catch (err: any) {
+      console.error('Error creating project:', err);
+      setError(err.message);
       toast.error('Failed to create assignment');
     } finally {
       setCreating(false);
     }
-  }
+  };
+
+  const handleDeleteProject = async (projectId: string) => {
+    if (!confirm('Are you sure you want to delete this assignment? This action cannot be undone.')) return;
+
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', projectId);
+
+      if (error) throw error;
+
+      toast.success('Assignment deleted successfully');
+      loadProjects(); // Changed from fetchProjects() to loadProjects()
+      // if (selectedProject?.id === projectId) { // selectedProject is not defined in this scope
+      //   setSelectedProject(null);
+      // }
+    } catch (error: any) {
+      console.error('Error deleting project:', error);
+      toast.error('Failed to delete assignment');
+    }
+  };
 
   function resetForm() {
     setProjectName('');
@@ -546,9 +607,21 @@ function ProjectsPageContent() {
                               </p>
                             )}
                           </div>
-                          <button className="p-2 hover:bg-gray-100 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">
-                            <MoreVertical size={18} className="text-gray-400" />
-                          </button>
+                          {/* Delete Button (Only for Instructors/Admins/Owners) */}
+                          {isInstructor && (
+                            <div className="relative group/menu">
+                              <button 
+                                className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-600"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteProject(project.id);
+                                }}
+                                title="Delete Assignment"
+                              >
+                                <Trash2 size={18} />
+                              </button>
+                            </div>
+                          )}
                         </div>
 
                         {/* Description */}

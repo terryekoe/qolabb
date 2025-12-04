@@ -386,7 +386,7 @@ export default function TeamsPage() {
                     {team.members?.some((m: any) => m.role === 'leader' && m.user_id === user?.id) && (
                       <div className="flex items-center space-x-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2 py-1 rounded-full ml-2">
                         <Crown size={12} />
-                        <span className="text-xs font-semibold">Leader</span>
+                        <span className="text-xs font-semibold">Group Leader</span>
                       </div>
                     )}
                   </div>
