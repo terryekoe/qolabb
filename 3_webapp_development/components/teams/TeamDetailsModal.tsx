@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Users, Crown, UserMinus, Settings, Loader2, AlertTriangle, Calendar, MapPin, MessageSquare } from 'lucide-react'
+import { X, Users, Crown, UserMinus, Settings, Loader2, AlertTriangle, Calendar, MapPin, MessageSquare, Lock } from 'lucide-react'
 import { Button } from '@/components/Button'
 import Avatar from '@/components/ui/Avatar'
 import { getTeamMembers, removeTeamMember, updateTeamMemberRole, isTeamLeaderOrInstructor } from '@/lib/db/queries'
@@ -109,6 +109,9 @@ export default function TeamDetailsModal({
   const leaders = members.filter(member => member.role === 'leader')
   const regularMembers = members.filter(member => member.role === 'member')
 
+  const isMember = members.some(m => m.user_id === user?.id)
+  const hasChatAccess = isMember || canManageTeam
+
   if (!isOpen) return null
 
   return (
@@ -164,16 +167,21 @@ export default function TeamDetailsModal({
               </div>
             </button>
             <button
-              onClick={() => setActiveTab('chat')}
+              onClick={() => hasChatAccess && setActiveTab('chat')}
+              disabled={!hasChatAccess}
+              title={!hasChatAccess ? "Join group to access chat" : ""}
               className={`flex-1 px-4 py-3 font-medium text-sm transition-colors ${
                 activeTab === 'chat'
                   ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+                  : !hasChatAccess
+                    ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-60'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
               }`}
             >
               <div className="flex items-center justify-center gap-2">
                 <MessageSquare size={18} />
                 <span>Chat</span>
+                {!hasChatAccess && <Lock size={14} className="ml-1" />}
               </div>
             </button>
           </div>
@@ -291,11 +299,16 @@ export default function TeamDetailsModal({
               </div>
             ) : (
               <div className="flex-1 overflow-hidden">
-                {user?.id ? (
+                {user?.id && hasChatAccess ? (
                   <TeamChat teamId={team.id} userId={user.id} />
                 ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <p className="text-gray-600 dark:text-gray-400">Please log in to view chat</p>
+                  <div className="flex items-center justify-center h-full flex-col gap-3">
+                    <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-full">
+                      <Lock className="w-6 h-6 text-gray-400" />
+                    </div>
+                    <p className="text-gray-600 dark:text-gray-400 font-medium">
+                      {user?.id ? 'Join this group to view the chat' : 'Please log in to view chat'}
+                    </p>
                   </div>
                 )}
               </div>
