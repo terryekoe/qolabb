@@ -185,6 +185,9 @@ export interface Project {
   created_by: string | null
   created_at: string
   updated_at: string
+  content?: Json
+  last_edited_by?: string | null
+  last_edited_at?: string | null
 }
 
 export interface ProjectResource {

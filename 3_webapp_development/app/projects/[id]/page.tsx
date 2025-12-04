@@ -41,6 +41,7 @@ import { Project, Task, ProjectResource, ProjectSubmission, TaskStatus, Team, Te
 import { ProjectDiscussion } from '@/lib/db/queries'; // Import from queries as it's defined there
 import { ProjectDiscussions } from '@/components/communication/ProjectDiscussions';
 import { ProjectSubmissionModal } from '@/components/projects/ProjectSubmissionModal';
+import { GroupWorkspaceEditor } from '@/components/editor/GroupWorkspaceEditor';
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -56,7 +57,7 @@ export default function ProjectDetailPage() {
   const [showTaskDetailModal, setShowTaskDetailModal] = useState(false);
   const [showSubmissionModal, setShowSubmissionModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [viewMode, setViewMode] = useState<'focus' | 'team'>('focus');
+  const [viewMode, setViewMode] = useState<'focus' | 'team' | 'workspace'>('focus');
   const [activeTab, setActiveTab] = useState<'tasks' | 'discussions'>('tasks');
   const [canManageTasks, setCanManageTasks] = useState(false);
   const [isInstructor, setIsInstructor] = useState(false);
@@ -298,16 +299,28 @@ export default function ProjectDetailPage() {
                   <ListChecks size={16} className="mr-2" />
                   My Focus
                 </button>
+
                 <button
                   onClick={() => setViewMode('team')}
                   className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
                     viewMode === 'team'
-                      ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm'
+                      ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
                       : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                   }`}
                 >
                   <LayoutTemplate size={16} className="mr-2" />
                   Team Board
+                </button>
+                <button
+                  onClick={() => setViewMode('workspace')}
+                  className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                    viewMode === 'workspace'
+                      ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                  }`}
+                >
+                  <FileText size={16} className="mr-2" />
+                  Workspace
                 </button>
               </div>
               
@@ -623,6 +636,22 @@ export default function ProjectDetailPage() {
               )}
             </div>
           </div>
+        ) : viewMode === 'workspace' ? (
+          <div className="flex-1 p-6 h-full overflow-hidden flex flex-col">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                Group Workspace
+              </h3>
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                {project.last_edited_at ? `Last edited ${new Date(project.last_edited_at).toLocaleString()}` : 'Start writing...'}
+              </div>
+            </div>
+            <GroupWorkspaceEditor 
+              projectId={project!.id} 
+              initialContent={project!.content} 
+              isReadOnly={isLocked}
+            />
+          </div>
         ) : (
           <div className="flex-1 overflow-y-auto p-8 bg-white dark:bg-gray-800">
             <div className="flex items-center justify-between mb-6">
@@ -724,7 +753,7 @@ export default function ProjectDetailPage() {
       </div>
 
       {/* Task Creation Modal */}
-      {showTaskModal && (
+      {showTaskModal && project && (
         <TaskModal
           isOpen={showTaskModal}
           onClose={() => setShowTaskModal(false)}
@@ -735,7 +764,7 @@ export default function ProjectDetailPage() {
       )}
 
       {/* Project Submission Modal */}
-      {showSubmissionModal && user && (
+      {showSubmissionModal && user && project && (
         <ProjectSubmissionModal
           isOpen={showSubmissionModal}
           onClose={() => setShowSubmissionModal(false)}
