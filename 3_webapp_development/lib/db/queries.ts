@@ -888,11 +888,47 @@ export async function getWorkspaceProjects(workspaceId: string, userId?: string)
       uid = user.id;
     }
 
-    const { data, error } = await supabase
-      .rpc('get_workspace_projects_rpc', { 
-        workspace_id_param: workspaceId,
-        user_id_param: uid
-      })
+    // Check if user is instructor/admin
+    const { data: member } = await supabase
+      .from('workspace_members')
+      .select('role')
+      .eq('workspace_id', workspaceId)
+      .eq('user_id', uid)
+      .single();
+
+    const isInstructor = member?.role === 'instructor' || member?.role === 'admin';
+
+    let query = supabase
+      .from('projects')
+      .select(`
+        *,
+        team:teams(name)
+      `)
+      .eq('workspace_id', workspaceId)
+      .order('created_at', { ascending: false });
+
+    if (!isInstructor) {
+      // For students, only show projects assigned to their teams
+      const { data: myTeams } = await supabase
+        .from('team_members')
+        .select('team_id')
+        .eq('user_id', uid);
+      
+      const teamIds = myTeams?.map(t => t.team_id) || [];
+      
+      if (teamIds.length > 0) {
+        query = query.in('team_id', teamIds);
+      } else {
+        // User has no teams, so no projects to show (unless we want to show unassigned projects? 
+        // But projects usually belong to a team. If not, maybe show them?)
+        // For now, let's assume strict team-based visibility.
+        // If we want to show "Open" projects, we'd need a way to distinguish them.
+        // Let's return empty if no teams.
+        return [];
+      }
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('getWorkspaceProjects error:', JSON.stringify(error, null, 2));

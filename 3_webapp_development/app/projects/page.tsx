@@ -76,7 +76,7 @@ function ProjectsPageContent() {
   // Create project form state
   const [projectName, setProjectName] = useState('');
   const [projectDescription, setProjectDescription] = useState('');
-  const [selectedTeam, setSelectedTeam] = useState('');
+  const [selectedTeams, setSelectedTeams] = useState<string[]>([]);
   const [dueDate, setDueDate] = useState('');
   const [resources, setResources] = useState<ProjectResource[]>([]);
   const [resourceName, setResourceName] = useState('');
@@ -209,28 +209,35 @@ function ProjectsPageContent() {
   }
 
   async function handleCreateProject() {
-    if (!user || !currentWorkspace || !projectName.trim() || !selectedTeam) return;
+    if (!user || !currentWorkspace || !projectName.trim() || selectedTeams.length === 0) return;
 
     setCreating(true);
     setError('');
 
     try {
-      await createProject({
-        workspace_id: currentWorkspace.id,
-        team_id: selectedTeam,
-        name: projectName,
-        description: projectDescription || null,
-        status: 'active',
-        due_date: dueDate || null,
-        resources: resources.length > 0 ? resources : undefined,
-        created_by: user.id,
-      }, user.id);
+      // Create a project for each selected team
+      const promises = selectedTeams.map(teamId => 
+        createProject({
+          workspace_id: currentWorkspace!.id,
+          team_id: teamId,
+          name: projectName,
+          description: projectDescription || null,
+          status: 'active',
+          due_date: dueDate || null,
+          resources: resources.length > 0 ? resources : undefined,
+          created_by: user.id,
+        }, user.id)
+      );
 
+      await Promise.all(promises);
+
+      toast.success(`Successfully created assignment for ${selectedTeams.length} teams`);
       await loadProjects();
       setShowCreateModal(false);
       resetForm();
     } catch (error: any) {
       setError(error.message || 'Failed to create project');
+      toast.error('Failed to create assignment');
     } finally {
       setCreating(false);
     }
@@ -239,7 +246,7 @@ function ProjectsPageContent() {
   function resetForm() {
     setProjectName('');
     setProjectDescription('');
-    setSelectedTeam('');
+    setSelectedTeams([]);
     setDueDate('');
     setResources([]);
     setResourceName('');
@@ -765,18 +772,58 @@ function ProjectsPageContent() {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Team *
                   </label>
-                  <select
-                    value={selectedTeam}
-                    onChange={(e) => setSelectedTeam(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
-                  >
-                    <option value="">Select a team...</option>
-                    {teams.map((team) => (
-                      <option key={team.id} value={team.id}>
-                        {team.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        {selectedTeams.length} teams selected
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (selectedTeams.length === teams.length) {
+                            setSelectedTeams([]);
+                          } else {
+                            setSelectedTeams(teams.map(t => t.id));
+                          }
+                        }}
+                        className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                      >
+                        {selectedTeams.length === teams.length ? 'Deselect All' : 'Select All'}
+                      </button>
+                    </div>
+                    <div className="max-h-48 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 p-2 space-y-1">
+                      {teams.length === 0 ? (
+                        <div className="text-sm text-gray-500 p-2 text-center">No teams available</div>
+                      ) : (
+                        teams.map((team) => (
+                          <label
+                            key={team.id}
+                            className={`flex items-center p-2 rounded cursor-pointer transition-colors ${
+                              selectedTeams.includes(team.id)
+                                ? 'bg-blue-50 dark:bg-blue-900/20'
+                                : 'hover:bg-gray-50 dark:hover:bg-gray-600'
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedTeams.includes(team.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedTeams([...selectedTeams, team.id]);
+                                } else {
+                                  setSelectedTeams(selectedTeams.filter(id => id !== team.id));
+                                }
+                              }}
+                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <span className="ml-2 text-sm text-gray-900 dark:text-gray-100">
+                              {team.name}
+                            </span>
+                          </label>
+                        ))
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 <div>
@@ -869,7 +916,7 @@ function ProjectsPageContent() {
                                   headers: { 'Content-Type': 'application/json' },
                                   body: JSON.stringify({
                                     projectId: 'temp_id', // API handles this
-                                    teamId: selectedTeam,
+                                    teamId: selectedTeams[0], // Use first selected team for template
                                     templateUrl: url,
                                     resourceName: 'Team Project Doc'
                                   })
@@ -891,13 +938,13 @@ function ProjectsPageContent() {
                                 }
                               }
                             }}
-                            disabled={!selectedTeam}
+                            disabled={selectedTeams.length === 0}
                           >
                             <FileText size={16} />
                             Add Google Doc
                           </Button>
                         </div>
-                        {!selectedTeam && (
+                        {selectedTeams.length === 0 && (
                           <p className="text-xs text-orange-600">Select a team first to enable Google Doc provisioning.</p>
                         )}
                       </div>
@@ -952,7 +999,7 @@ function ProjectsPageContent() {
                 <Button
                   variant="primary"
                   onClick={handleCreateProject}
-                  disabled={!projectName.trim() || !selectedTeam || creating}
+                  disabled={!projectName.trim() || selectedTeams.length === 0 || creating}
                   className="flex-1"
                 >
                   {creating ? 'Creating...' : 'Create Assignment'}
