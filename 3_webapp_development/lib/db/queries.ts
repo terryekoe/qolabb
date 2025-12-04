@@ -2105,7 +2105,7 @@ export async function getWorkspaceActivity(workspaceId: string, limit = 20, user
     }
 
     // Fetch activity log with user profile data using direct query
-    const { data, error } = await supabase
+    let query = supabase
       .from('activity_log')
       .select(`
         id,
@@ -2126,6 +2126,50 @@ export async function getWorkspaceActivity(workspaceId: string, limit = 20, user
       .eq('workspace_id', workspaceId)
       .order('created_at', { ascending: false })
       .limit(limit);
+
+    // If userId is provided, check if we need to filter by team visibility
+    if (userId) {
+      // Check if user is instructor/admin
+      const { data: member } = await supabase
+        .from('workspace_members')
+        .select('role')
+        .eq('workspace_id', workspaceId)
+        .eq('user_id', userId)
+        .single();
+
+      const isInstructor = member?.role === 'instructor' || member?.role === 'admin';
+
+      if (!isInstructor) {
+        // For students, only show activity from their teammates (and themselves)
+        // 1. Get user's team IDs in this workspace
+        const { data: myTeams } = await supabase
+          .from('team_members')
+          .select('team_id')
+          .eq('user_id', userId);
+        
+        const teamIds = myTeams?.map(t => t.team_id) || [];
+
+        if (teamIds.length > 0) {
+          // 2. Get all members of these teams
+          const { data: teammates } = await supabase
+            .from('team_members')
+            .select('user_id')
+            .in('team_id', teamIds);
+          
+          const teammateIds = teammates?.map(t => t.user_id) || [];
+          // Ensure user sees their own activity too
+          if (!teammateIds.includes(userId)) teammateIds.push(userId);
+          
+          // Filter activity by these users
+          query = query.in('user_id', teammateIds);
+        } else {
+          // User has no teams, only show their own activity
+          query = query.eq('user_id', userId);
+        }
+      }
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('getWorkspaceActivity error:', JSON.stringify(error, null, 2));
