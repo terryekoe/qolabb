@@ -125,7 +125,7 @@ export default function JoinRequestManager({ teamId, onRequestProcessed }: JoinR
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <Users size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">No Workspace Selected</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">No Class Selected</h2>
           <p className="text-gray-600 dark:text-gray-400">Select a workspace to manage join requests</p>
         </div>
       </div>
@@ -149,7 +149,7 @@ export default function JoinRequestManager({ teamId, onRequestProcessed }: JoinR
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Join Requests</h2>
           <p className="text-gray-600 mt-1">
-            {teamId ? 'Manage requests for this team' : `Manage requests in ${currentWorkspace.name}`}
+            {teamId ? 'Manage requests for this group' : `Manage requests in ${currentWorkspace.name}`}
           </p>
         </div>
         {pendingRequests.length > 0 && (
@@ -189,8 +189,8 @@ export default function JoinRequestManager({ teamId, onRequestProcessed }: JoinR
           <h3 className="text-xl font-semibold text-gray-900 mb-2">No Pending Requests</h3>
           <p className="text-gray-600 dark:text-gray-400">
             {teamId 
-              ? 'There are no pending join requests for this team'
-              : 'There are no pending join requests in this workspace'
+              ? 'There are no pending join requests for this group'
+              : 'There are no pending join requests in this class'
             }
           </p>
         </motion.div>

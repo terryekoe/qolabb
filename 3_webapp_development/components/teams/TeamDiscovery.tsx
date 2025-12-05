@@ -122,8 +122,8 @@ export default function TeamDiscovery({ onTeamJoined }: TeamDiscoveryProps) {
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <Users size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">No Workspace Selected</h2>
-          <p className="text-gray-600 dark:text-gray-400">Select a workspace to discover teams</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">No Class Selected</h2>
+          <p className="text-gray-600 dark:text-gray-400">Select a class to discover groups</p>
         </div>
       </div>
     )
@@ -134,9 +134,9 @@ export default function TeamDiscovery({ onTeamJoined }: TeamDiscoveryProps) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Discover Teams</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Discover Groups</h2>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Find and join teams in {currentWorkspace.name}
+            Find and join groups in {currentWorkspace.name}
           </p>
         </div>
       </div>
@@ -149,7 +149,7 @@ export default function TeamDiscovery({ onTeamJoined }: TeamDiscoveryProps) {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
             <input
               type="text"
-              placeholder="Search teams..."
+              placeholder="Search groups..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -164,9 +164,9 @@ export default function TeamDiscovery({ onTeamJoined }: TeamDiscoveryProps) {
               onChange={(e) => setFilterType(e.target.value as 'all' | 'public' | 'joinable')}
               className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="all">All Teams</option>
-              <option value="public">Public Teams</option>
-              <option value="joinable">Joinable Teams</option>
+              <option value="all">All Groups</option>
+              <option value="public">Public Groups</option>
+              <option value="joinable">Joinable Groups</option>
             </select>
           </div>
         </div>
@@ -192,12 +192,12 @@ export default function TeamDiscovery({ onTeamJoined }: TeamDiscoveryProps) {
         >
           <Users size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
           <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-            {searchQuery || filterType !== 'all' ? 'No teams found' : 'No teams available'}
+            {searchQuery || filterType !== 'all' ? 'No groups found' : 'No groups available'}
           </h3>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
             {searchQuery || filterType !== 'all'
               ? 'Try adjusting your search or filter criteria'
-              : 'There are no teams available to join at the moment'}
+              : 'There are no groups available to join at the moment'}
           </p>
         </motion.div>
       ) : (

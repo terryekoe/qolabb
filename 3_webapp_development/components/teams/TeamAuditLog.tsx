@@ -219,7 +219,7 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <History size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">No Workspace Selected</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">No Class Selected</h2>
           <p className="text-gray-600 dark:text-gray-400">Select a workspace to view audit logs</p>
         </div>
       </div>
@@ -231,9 +231,9 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Team Assignment Audit Log</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Group Assignment Audit Log</h2>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Track all team assignment activities in {currentWorkspace.name}
+            Track all group assignment activities in {currentWorkspace.name}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -360,7 +360,7 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
           <p className="text-gray-600 dark:text-gray-400">
             {searchQuery || actionFilter !== 'all' || dateFilter !== 'all'
               ? 'Try adjusting your search or filter criteria'
-              : 'No team assignment activities have been recorded yet'
+              : 'No group assignment activities have been recorded yet'
             }
           </p>
         </motion.div>

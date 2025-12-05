@@ -194,8 +194,8 @@ export default function TeamsPage() {
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
             <Users size={64} className="mx-auto text-gray-300 mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">No Workspace Selected</h2>
-            <p className="text-gray-600">Select a workspace to view teams</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">No Class Selected</h2>
+            <p className="text-gray-600">Select a class to view groups</p>
           </div>
         </div>
       </DashboardLayout>

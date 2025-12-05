@@ -194,7 +194,7 @@ export default function TeamDetailsModal({
                   <div className="flex items-center justify-center py-12">
                     <div className="text-center">
                       <Loader2 className="w-8 h-8 animate-spin text-blue-400 mx-auto mb-3" />
-                      <span className="text-gray-600 dark:text-gray-400 font-medium">Loading team members...</span>
+                      <span className="text-gray-600 dark:text-gray-400 font-medium">Loading group members...</span>
                     </div>
                   </div>
                 ) : (

@@ -101,8 +101,8 @@ export default function DashboardPage() {
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
             <FolderKanban size={64} className="mx-auto text-gray-300 mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">No Workspace Selected</h2>
-            <p className="text-gray-600">Select or create a workspace to get started</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">No Class Selected</h2>
+            <p className="text-gray-600">Select or create a class to get started</p>
           </div>
         </div>
       </DashboardLayout>
@@ -175,6 +175,7 @@ export default function DashboardPage() {
                     changeType={stats.activeProjects > 0 ? 'positive' : 'neutral'}
                     icon={FolderKanban}
                     color="green"
+                    href="/projects"
                   />
                   <StatCard
                     title="Students"
@@ -183,6 +184,7 @@ export default function DashboardPage() {
                     changeType={stats.totalMembers > 0 ? 'positive' : 'neutral'}
                     icon={Users}
                     color="purple"
+                    href="/teams"
                   />
                   <StatCard
                     title="Avg. Participation"
@@ -191,6 +193,7 @@ export default function DashboardPage() {
                     changeType={stats.avgParticipation > 70 ? 'positive' : stats.avgParticipation > 50 ? 'neutral' : 'negative'}
                     icon={TrendingUp}
                     color="orange"
+                    href="/analytics"
                   />
                 </div>
               ) : (
@@ -203,6 +206,7 @@ export default function DashboardPage() {
                     changeType={stats.activeProjects > 0 ? 'neutral' : 'positive'}
                     icon={FolderKanban}
                     color="blue"
+                    href="/projects"
                   />
                   <StatCard
                     title="Contributions Made"
@@ -211,6 +215,7 @@ export default function DashboardPage() {
                     changeType={stats.tasksCompleted > 0 ? 'positive' : 'neutral'}
                     icon={BarChart3}
                     color="green"
+                    href="/tasks"
                   />
                   <StatCard
                     title="Class Members"
@@ -219,6 +224,7 @@ export default function DashboardPage() {
                     changeType={stats.totalMembers > 0 ? 'positive' : 'neutral'}
                     icon={Users}
                     color="purple"
+                    href="/teams"
                   />
                 </div>
               )}
@@ -378,7 +384,7 @@ export default function DashboardPage() {
                     <div className="text-center py-12">
                       <Clock size={48} className="mx-auto text-gray-300 mb-4" />
                       <p className="text-gray-600 dark:text-gray-400">No activity yet</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">Activity will appear here when team members start working</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">Activity will appear here when group members start working</p>
                     </div>
                   ) : (
                     <div className="space-y-4">

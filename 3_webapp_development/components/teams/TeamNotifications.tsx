@@ -173,7 +173,7 @@ export default function TeamNotifications({ onNotificationUpdate }: TeamNotifica
             )}
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Team Notifications</h2>
+            <h2 className="text-2xl font-bold text-gray-900">Group Notifications</h2>
             <p className="text-gray-600">
               {unreadCount > 0 ? `${unreadCount} unread notifications` : 'All caught up!'}
             </p>
@@ -219,7 +219,7 @@ export default function TeamNotifications({ onNotificationUpdate }: TeamNotifica
                   defaultChecked
                   className="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500"
                 />
-                <span className="text-sm text-gray-700">Team assignment notifications</span>
+                <span className="text-sm text-gray-700">Group assignment notifications</span>
               </label>
               <label className="flex items-center gap-3">
                 <input
@@ -301,7 +301,7 @@ export default function TeamNotifications({ onNotificationUpdate }: TeamNotifica
               ? "You're all caught up! No new notifications to review."
               : filter === 'read'
               ? "No notifications have been read yet."
-              : "You'll see team assignment notifications here when they arrive."
+              : "You'll see group assignment notifications here when they arrive."
             }
           </p>
         </motion.div>
@@ -431,7 +431,7 @@ export const useTeamNotifications = () => {
     return createNotification(
       userId,
       'team_assignment',
-      'Added to Team',
+      'Added to Group',
       `You have been added to ${teamName} as a ${role}.`,
       { team_name: teamName, role, actor_name: actorName, actor_id: actorId }
     )
@@ -446,7 +446,7 @@ export const useTeamNotifications = () => {
     return createNotification(
       userId,
       'team_removal',
-      'Removed from Team',
+      'Removed from Group',
       `You have been removed from ${teamName}.`,
       { team_name: teamName, actor_name: actorName, actor_id: actorId }
     )

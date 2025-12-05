@@ -173,7 +173,7 @@ export default function InstructorProjectPage() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-gray-500 dark:text-gray-400 text-sm">Total Teams</span>
+              <span className="text-gray-500 dark:text-gray-400 text-sm">Total Groups</span>
               <Users size={18} className="text-blue-500" />
             </div>
             <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.total}</div>
@@ -207,7 +207,7 @@ export default function InstructorProjectPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <input
               type="text"
-              placeholder="Search teams..."
+              placeholder="Search groups..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -225,7 +225,7 @@ export default function InstructorProjectPage() {
           </select>
         </div>
 
-        {/* Team Grid */}
+        {/* Group Grid */}
         <TeamOverviewGrid 
           teams={filteredTeams} 
           loading={loading} 
@@ -263,10 +263,10 @@ export default function InstructorProjectPage() {
                 <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-white dark:bg-gray-800">
                   <div>
                     <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                      {selectedTaskTeam.team.name} - Task Board
+                      {selectedTaskTeam.team.name} - Group Task Board
                     </h2>
                     <p className="text-sm text-gray-500">
-                      View team progress and task distribution
+                      View group progress and task distribution
                     </p>
                   </div>
                   <button 

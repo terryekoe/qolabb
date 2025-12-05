@@ -273,7 +273,7 @@ export function InstructorAnalyticsView() {
       <div className="bg-gradient-to-r from-blue-600 to-qolabb-beige-600 rounded-2xl p-4 sm:p-8 text-white">
         <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
           <div className="flex-1">
-            <h1 className="text-2xl sm:text-3xl font-bold mb-2">Workspace Analytics</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2">Class Analytics</h1>
             <p className="text-sm sm:text-base text-white/80">Comprehensive insights for equitable participation tracking</p>
           </div>
           <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-x-4 sm:space-y-0">
@@ -334,15 +334,15 @@ export function InstructorAnalyticsView() {
         <StatCard
           title="Total Members"
           value={workspaceStats.totalMembers || 0}
-          change="Active workspace members"
+          change="Active class members"
           changeType="neutral"
           icon={Users}
           color="blue"
         />
         <StatCard
-          title="Teams"
+          title="Groups"
           value={workspaceStats.totalTeams || 0}
-          change="Active teams"
+          change="Active groups"
           changeType="neutral"
           icon={Users}
           color="green"
@@ -380,7 +380,7 @@ export function InstructorAnalyticsView() {
             <div className="flex-1">
               <h3 className="font-semibold text-yellow-900 mb-1">Participation Imbalance Detected</h3>
               <p className="text-sm text-yellow-800">
-                The equity score of {equityMetrics.fairnessScore}% indicates uneven participation across teams.
+                The equity score of {equityMetrics.fairnessScore}% indicates uneven participation across groups.
                 Consider redistributing tasks or providing additional support to students with lower participation.
               </p>
             </div>
@@ -393,7 +393,7 @@ export function InstructorAnalyticsView() {
         <div className="flex space-x-2 sm:space-x-4 border-b border-gray-200 dark:border-gray-700 mb-4 sm:mb-6 overflow-x-auto scrollbar-hide">
           {[
             { id: 'overview', label: 'Overview', icon: BarChart3 },
-            { id: 'teams', label: 'Teams', icon: Users },
+            { id: 'teams', label: 'Groups', icon: Users },
             { id: 'students', label: 'Students', icon: Eye },
             { id: 'equity', label: 'Equity Analysis', icon: Target },
           ].map((tab) => (
@@ -446,7 +446,7 @@ export function InstructorAnalyticsView() {
 
             {/* Team Comparison */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Team Performance Comparison</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Group Performance Comparison</h3>
               <div className="space-y-3">
                 {teamStats.slice(0, 10).map((team: any) => (
                   <div key={team.team.id} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 sm:p-4">
@@ -576,7 +576,7 @@ export function InstructorAnalyticsView() {
             ) : (
               <div className="text-center py-12">
                 <Users size={48} className="mx-auto text-gray-300 mb-4" />
-                <p className="text-gray-600">No teams found in this workspace.</p>
+                <p className="text-gray-600">No groups found in this class.</p>
               </div>
             )}
           </div>

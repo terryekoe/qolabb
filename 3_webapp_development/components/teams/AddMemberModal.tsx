@@ -117,7 +117,7 @@ export default function AddMemberModal({
     try {
       setAddingMember(userId)
       await addTeamMember(teamId, userId, 'member', user.id)
-      toast.success(`${userName} has been added to the team`)
+      toast.success(`${userName} has been added to the group`)
       onMemberAdded()
       
       // Remove the added member from the available list
@@ -128,14 +128,14 @@ export default function AddMemberModal({
       // Handle specific error types
       if (error instanceof Error) {
         if (error.message.includes('already a member')) {
-          toast.error(`${userName} is already a member of this team`)
+          toast.error(`${userName} is already a member of this group`)
         } else if (error.message.includes('duplicate key value')) {
-          toast.error(`${userName} is already a member of this team`)
+          toast.error(`${userName} is already a member of this group`)
         } else {
           toast.error(`Failed to add ${userName}: ${error.message}`)
         }
       } else {
-        toast.error('Failed to add team member')
+        toast.error('Failed to add group member')
       }
     } finally {
       setAddingMember(null)
@@ -172,8 +172,8 @@ export default function AddMemberModal({
                 <UserPlus className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-900">Add Team Member</h2>
-                <p className="text-sm text-gray-600">Invite workspace members to join this team</p>
+                <h2 className="text-xl font-bold text-gray-900">Add Group Member</h2>
+                <p className="text-sm text-gray-600">Invite class members to join this group</p>
               </div>
             </div>
             <button
@@ -190,7 +190,7 @@ export default function AddMemberModal({
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search workspace members..."
+                placeholder="Search class members..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 focus:bg-white"
@@ -208,7 +208,7 @@ export default function AddMemberModal({
               <div className="text-center py-12">
                 <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-500 text-lg font-medium">No available members found</p>
-                <p className="text-gray-400 text-sm mt-1">All workspace members may already be in this team</p>
+                <p className="text-gray-400 text-sm mt-1">All class members may already be in this group</p>
               </div>
             ) : (
               <div className="space-y-3">

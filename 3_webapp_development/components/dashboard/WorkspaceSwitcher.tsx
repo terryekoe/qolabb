@@ -49,7 +49,7 @@ export const WorkspaceSwitcher: React.FC<WorkspaceSwitcherProps> = ({ isOpen, on
             <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
               {/* Header */}
               <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                <h2 className="text-lg font-bold text-gray-900">Switch Class</h2>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Switch Class</h2>
                 <button
                   onClick={onClose}
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -103,7 +103,7 @@ export const WorkspaceSwitcher: React.FC<WorkspaceSwitcherProps> = ({ isOpen, on
                       <div className="flex-1 min-w-0 text-left">
                         <p className="font-semibold text-gray-900 truncate">{workspace.name}</p>
                         {workspace.description && (
-                          <p className="text-sm text-gray-500 truncate">{workspace.description}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">{workspace.description}</p>
                         )}
                         <p className="text-xs text-gray-400 mt-0.5">
                           {wm.role === 'owner' ? 'Owner' : wm.role === 'admin' ? 'Admin' : 'Member'}

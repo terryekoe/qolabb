@@ -597,7 +597,7 @@ function OverviewWidget() {
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         {[
-          { label: 'Active Teams', value: '3', icon: Users, href: '/teams' },
+          { label: 'Active Groups', value: '3', icon: Users, href: '/teams' },
           { label: 'Pending Tasks', value: '7', icon: Target, href: '/tasks' },
           { label: 'This Week', value: '12h', icon: Clock, href: '/analytics' },
           { label: 'Contributions', value: '24', icon: Activity, href: '/tasks' }
@@ -631,11 +631,11 @@ function TeamAnalyticsWidget() {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-gray-700">Team Performance</span>
+        <span className="text-sm font-medium text-gray-700">Group Performance</span>
         <span className="text-xs text-gray-500">This week</span>
       </div>
       <div className="space-y-2">
-        {['Team Alpha', 'Team Beta', 'Team Gamma'].map((team, index) => (
+        {['Group Alpha', 'Group Beta', 'Group Gamma'].map((team, index) => (
           <div key={team} className="flex items-center justify-between">
             <span className="text-sm text-gray-600">{team}</span>
             <div className="flex items-center space-x-2">
@@ -731,7 +731,7 @@ function WorkspaceManagementWidget() {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-gray-700">Workspace Overview</span>
+        <span className="text-sm font-medium text-gray-700">Class Overview</span>
         <Button variant="outline" size="sm">
           <Settings className="w-3 h-3 mr-1" />
           Manage
@@ -740,7 +740,7 @@ function WorkspaceManagementWidget() {
       <div className="grid grid-cols-2 gap-3">
         {[
           { label: 'Members', value: '24', icon: Users, href: '/settings' },
-          { label: 'Teams', value: '6', icon: Users, href: '/teams' },
+          { label: 'Groups', value: '6', icon: Users, href: '/teams' },
           { label: 'Projects', value: '3', icon: BookOpen, href: '/projects' },
           { label: 'Active', value: '18', icon: Activity, href: '/analytics' }
         ].map((stat) => (

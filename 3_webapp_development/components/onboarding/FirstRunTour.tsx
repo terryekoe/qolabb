@@ -23,7 +23,7 @@ const STUDENT_TOUR: TourStep[] = [
     title: 'Welcome to Qolabb! 🎉',
     description: "Let's get you started with your first steps as a student.",
     checklist: [
-      { id: 'join-team', label: 'Join or create a team', action: () => {} },
+      { id: 'join-team', label: 'Join or create a group', action: () => {} },
       { id: 'view-tasks', label: 'Check your assigned tasks', action: () => {} },
       { id: 'log-contribution', label: 'Log your first contribution', action: () => {} },
     ],
@@ -42,11 +42,11 @@ const STUDENT_TOUR: TourStep[] = [
   },
   {
     id: 'teamwork',
-    title: 'Collaborate with Your Team',
-    description: 'Work together effectively with your teammates:',
+    title: 'Collaborate with Your Group',
+    description: 'Work together effectively with your group members:',
     checklist: [
-      { id: 'view-team', label: 'See your team members', action: () => {} },
-      { id: 'view-workload', label: 'Check team workload balance', action: () => {} },
+      { id: 'view-team', label: 'See your group members', action: () => {} },
+      { id: 'view-workload', label: 'Check group workload balance', action: () => {} },
       { id: 'communicate', label: 'Use comments on tasks', action: () => {} },
     ],
     icon: Users,
@@ -57,10 +57,10 @@ const INSTRUCTOR_TOUR: TourStep[] = [
   {
     id: 'welcome',
     title: 'Welcome, Instructor! 👋',
-    description: "Let's set up your workspace for managing student teams.",
+    description: "Let's set up your class for managing student groups.",
     checklist: [
       { id: 'create-project', label: 'Create your first project', action: () => {} },
-      { id: 'view-teams', label: 'Review team structure', action: () => {} },
+      { id: 'view-teams', label: 'Review group structure', action: () => {} },
       { id: 'set-expectations', label: 'Set participation expectations', action: () => {} },
     ],
     icon: Target,
@@ -68,7 +68,7 @@ const INSTRUCTOR_TOUR: TourStep[] = [
   {
     id: 'analytics',
     title: 'Monitor Participation',
-    description: 'Track how teams are performing:',
+    description: 'Track how groups are performing:',
     checklist: [
       { id: 'view-analytics', label: 'Check analytics dashboard', action: () => {} },
       { id: 'identify-imbalance', label: 'Identify workload imbalances', action: () => {} },
@@ -78,11 +78,11 @@ const INSTRUCTOR_TOUR: TourStep[] = [
   },
   {
     id: 'management',
-    title: 'Manage Teams & Tasks',
+    title: 'Manage Groups & Tasks',
     description: 'Keep everything organized:',
     checklist: [
-      { id: 'assign-tasks', label: 'Assign tasks to team members', action: () => {} },
-      { id: 'balance-workload', label: 'Balance team workloads', action: () => {} },
+      { id: 'assign-tasks', label: 'Assign tasks to group members', action: () => {} },
+      { id: 'balance-workload', label: 'Balance group workloads', action: () => {} },
       { id: 'review-contributions', label: 'Review contributions', action: () => {} },
     ],
     icon: Settings,

@@ -180,7 +180,7 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
 
   const handleBulkAssignment = async () => {
     if (!selectedTeam || selectedMembers.size === 0 || !user?.id) {
-      toast.error('Please select a team and at least one member')
+      toast.error('Please select a group and at least one member')
       return
     }
 
@@ -206,7 +206,7 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
         
         // Handle validation results
         if (result.successful.length > 0) {
-          toast.success(`Successfully assigned ${result.successful.length} members to the team`)
+          toast.success(`Successfully assigned ${result.successful.length} members to the group`)
         }
         
         if (result.skipped > 0) {
@@ -224,7 +224,7 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
         if (result.successful.length > 0) {
           const message = hasInstructors 
             ? `Successfully sent join requests to ${result.successful.length} members (including instructors)`
-            : `Successfully invited ${result.successful.length} members to the team`
+            : `Successfully invited ${result.successful.length} members to the group`
           toast.success(message)
         }
         
@@ -247,7 +247,7 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
       }
     } catch (error: any) {
       console.error('Error in bulk assignment:', error)
-      toast.error(error?.message || 'Failed to assign members to team')
+      toast.error(error?.message || 'Failed to assign members to group')
     } finally {
       setProcessing(false)
     }
@@ -305,8 +305,8 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <Users size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">No Workspace Selected</h2>
-          <p className="text-gray-600 dark:text-gray-400">Select a workspace to manage team assignments</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">No Class Selected</h2>
+          <p className="text-gray-600 dark:text-gray-400">Select a workspace to manage group assignments</p>
         </div>
       </div>
     )
@@ -317,9 +317,9 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Bulk Team Assignment</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Bulk Group Assignment</h2>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Efficiently assign multiple members to teams in {currentWorkspace.name}
+            Efficiently assign multiple members to groups in {currentWorkspace.name}
           </p>
         </div>
         {selectedMembers.size > 0 && (
@@ -338,14 +338,14 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
           {/* Team Selection */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Target Team
+              Target Group
             </label>
             <select
               value={selectedTeam}
               onChange={(e) => setSelectedTeam(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="">Select a team...</option>
+              <option value="">Select a group...</option>
               {teams.map(team => (
                 <option key={team.id} value={team.id}>
                   {team.name}
@@ -412,7 +412,7 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
               className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
             >
               <Filter size={16} />
-              <span>Filter by Team</span>
+              <span>Filter by Group</span>
               {showTeamFilter ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
             </button>
             

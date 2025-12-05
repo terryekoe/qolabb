@@ -213,7 +213,7 @@ function ProjectsPageContent() {
 
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedTeams.length || !projectName) return;
+    if (!selectedTeams.length || !projectName || !currentWorkspace) return;
 
     setCreating(true);
     setError('');
@@ -228,6 +228,7 @@ function ProjectsPageContent() {
             name: projectName,
             description: projectDescription,
             team_id: teamId,
+            workspace_id: currentWorkspace.id,
             status: 'active',
             due_date: dueDate ? new Date(dueDate).toISOString() : null,
           })
