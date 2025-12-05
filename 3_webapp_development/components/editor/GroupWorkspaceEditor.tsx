@@ -45,7 +45,8 @@ export function GroupWorkspaceEditor({
       }),
       Typography,
     ],
-    content: initialContent || {},
+    // Use initialContent only if it's a valid object with content, otherwise let TipTap create empty doc
+    content: initialContent && Object.keys(initialContent).length > 0 ? initialContent : undefined,
     editable: !isReadOnly,
     editorProps: {
       attributes: {
