@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+.next/
+out/
+build/
+
+# Vercel
+.vercel/
+
+# Misc
+*.md
+*.json
+*.lock
