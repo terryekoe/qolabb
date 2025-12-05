@@ -7610,6 +7610,7 @@ export async function getProject(projectId: string, workspaceId?: string) {
       .from('projects')
       .select(`
         *,
+        resources:project_resources(*),
         team:teams(
           *,
           members:team_members(

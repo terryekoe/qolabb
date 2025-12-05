@@ -13,9 +13,72 @@ CREATE POLICY "Projects are viewable by team members and workspace admins" ON pu
     )) OR (workspace_id IN (
       SELECT workspace_members.workspace_id
       FROM workspace_members
-      WHERE ((workspace_members.user_id = auth.uid()) AND (workspace_members.role = 'admin'::text))
+      WHERE ((workspace_members.user_id = auth.uid()) AND (workspace_members.role IN ('admin', 'instructor', 'owner')))
     ))
   );
+
+-- ... (skipping unchanged parts) ...
+
+-- Contributions
+ALTER TABLE public.contributions ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can view contributions" ON public.contributions;
+CREATE POLICY "Users can view contributions" ON public.contributions
+  FOR SELECT USING (
+    user_id = auth.uid() OR
+    EXISTS (
+      SELECT 1 FROM projects p
+      JOIN team_members tm ON tm.team_id = p.team_id
+      WHERE p.id = contributions.project_id
+      AND tm.user_id = auth.uid()
+    ) OR
+    EXISTS (
+      SELECT 1 FROM projects p
+      JOIN workspace_members wm ON wm.workspace_id = p.workspace_id
+      WHERE p.id = contributions.project_id
+      AND wm.user_id = auth.uid()
+      AND wm.role IN ('admin', 'instructor')
+    )
+  );
+
+DROP POLICY IF EXISTS "Users can create own contributions" ON public.contributions;
+CREATE POLICY "Users can create own contributions" ON public.contributions
+  FOR INSERT WITH CHECK (user_id = auth.uid());
+
+DROP POLICY IF EXISTS "Users can update own contributions" ON public.contributions;
+CREATE POLICY "Users can update own contributions" ON public.contributions
+  FOR UPDATE USING (user_id = auth.uid());
+
+DROP POLICY IF EXISTS "Users can delete own contributions" ON public.contributions;
+CREATE POLICY "Users can delete own contributions" ON public.contributions
+  FOR DELETE USING (user_id = auth.uid());
+
+-- Automated Contributions
+DROP POLICY IF EXISTS "Users can view automated contributions" ON public.automated_contributions;
+CREATE POLICY "Users can view automated contributions" ON public.automated_contributions
+  FOR SELECT USING (
+    user_id = auth.uid() OR
+    EXISTS (
+      SELECT 1 FROM projects p
+      JOIN team_members tm ON tm.team_id = p.team_id
+      WHERE p.id = automated_contributions.project_id
+      AND tm.user_id = auth.uid()
+    ) OR
+    EXISTS (
+      SELECT 1 FROM projects p
+      JOIN workspace_members wm ON wm.workspace_id = p.workspace_id
+      WHERE p.id = automated_contributions.project_id
+      AND wm.user_id = auth.uid()
+      AND wm.role IN ('admin', 'instructor')
+    )
+  );
+
+-- Message Templates
+ALTER TABLE public.message_templates ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Authenticated users can view message templates" ON public.message_templates;
+CREATE POLICY "Authenticated users can view message templates" ON public.message_templates
+  FOR SELECT TO authenticated USING (true);
 
 DROP POLICY IF EXISTS "Team members and workspace admins can update projects" ON public.projects;
 CREATE POLICY "Team members and workspace admins can update projects" ON public.projects
@@ -118,6 +181,19 @@ CREATE POLICY "Users can create responses" ON public.evaluation_responses
 DROP POLICY IF EXISTS "Users can update own responses" ON public.evaluation_responses;
 CREATE POLICY "Users can update own responses" ON public.evaluation_responses
   FOR UPDATE USING (evaluator_id = auth.uid());
+
+-- Teams
+ALTER TABLE public.teams ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Teams are viewable by workspace members" ON public.teams;
+CREATE POLICY "Teams are viewable by workspace members" ON public.teams
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM workspace_members wm
+      WHERE wm.workspace_id = teams.workspace_id
+      AND wm.user_id = auth.uid()
+    )
+  );
 
 -- Team Members
 DROP POLICY IF EXISTS "Team members are viewable by workspace members" ON public.team_members;
@@ -332,20 +408,23 @@ CREATE POLICY "Users can delete own integrations" ON public.external_integration
 DROP POLICY IF EXISTS "Team members can view linked repos" ON public.linked_repositories;
 CREATE POLICY "Team members can view linked repos" ON public.linked_repositories
   FOR SELECT USING (
-    team_id IN (
-      SELECT team_members.team_id
-      FROM team_members
-      WHERE team_members.user_id = auth.uid()
+    EXISTS (
+      SELECT 1 FROM projects p
+      JOIN team_members tm ON tm.team_id = p.team_id
+      WHERE p.id = linked_repositories.project_id
+      AND tm.user_id = auth.uid()
     )
   );
 
 DROP POLICY IF EXISTS "Team leaders can manage linked repos" ON public.linked_repositories;
 CREATE POLICY "Team leaders can manage linked repos" ON public.linked_repositories
   FOR ALL USING (
-    team_id IN (
-      SELECT team_members.team_id
-      FROM team_members
-      WHERE (team_members.user_id = auth.uid() AND team_members.role = 'leader')
+    EXISTS (
+      SELECT 1 FROM projects p
+      JOIN team_members tm ON tm.team_id = p.team_id
+      WHERE p.id = linked_repositories.project_id
+      AND tm.user_id = auth.uid()
+      AND tm.role = 'leader'
     )
   );
 
@@ -353,22 +432,58 @@ CREATE POLICY "Team leaders can manage linked repos" ON public.linked_repositori
 DROP POLICY IF EXISTS "Team members can view linked docs" ON public.linked_documents;
 CREATE POLICY "Team members can view linked docs" ON public.linked_documents
   FOR SELECT USING (
-    team_id IN (
-      SELECT team_members.team_id
-      FROM team_members
-      WHERE team_members.user_id = auth.uid()
+    EXISTS (
+      SELECT 1 FROM projects p
+      JOIN team_members tm ON tm.team_id = p.team_id
+      WHERE p.id = linked_documents.project_id
+      AND tm.user_id = auth.uid()
     )
   );
 
 DROP POLICY IF EXISTS "Team members can manage linked docs" ON public.linked_documents;
 CREATE POLICY "Team members can manage linked docs" ON public.linked_documents
   FOR ALL USING (
-    team_id IN (
-      SELECT team_members.team_id
-      FROM team_members
-      WHERE team_members.user_id = auth.uid()
+    EXISTS (
+      SELECT 1 FROM projects p
+      JOIN team_members tm ON tm.team_id = p.team_id
+      WHERE p.id = linked_documents.project_id
+      AND tm.user_id = auth.uid()
     )
   );
+
+-- Contributions
+ALTER TABLE public.contributions ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can view contributions" ON public.contributions;
+CREATE POLICY "Users can view contributions" ON public.contributions
+  FOR SELECT USING (
+    user_id = auth.uid() OR
+    EXISTS (
+      SELECT 1 FROM projects p
+      JOIN team_members tm ON tm.team_id = p.team_id
+      WHERE p.id = contributions.project_id
+      AND tm.user_id = auth.uid()
+    ) OR
+    EXISTS (
+      SELECT 1 FROM projects p
+      JOIN workspace_members wm ON wm.workspace_id = p.workspace_id
+      WHERE p.id = contributions.project_id
+      AND wm.user_id = auth.uid()
+      AND wm.role IN ('admin', 'instructor')
+    )
+  );
+
+DROP POLICY IF EXISTS "Users can create own contributions" ON public.contributions;
+CREATE POLICY "Users can create own contributions" ON public.contributions
+  FOR INSERT WITH CHECK (user_id = auth.uid());
+
+DROP POLICY IF EXISTS "Users can update own contributions" ON public.contributions;
+CREATE POLICY "Users can update own contributions" ON public.contributions
+  FOR UPDATE USING (user_id = auth.uid());
+
+DROP POLICY IF EXISTS "Users can delete own contributions" ON public.contributions;
+CREATE POLICY "Users can delete own contributions" ON public.contributions
+  FOR DELETE USING (user_id = auth.uid());
 
 -- Automated Contributions
 DROP POLICY IF EXISTS "Users can view automated contributions" ON public.automated_contributions;
@@ -378,7 +493,91 @@ CREATE POLICY "Users can view automated contributions" ON public.automated_contr
 -- Sync History
 DROP POLICY IF EXISTS "Users can view own sync history" ON public.sync_history;
 CREATE POLICY "Users can view own sync history" ON public.sync_history
-  FOR SELECT USING (user_id = auth.uid());
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM external_integrations ei
+      WHERE ei.id = sync_history.integration_id
+      AND ei.user_id = auth.uid()
+    )
+  );
+
+-- Tasks
+ALTER TABLE public.tasks ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can view tasks" ON public.tasks;
+CREATE POLICY "Users can view tasks" ON public.tasks
+  FOR SELECT USING (
+    assigned_to = auth.uid() OR
+    created_by = auth.uid() OR
+    EXISTS (
+      SELECT 1 FROM projects p
+      JOIN team_members tm ON tm.team_id = p.team_id
+      WHERE p.id = tasks.project_id
+      AND tm.user_id = auth.uid()
+    ) OR
+    EXISTS (
+      SELECT 1 FROM projects p
+      JOIN workspace_members wm ON wm.workspace_id = p.workspace_id
+      WHERE p.id = tasks.project_id
+      AND wm.user_id = auth.uid()
+      AND wm.role IN ('admin', 'instructor')
+    )
+  );
+
+DROP POLICY IF EXISTS "Users can create tasks" ON public.tasks;
+CREATE POLICY "Users can create tasks" ON public.tasks
+  FOR INSERT WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM projects p
+      JOIN team_members tm ON tm.team_id = p.team_id
+      WHERE p.id = tasks.project_id
+      AND tm.user_id = auth.uid()
+    ) OR
+    EXISTS (
+      SELECT 1 FROM projects p
+      JOIN workspace_members wm ON wm.workspace_id = p.workspace_id
+      WHERE p.id = tasks.project_id
+      AND wm.user_id = auth.uid()
+      AND wm.role IN ('admin', 'instructor')
+    )
+  );
+
+DROP POLICY IF EXISTS "Users can update tasks" ON public.tasks;
+CREATE POLICY "Users can update tasks" ON public.tasks
+  FOR UPDATE USING (
+    EXISTS (
+      SELECT 1 FROM projects p
+      JOIN team_members tm ON tm.team_id = p.team_id
+      WHERE p.id = tasks.project_id
+      AND tm.user_id = auth.uid()
+    ) OR
+    EXISTS (
+      SELECT 1 FROM projects p
+      JOIN workspace_members wm ON wm.workspace_id = p.workspace_id
+      WHERE p.id = tasks.project_id
+      AND wm.user_id = auth.uid()
+      AND wm.role IN ('admin', 'instructor')
+    )
+  );
+
+DROP POLICY IF EXISTS "Users can delete tasks" ON public.tasks;
+CREATE POLICY "Users can delete tasks" ON public.tasks
+  FOR DELETE USING (
+    EXISTS (
+      SELECT 1 FROM projects p
+      JOIN team_members tm ON tm.team_id = p.team_id
+      WHERE p.id = tasks.project_id
+      AND tm.user_id = auth.uid()
+      AND tm.role = 'leader'
+    ) OR
+    EXISTS (
+      SELECT 1 FROM projects p
+      JOIN workspace_members wm ON wm.workspace_id = p.workspace_id
+      WHERE p.id = tasks.project_id
+      AND wm.user_id = auth.uid()
+      AND wm.role IN ('admin', 'instructor')
+    )
+  );
 
 -- Task Submissions
 DROP POLICY IF EXISTS "Users can view submissions for their tasks" ON public.task_submissions;
@@ -386,13 +585,20 @@ CREATE POLICY "Users can view submissions for their tasks" ON public.task_submis
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM tasks t
+      JOIN projects p ON p.id = t.project_id
       WHERE t.id = task_submissions.task_id
       AND (
-        t.assignee_id = auth.uid()
+        t.assigned_to = auth.uid()
         OR EXISTS (
           SELECT 1 FROM team_members tm
-          WHERE tm.team_id = t.team_id
+          WHERE tm.team_id = p.team_id
           AND tm.user_id = auth.uid()
+        )
+        OR EXISTS (
+          SELECT 1 FROM workspace_members wm
+          WHERE wm.workspace_id = p.workspace_id
+          AND wm.user_id = auth.uid()
+          AND wm.role IN ('admin', 'instructor')
         )
       )
     )
@@ -404,7 +610,7 @@ CREATE POLICY "Users can create their own submissions" ON public.task_submission
     EXISTS (
       SELECT 1 FROM tasks t
       WHERE t.id = task_submissions.task_id
-      AND t.assignee_id = auth.uid()
+      AND t.assigned_to = auth.uid()
     )
   );
 
@@ -414,7 +620,7 @@ CREATE POLICY "Users can update their own pending submissions" ON public.task_su
     EXISTS (
       SELECT 1 FROM tasks t
       WHERE t.id = task_submissions.task_id
-      AND t.assignee_id = auth.uid()
+      AND t.assigned_to = auth.uid()
     )
   );
 
@@ -424,7 +630,7 @@ CREATE POLICY "Users can delete their own pending submissions" ON public.task_su
     EXISTS (
       SELECT 1 FROM tasks t
       WHERE t.id = task_submissions.task_id
-      AND t.assignee_id = auth.uid()
+      AND t.assigned_to = auth.uid()
     )
   );
 

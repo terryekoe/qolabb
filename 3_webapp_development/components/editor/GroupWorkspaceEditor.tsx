@@ -65,6 +65,44 @@ export function GroupWorkspaceEditor({ projectId, initialContent, isReadOnly = f
     return () => clearTimeout(saveTimer);
   }, [editor?.getJSON(), hasUnsavedChanges, isReadOnly]);
 
+  // Real-time sync effect
+  useEffect(() => {
+    if (!projectId || !editor) return;
+
+    const channel = supabase
+      .channel(`project_content:${projectId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'projects',
+          filter: `id=eq.${projectId}`,
+        },
+        (payload) => {
+          // If we receive an update and we don't have unsaved changes, update the editor
+          // This creates a basic "last write wins" sync but prevents overwriting if you are typing
+          const newContent = payload.new.content;
+          if (newContent && !hasUnsavedChanges && !saving) {
+             const currentContent = editor.getJSON();
+             // Simple deep comparison could be better, but for now just update if different
+             if (JSON.stringify(currentContent) !== JSON.stringify(newContent)) {
+               editor.commands.setContent(newContent);
+               setLastSaved(new Date(payload.new.last_edited_at));
+             }
+          } else if (payload.new.content && hasUnsavedChanges) {
+             // Optional: Notify user that someone else edited content
+             // toast('External changes detected. Save to see them.');
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [projectId, editor, hasUnsavedChanges, saving]);
+
   const saveContent = async () => {
     if (!editor) return;
     

@@ -542,7 +542,10 @@ export default function ProjectDetailPage() {
                         return (
                         <div
                           key={task.id}
-                          onClick={() => setSelectedTask(task)}
+                          onClick={() => {
+                            setSelectedTask(task);
+                            setShowTaskDetailModal(true);
+                          }}
                           className={`bg-white dark:bg-gray-800 p-4 rounded-xl border transition-all cursor-pointer hover:shadow-md ${ 
                             task.status === 'completed' 
                               ? 'border-gray-200 dark:border-gray-700 opacity-75' 
