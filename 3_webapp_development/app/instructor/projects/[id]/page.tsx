@@ -15,6 +15,7 @@ import {
   X,
 } from 'lucide-react';
 import { getProjectTeamsAndSubmissions, getProject, updateProject } from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 import { TeamOverviewGrid } from '../../../../components/instructor/TeamOverviewGrid';
 import { GradingPanel } from '../../../../components/instructor/GradingPanel';
 import { TeamTaskBoard } from '../../../../components/instructor/TeamTaskBoard';
@@ -49,6 +50,32 @@ export default function InstructorProjectPage() {
     if (params.id) {
       loadData();
     }
+  }, [params.id]);
+
+  // Real-time subscription for new submissions
+  useEffect(() => {
+    if (!params.id) return;
+
+    const channel = supabase
+      .channel(`instructor-submissions:${params.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'project_submissions',
+          filter: `project_id=eq.${params.id}`,
+        },
+        () => {
+          console.log('Submission update received, reloading data...');
+          loadData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [params.id]);
 
   async function loadData() {

@@ -6,6 +6,7 @@ import { QueryProvider } from '@/lib/query/QueryProvider';
 import { ThemeProvider } from '@/lib/theme/ThemeContext';
 import { ToastProvider } from '@/components/ui/Toast';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { RealtimeProvider } from '@/components/providers/RealtimeProvider';
 import './globals.css';
 
 const geistSans = Geist({
@@ -61,7 +62,9 @@ export default function RootLayout({
             <QueryProvider>
               <AuthProvider>
                 <WorkspaceProvider>
-                  {children}
+                  <RealtimeProvider>
+                    {children}
+                  </RealtimeProvider>
                   <ToastProvider />
                 </WorkspaceProvider>
               </AuthProvider>

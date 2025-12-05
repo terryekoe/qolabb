@@ -23,6 +23,7 @@ import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
 import { WorkspaceSwitcher } from './WorkspaceSwitcher';
 import Avatar from '@/components/ui/Avatar';
+import WorkspaceIcon from '@/components/ui/WorkspaceIcon';
 import { getUserPendingTasksCount } from '@/lib/db';
 import { supabase } from '@/lib/supabase';
 import { isFeatureEnabled } from '@/lib/config/features';
@@ -203,24 +204,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
             className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-700 transition-colors group"
           >
             <div className="flex items-center space-x-2 flex-1 min-w-0">
-              {currentWorkspace?.icon_url ? (
-                <img
-                  src={currentWorkspace.icon_url}
-                  alt={currentWorkspace.name}
-                  className="w-8 h-8 rounded-lg object-cover flex-shrink-0"
-                  onError={(e) => {
-                    // Fallback to Building2 icon if image fails to load
-                    e.currentTarget.style.display = 'none';
-                    const fallback = e.currentTarget.parentElement?.querySelector('.icon-fallback');
-                    if (fallback) (fallback as HTMLElement).style.display = 'flex';
-                  }}
-                />
-              ) : null}
-              <div
-                className={`bg-blue-500 dark:bg-blue-700 p-2 rounded-lg flex-shrink-0 ${currentWorkspace?.icon_url ? 'hidden icon-fallback' : ''}`}
-              >
-                <Building2 size={16} className="text-white" />
-              </div>
+              <WorkspaceIcon
+                workspaceId={currentWorkspace?.id || 'default'}
+                name={currentWorkspace?.name || 'Class'}
+                iconUrl={currentWorkspace?.icon_url}
+                size="sm"
+              />
               <span className="text-sm font-medium text-white truncate">
                 {currentWorkspace?.name || 'Select Class'}
               </span>

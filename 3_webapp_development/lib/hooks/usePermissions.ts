@@ -42,7 +42,6 @@ export interface UsePermissionsReturn {
   isStudent: boolean;
   isInstructor: boolean;
   isAdmin: boolean;
-  isTA: boolean;
   hasDualRole: boolean;
 }
 
@@ -77,7 +76,7 @@ export function usePermissions(): UsePermissionsReturn {
     },
 
     instructorFeatures: (): boolean => {
-      return ['instructor', 'teaching_assistant', 'both', 'admin'].includes(userRole);
+      return ['instructor', 'both', 'admin'].includes(userRole);
     },
 
     analytics: (): boolean => {
@@ -96,7 +95,6 @@ export function usePermissions(): UsePermissionsReturn {
   const isStudent = userRole === 'student' || userRole === 'both';
   const isInstructor = userRole === 'instructor' || userRole === 'both';
   const isAdmin = userRole === 'admin';
-  const isTA = userRole === 'teaching_assistant';
   const hasDualRole = userRole === 'both';
 
   return {
@@ -108,7 +106,6 @@ export function usePermissions(): UsePermissionsReturn {
     isStudent,
     isInstructor,
     isAdmin,
-    isTA,
     hasDualRole,
   };
 }

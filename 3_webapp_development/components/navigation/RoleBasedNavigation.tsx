@@ -108,7 +108,7 @@ const NAVIGATION_ITEMS: NavItem[] = [
     href: '/courses',
     icon: BookOpen,
     description: 'Manage your courses and workspaces',
-    allowedRoles: ['instructor', 'teaching_assistant', 'both', 'admin'],
+    allowedRoles: ['instructor', 'both', 'admin'],
     requiredPermissions: [{ category: 'workspace', action: 'view_all' }],
   },
   {
@@ -117,7 +117,7 @@ const NAVIGATION_ITEMS: NavItem[] = [
     href: '/monitoring',
     icon: UserCheck,
     description: 'Monitor student participation and progress',
-    allowedRoles: ['instructor', 'teaching_assistant', 'both', 'admin'],
+    allowedRoles: ['instructor', 'both', 'admin'],
     requiredPermissions: [{ category: 'analytics', action: 'view_team_stats' }],
   },
   {
@@ -126,7 +126,7 @@ const NAVIGATION_ITEMS: NavItem[] = [
     href: '/analytics/teams',
     icon: TrendingUp,
     description: 'Detailed team performance analytics',
-    allowedRoles: ['instructor', 'teaching_assistant', 'both', 'admin'],
+    allowedRoles: ['instructor', 'both', 'admin'],
     requiredPermissions: [{ category: 'analytics', action: 'view_workspace_stats' }],
   },
   {

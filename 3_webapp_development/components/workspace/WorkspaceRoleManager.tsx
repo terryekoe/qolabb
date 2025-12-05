@@ -186,8 +186,8 @@ export function WorkspaceRoleManager() {
     {
       id: '2',
       name: 'Teaching Assistant',
-      description: 'TA role with limited instructor permissions',
-      role: 'teaching_assistant',
+      description: 'TA role with limited instructor permissions (now merged into instructor)',
+      role: 'instructor',
       workspaceRole: 'member',
       permissions: ['profile:read', 'task:create', 'team:manage', 'analytics:view_basic'],
       isDefault: false,
@@ -399,7 +399,6 @@ function MembersTab({
           <option value="all">All Roles</option>
           <option value="student">Students</option>
           <option value="instructor">Instructors</option>
-          <option value="teaching_assistant">Teaching Assistants</option>
           <option value="admin">Admins</option>
         </select>
 
@@ -806,18 +805,16 @@ function BulkImportModal({ onClose }: { onClose: () => void }) {
 // =====================================================
 
 function RoleBadge({ role }: { role: EnhancedUserRole }) {
-  const styles = {
+  const styles: Record<string, string> = {
     student: 'bg-blue-100 text-blue-800',
     instructor: 'bg-purple-100 text-purple-800',
-    teaching_assistant: 'bg-green-100 text-green-800',
     admin: 'bg-red-100 text-red-800',
     both: 'bg-orange-100 text-orange-800',
   };
 
-  const labels = {
+  const labels: Record<string, string> = {
     student: 'Student',
     instructor: 'Instructor',
-    teaching_assistant: 'TA',
     admin: 'Admin',
     both: 'Both',
   };

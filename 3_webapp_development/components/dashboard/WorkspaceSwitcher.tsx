@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Building2, Check, Plus, X } from 'lucide-react';
+import { Check, Plus, X, Building2 } from 'lucide-react';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
 import { useRouter } from 'next/navigation';
+import WorkspaceIcon from '@/components/ui/WorkspaceIcon';
 
 interface WorkspaceSwitcherProps {
   isOpen: boolean;
@@ -46,13 +47,14 @@ export const WorkspaceSwitcher: React.FC<WorkspaceSwitcherProps> = ({ isOpen, on
             transition={{ type: 'spring', duration: 0.3 }}
             className="fixed top-20 left-1/2 z-[60] w-full max-w-md px-4"
           >
-            <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
               {/* Header */}
-              <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Switch Class</h2>
                 <button
                   onClick={onClose}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  aria-label="Close modal"
                 >
                   <X size={20} className="text-gray-500" />
                 </button>
@@ -72,40 +74,23 @@ export const WorkspaceSwitcher: React.FC<WorkspaceSwitcherProps> = ({ isOpen, on
                       onClick={() => handleSwitch(workspace.id)}
                       className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${
                         isActive
-                          ? 'bg-blue-50 border-2 border-blue-200'
-                          : 'hover:bg-gray-50 border-2 border-transparent'
+                          ? 'bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-700'
+                          : 'hover:bg-gray-50 dark:hover:bg-gray-700 border-2 border-transparent'
                       }`}
                     >
-                      {workspace.icon_url ? (
-                        <img
-                          src={workspace.icon_url}
-                          alt={workspace.name}
-                          className={`w-10 h-10 rounded-lg object-cover flex-shrink-0 ${
-                            isActive ? 'ring-2 ring-blue-600' : ''
-                          }`}
-                          onError={(e) => {
-                            // Fallback to Building2 icon if image fails to load
-                            e.currentTarget.style.display = 'none';
-                            const fallback = e.currentTarget.parentElement?.querySelector(
-                              '.workspace-icon-fallback'
-                            );
-                            if (fallback) (fallback as HTMLElement).style.display = 'flex';
-                          }}
-                        />
-                      ) : null}
-                      <div
-                        className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                          isActive
-                            ? 'bg-blue-600'
-                            : 'bg-gradient-to-br from-blue-400 to-qolabb-beige-400'
-                        } ${workspace.icon_url ? 'hidden workspace-icon-fallback' : ''}`}
-                      >
-                        <Building2 className="text-white" size={20} />
-                      </div>
+                      <WorkspaceIcon
+                        workspaceId={workspace.id}
+                        name={workspace.name}
+                        iconUrl={workspace.icon_url}
+                        size="md"
+                        isActive={isActive}
+                      />
                       <div className="flex-1 min-w-0 text-left">
-                        <p className="font-semibold text-gray-900 truncate">{workspace.name}</p>
+                        <p className="font-semibold text-gray-900 dark:text-gray-100 truncate">
+                          {workspace.name}
+                        </p>
                         {workspace.description && (
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                          <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
                             {workspace.description}
                           </p>
                         )}
@@ -119,7 +104,7 @@ export const WorkspaceSwitcher: React.FC<WorkspaceSwitcherProps> = ({ isOpen, on
                 })}
 
                 {workspaces.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                     <Building2 className="mx-auto mb-2" size={40} />
                     <p>No classes yet</p>
                   </div>
@@ -127,7 +112,7 @@ export const WorkspaceSwitcher: React.FC<WorkspaceSwitcherProps> = ({ isOpen, on
               </div>
 
               {/* Create New Button */}
-              <div className="p-3 border-t border-gray-200 bg-gray-50">
+              <div className="p-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}

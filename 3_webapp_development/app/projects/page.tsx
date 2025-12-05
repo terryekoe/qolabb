@@ -366,6 +366,12 @@ function ProjectsPageContent() {
           icon: <Clock size={14} />,
           label: 'Active',
         };
+      case 'submitted':
+        return {
+          color: 'text-purple-600 bg-purple-50 border-purple-200',
+          icon: <CheckCircle2 size={14} />,
+          label: 'Submitted',
+        };
       case 'completed':
         return {
           color: 'text-green-600 bg-green-50 border-green-200',
@@ -593,7 +599,13 @@ function ProjectsPageContent() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredProjects.map((project, index) => {
-                  const statusConfig = getStatusConfig(project.status);
+                  // Check if project has any submission (submitted or graded)
+                  const hasSubmission = project.project_submissions?.some(
+                    (s: any) => s.status === 'submitted' || s.status === 'graded'
+                  );
+                  // Override status if submitted
+                  const displayStatus = hasSubmission ? 'submitted' : project.status;
+                  const statusConfig = getStatusConfig(displayStatus);
                   const myTasks =
                     project.tasks?.filter(
                       (t: any) => t.assigned_to === user?.id && t.status !== 'completed'

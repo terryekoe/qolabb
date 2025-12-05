@@ -620,7 +620,7 @@ function TasksPageContent() {
       // Check if user is instructor - instructors cannot complete tasks
       const userRole = profile?.role?.toLowerCase() || '';
       if (
-        (userRole === 'instructor' || userRole === 'teaching_assistant') &&
+        userRole === 'instructor' &&
         newStatus === 'completed'
       ) {
         alert('Instructors and TAs cannot complete tasks. Please assign tasks to students.');
@@ -1059,7 +1059,7 @@ function TasksPageContent() {
   const isSupportRole = React.useMemo(() => {
     const role = profile?.role?.toLowerCase();
     if (!role) return false;
-    return ['instructor', 'teaching_assistant', 'admin'].includes(role);
+    return ['instructor', 'admin'].includes(role);
   }, [profile?.role]);
 
   const myTasksAll = React.useMemo(

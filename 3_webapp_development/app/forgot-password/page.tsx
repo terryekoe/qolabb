@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { Mail, ArrowRight, AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/Button';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { forgotPasswordSchema, validateForm } from '@/lib/validations';
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -14,12 +15,22 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
+    setFieldErrors({});
+
+    // Validate with Zod
+    const result = validateForm(forgotPasswordSchema, { email });
+    if (!result.success) {
+      setFieldErrors(result.errors);
+      return;
+    }
+
+    setLoading(true);
 
     try {
       await resetPassword(email);

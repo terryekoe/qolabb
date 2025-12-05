@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { Mail, Lock, User, ArrowRight, AlertCircle, CheckCircle2, Building2 } from 'lucide-react';
 import { Button } from '@/components/Button';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { signupSchema, validateForm } from '@/lib/validations';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -20,32 +21,29 @@ export default function SignupPage() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [success, setSuccess] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const validateForm = () => {
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      return false;
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    // Clear field error when user starts typing
+    if (fieldErrors[name]) {
+      setFieldErrors((prev) => ({ ...prev, [name]: '' }));
     }
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters');
-      return false;
-    }
-    return true;
   };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setFieldErrors({});
 
-    if (!validateForm()) return;
+    // Validate with Zod
+    const result = validateForm(signupSchema, formData);
+    if (!result.success) {
+      setFieldErrors(result.errors);
+      return;
+    }
 
     setLoading(true);
 

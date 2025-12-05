@@ -59,7 +59,7 @@ async function isTeamLeaderOrInstructor(
       .single();
 
     const userRole = profile?.role?.toLowerCase();
-    return userRole === 'instructor' || userRole === 'teaching_assistant';
+    return userRole === 'instructor';
   } catch (error) {
     console.error('isTeamLeaderOrInstructor error:', error);
     return false;

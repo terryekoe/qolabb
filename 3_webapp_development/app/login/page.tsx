@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/Button';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { loginSchema, validateForm, getFieldError } from '@/lib/validations';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,16 +16,24 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setFieldErrors({});
     setError('');
+
+    // Validate with Zod
+    const result = validateForm(loginSchema, { email, password });
+    if (!result.success) {
+      setFieldErrors(result.errors);
+      return;
+    }
+
+    setLoading(true);
 
     try {
       await signIn(email, password);
-
-      // Redirect to dashboard
       router.push('/dashboard');
     } catch (error: any) {
       setError(error.message || 'Failed to log in. Please try again.');
@@ -95,13 +104,20 @@ export default function LoginPage() {
                     name="email"
                     type="email"
                     autoComplete="email"
-                    required
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (fieldErrors.email) setFieldErrors((prev) => ({ ...prev, email: '' }));
+                    }}
+                    className={`appearance-none block w-full pl-10 pr-3 py-3 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                      fieldErrors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                    }`}
                     placeholder="you@example.com"
                   />
                 </div>
+                {fieldErrors.email && (
+                  <p className="mt-1 text-sm text-red-600">{fieldErrors.email}</p>
+                )}
               </div>
 
               {/* Password Input */}
@@ -121,13 +137,20 @@ export default function LoginPage() {
                     name="password"
                     type="password"
                     autoComplete="current-password"
-                    required
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      if (fieldErrors.password) setFieldErrors((prev) => ({ ...prev, password: '' }));
+                    }}
+                    className={`appearance-none block w-full pl-10 pr-3 py-3 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                      fieldErrors.password ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                    }`}
                     placeholder="••••••••"
                   />
                 </div>
+                {fieldErrors.password && (
+                  <p className="mt-1 text-sm text-red-600">{fieldErrors.password}</p>
+                )}
               </div>
             </div>
 

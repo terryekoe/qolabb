@@ -94,7 +94,7 @@ interface Notification {
 // =====================================================
 
 export function RoleBasedDashboard() {
-  const { userRole, isStudent, isInstructor, isAdmin, isTA, canAccess, can } = usePermissions();
+  const { userRole, isStudent, isInstructor, isAdmin, canAccess, can } = usePermissions();
   const { currentWorkspace } = useWorkspace();
 
   const [activeView, setActiveView] = useState<
@@ -133,7 +133,7 @@ export function RoleBasedDashboard() {
       icon: BarChart3,
       component: OverviewWidget,
       permissions: ['profile:read'],
-      roles: ['student', 'instructor', 'teaching_assistant', 'admin'],
+      roles: ['student', 'instructor', 'admin'],
       priority: 1,
       category: 'overview',
     },
@@ -144,7 +144,7 @@ export function RoleBasedDashboard() {
       icon: Users,
       component: TeamAnalyticsWidget,
       permissions: ['analytics:view_basic'],
-      roles: ['instructor', 'teaching_assistant', 'admin'],
+      roles: ['instructor', 'admin'],
       priority: 2,
       category: 'analytics',
     },
@@ -166,7 +166,7 @@ export function RoleBasedDashboard() {
       icon: Target,
       component: MyTasksWidget,
       permissions: ['task:read'],
-      roles: ['student', 'instructor', 'teaching_assistant'],
+      roles: ['student', 'instructor'],
       priority: 4,
       category: 'personal',
     },
@@ -188,7 +188,7 @@ export function RoleBasedDashboard() {
       icon: MessageSquare,
       component: CollaborationWidget,
       permissions: ['team:read'],
-      roles: ['student', 'instructor', 'teaching_assistant'],
+      roles: ['student', 'instructor'],
       priority: 6,
       category: 'collaboration',
     },
@@ -225,7 +225,7 @@ export function RoleBasedDashboard() {
       icon: Plus,
       action: () => console.log('New task'),
       permissions: ['task:create'],
-      roles: ['student', 'instructor', 'teaching_assistant'],
+      roles: ['student', 'instructor'],
       variant: 'secondary' as const,
     },
     {
@@ -235,7 +235,7 @@ export function RoleBasedDashboard() {
       icon: BarChart3,
       action: () => console.log('View analytics'),
       permissions: ['analytics:view_basic'],
-      roles: ['instructor', 'teaching_assistant', 'admin'],
+      roles: ['instructor', 'admin'],
       variant: 'outline' as const,
     },
     {
@@ -522,7 +522,7 @@ function DashboardView({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           {userRole === 'student' && <StudentDashboard />}
-          {(userRole === 'instructor' || userRole === 'teaching_assistant') && (
+          {userRole === 'instructor' && (
             <InstructorDashboard />
           )}
         </div>

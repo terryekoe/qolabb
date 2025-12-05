@@ -270,7 +270,7 @@ export async function getTeamAnalytics(teamId: string) {
     const studentMembers =
       team.team_members?.filter((member: any) => {
         const userRole = member.user?.role?.toLowerCase() || '';
-        return userRole !== 'instructor' && userRole !== 'teaching_assistant';
+        return userRole !== 'instructor';
       }) || [];
 
     // Initialize members (only students, not instructors)

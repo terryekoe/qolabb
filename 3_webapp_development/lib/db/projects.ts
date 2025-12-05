@@ -115,7 +115,8 @@ export async function getWorkspaceProjects(workspaceId: string, userId?: string)
       .select(
         `
         *,
-        team:teams(name)
+        team:teams(name),
+        project_submissions(id, project_id, status, submitted_at)
       `
       )
       .eq('workspace_id', workspaceId)

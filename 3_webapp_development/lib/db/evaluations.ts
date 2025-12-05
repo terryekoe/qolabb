@@ -301,7 +301,6 @@ export async function getPendingEvaluations(
           workspaceRole === 'owner' ||
           workspaceRole === 'admin' ||
           userRole === 'instructor' ||
-          userRole === 'teaching_assistant' ||
           userRole === 'admin';
 
         if (isInstructorOrAdmin) {

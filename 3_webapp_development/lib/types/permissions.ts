@@ -11,8 +11,7 @@ import { UserRole, WorkspaceMemberRole } from './database';
 
 export type EnhancedUserRole =
   | 'student' // Regular student user
-  | 'instructor' // Course instructor/professor
-  | 'teaching_assistant' // TA with limited instructor privileges
+  | 'instructor' // Course instructor/professor (includes TAs)
   | 'admin' // Platform administrator
   | 'both'; // Student who can also instruct
 
@@ -226,67 +225,7 @@ export const ROLE_PERMISSIONS: Record<EnhancedUserRole, Permissions> = {
     },
   },
 
-  teaching_assistant: {
-    profile: {
-      view_own: true,
-      edit_own: true,
-      view_others: true,
-      edit_others: false,
-    },
-    workspace: {
-      create: false,
-      view_all: false, // Only assigned workspaces
-      edit_settings: false,
-      delete: false,
-      invite_members: true, // Limited invitation rights
-      remove_members: false,
-      view_analytics: true,
-    },
-    team: {
-      create: true,
-      join: true,
-      view_all_in_workspace: true,
-      edit_any: true, // Limited editing
-      delete_any: false,
-      assign_members: true,
-      view_team_analytics: true,
-    },
-    project: {
-      create: true,
-      view_all_in_workspace: true,
-      edit_any: true,
-      delete_any: false,
-      assign_tasks: true,
-      view_project_analytics: true,
-    },
-    task: {
-      create: true,
-      view_all_in_project: true,
-      edit_any: true,
-      delete_any: false,
-      assign_to_others: true,
-    },
-    contribution: {
-      log_own: true,
-      view_all_in_team: true,
-      edit_any: false, // Cannot edit others' contributions
-      delete_any: false,
-      approve_submissions: true,
-    },
-    analytics: {
-      view_own_stats: true,
-      view_team_stats: true,
-      view_workspace_stats: true,
-      export_data: false,
-      generate_reports: false,
-    },
-    admin: {
-      manage_users: false,
-      view_system_logs: false,
-      manage_platform_settings: false,
-      access_all_workspaces: false,
-    },
-  },
+
 
   admin: {
     profile: {
@@ -480,12 +419,7 @@ export function getRoleInfo(role: EnhancedUserRole) {
       color: 'purple',
       icon: '👨‍🏫',
     },
-    teaching_assistant: {
-      label: 'Teaching Assistant',
-      description: 'Assist with course management and student support',
-      color: 'green',
-      icon: '👨‍🎓',
-    },
+
     admin: {
       label: 'Administrator',
       description: 'Full platform access and management',

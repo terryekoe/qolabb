@@ -111,7 +111,7 @@ export function TeamWorkloadWidget({
             const studentMembers = members.filter((member: any) => {
               const userRole =
                 member.user?.role?.toLowerCase() || member.profile?.role?.toLowerCase() || '';
-              return userRole !== 'instructor' && userRole !== 'teaching_assistant';
+              return userRole !== 'instructor';
             });
             membersMap[teamId] = studentMembers || [];
           } catch (error) {

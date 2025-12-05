@@ -43,7 +43,7 @@ export async function createTeam(team: TeamInsert, userId: string) {
 
     const userRole = profile?.role?.toLowerCase();
     const isInstructor =
-      userRole === 'instructor' || userRole === 'teaching_assistant' || userRole === 'admin';
+      userRole === 'instructor' || userRole === 'admin';
 
     // Only auto-add creator as team leader if they're NOT an instructor
     // Instructors can manually join teams later if they want to participate

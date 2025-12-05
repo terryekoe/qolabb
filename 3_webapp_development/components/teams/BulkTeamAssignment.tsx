@@ -204,7 +204,7 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
         (m) =>
           m.role?.toLowerCase() === 'instructor' ||
           m.role?.toLowerCase() === 'both' ||
-          m.role?.toLowerCase() === 'teaching_assistant'
+          m.role?.toLowerCase() === 'instructor'
       );
 
       let result;
@@ -681,7 +681,7 @@ function MemberCard({ member, teams, isSelected, onToggleSelection, index }: Mem
           <div className="flex items-center gap-2 mb-1">
             <h3 className="font-semibold text-gray-900 dark:text-gray-100 truncate">{fullName}</h3>
             {(role.toLowerCase() === 'instructor' ||
-              role.toLowerCase() === 'teaching_assistant') && (
+              role.toLowerCase() === 'instructor') && (
               <div className="flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
                 <Crown size={10} />
                 {role.toLowerCase() === 'instructor' ? 'Instructor' : 'TA'}
