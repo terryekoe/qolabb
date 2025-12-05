@@ -7588,9 +7588,9 @@ export async function getProjectSubmission(projectId: string): Promise<ProjectSu
       .eq('project_id', projectId)
       .order('submitted_at', { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
-    if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "no rows returned"
+    if (error) throw error;
     return data as ProjectSubmission;
   } catch (error: any) {
     console.error('getProjectSubmission error:', error?.message || JSON.stringify(error, null, 2));
@@ -7610,7 +7610,6 @@ export async function getProject(projectId: string, workspaceId?: string) {
       .from('projects')
       .select(`
         *,
-        resources:project_resources(*),
         team:teams(
           *,
           members:team_members(
