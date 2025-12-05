@@ -7,7 +7,7 @@ import { DashboardHeader } from './DashboardHeader';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { InAppNotificationManager } from '@/components/notifications/InAppNotificationManager';
 import { MotivationalMessageBanner } from '@/components/motivation/MotivationalMessageBanner';
-import { markNotificationAsRead } from '@/lib/db/queries';
+import { markNotificationAsRead } from '@/lib/db';
 import { isFeatureEnabled } from '@/lib/config/features';
 
 interface DashboardLayoutProps {

@@ -3,7 +3,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, Check, X, Trash2, Settings, ExternalLink } from 'lucide-react';
-import { Notification } from '@/lib/db/queries';
+import { Notification } from '@/lib/db';
 import { cn } from '@/lib/utils';
 // Format date helper function
 const formatDistanceToNow = (date: Date) => {

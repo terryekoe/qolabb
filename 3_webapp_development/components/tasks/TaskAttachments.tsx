@@ -23,7 +23,7 @@ import {
   uploadTaskAttachment,
   addTaskAttachmentLink,
   deleteTaskAttachment,
-} from '@/lib/db/queries';
+} from '@/lib/db';
 import { supabase } from '@/lib/supabase';
 import { TaskAttachment } from '@/lib/types/database';
 import { cn } from '@/lib/utils';

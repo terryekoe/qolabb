@@ -28,7 +28,7 @@ import {
   markAllNotificationsAsRead,
   deleteNotification,
   Notification,
-} from '@/lib/db/queries';
+} from '@/lib/db';
 
 interface TeamNotificationsProps {
   onNotificationUpdate?: () => void;

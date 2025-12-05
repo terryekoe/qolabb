@@ -46,7 +46,7 @@ import {
   updateTask,
   deleteTask,
   isTeamLeaderOrInstructor,
-} from '@/lib/db/queries';
+} from '@/lib/db';
 import { usePermissions } from '@/lib/hooks/usePermissions';
 import type { TaskStatus, TaskPriority } from '@/lib/types/database';
 import {
@@ -55,7 +55,7 @@ import {
   getUserTeams,
   getTeamEvaluationsForInstructor,
   type PendingEvaluationWithDetails,
-} from '@/lib/db/queries';
+} from '@/lib/db';
 import { EvaluationCard } from '@/components/evaluations/EvaluationCard';
 import { PeerEvaluationForm } from '@/components/evaluations/PeerEvaluationForm';
 import { CreateEvaluationPeriodModal } from '@/components/evaluations/CreateEvaluationPeriodModal';

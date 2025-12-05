@@ -17,7 +17,7 @@ import {
 import { StatCard } from '@/components/dashboard/StatCard';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
-import { getUserAnalytics, getTeamAnalytics, getUserTeams } from '@/lib/db/queries';
+import { getUserAnalytics, getTeamAnalytics, getUserTeams } from '@/lib/db';
 import { cn } from '@/lib/utils';
 
 export function StudentAnalyticsView() {

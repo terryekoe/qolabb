@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, CheckCircle2, Clock, AlertCircle, Calendar, User, Flag, Plus } from 'lucide-react';
 import { Button } from '@/components/Button';
-import { createTask, getTeamMembers, addTaskAssignees } from '@/lib/db/queries';
+import { createTask, getTeamMembers, addTaskAssignees } from '@/lib/db';
 import { supabase } from '@/lib/supabase';
 import type { TaskPriority, TaskStatus } from '@/lib/types/database';
 

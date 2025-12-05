@@ -16,7 +16,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
-import { globalSearch, SearchResult } from '@/lib/db/queries';
+import { globalSearch, SearchResult } from '@/lib/db';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import Avatar from '@/components/ui/Avatar';

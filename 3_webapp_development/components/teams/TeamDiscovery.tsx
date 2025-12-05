@@ -27,7 +27,7 @@ import {
   createJoinRequest,
   getUserJoinRequests,
   getTeamMembers,
-} from '@/lib/db/queries';
+} from '@/lib/db';
 import { DiscoverableTeam, TeamJoinRequest } from '@/lib/types/database';
 import { toast } from 'react-hot-toast';
 

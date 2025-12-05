@@ -16,7 +16,7 @@ import {
   getOrCreateDefaultChannel,
   type TeamChatMessage,
   type TeamChatChannel,
-} from '@/lib/db/queries';
+} from '@/lib/db';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { toast } from 'react-hot-toast';
 

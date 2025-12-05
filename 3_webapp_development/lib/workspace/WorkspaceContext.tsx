@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { Workspace } from '../types/database';
-import { getUserWorkspaces, getUserWorkspacesRPC, getWorkspace } from '../db/queries';
+import { getUserWorkspaces, getUserWorkspacesRPC, getWorkspace } from '../db';
 
 interface WorkspaceContextType {
   currentWorkspace: Workspace | null;

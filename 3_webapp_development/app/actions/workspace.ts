@@ -1,7 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { joinWorkspaceByCode, createWorkspace } from '@/lib/db/queries';
+import { joinWorkspaceByCode, createWorkspace } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 
 export async function joinWorkspaceByInviteCode(inviteCode: string) {

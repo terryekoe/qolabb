@@ -3,8 +3,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { X, CheckCircle2 } from 'lucide-react';
-import type { MotivationalMessage } from '@/lib/db/queries';
-import { markMotivationalMessageAsRead } from '@/lib/db/queries';
+import type { MotivationalMessage } from '@/lib/db';
+import { markMotivationalMessageAsRead } from '@/lib/db';
 
 interface MotivationalMessageCardProps {
   message: MotivationalMessage;

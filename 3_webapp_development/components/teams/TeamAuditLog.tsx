@@ -22,7 +22,7 @@ import { Button } from '@/components/Button';
 import Avatar from '@/components/ui/Avatar';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
-import { getTeamAssignmentAudit, getWorkspaceAssignmentAudit } from '@/lib/db/queries';
+import { getTeamAssignmentAudit, getWorkspaceAssignmentAudit } from '@/lib/db';
 import { TeamAssignmentAudit, Profile, Team } from '@/lib/types/database';
 import { toast } from 'react-hot-toast';
 

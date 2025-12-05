@@ -6,7 +6,7 @@ import { MessageSquare, Send, User, Clock, X } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import { Button } from '@/components/Button';
 import { supabase } from '@/lib/supabase';
-import { logActivity } from '@/lib/db/queries';
+import { logActivity } from '@/lib/db';
 
 interface TaskCommentsProps {
   taskId: string;

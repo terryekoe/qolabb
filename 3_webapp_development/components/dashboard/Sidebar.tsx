@@ -23,7 +23,7 @@ import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
 import { WorkspaceSwitcher } from './WorkspaceSwitcher';
 import Avatar from '@/components/ui/Avatar';
-import { getUserPendingTasksCount } from '@/lib/db/queries';
+import { getUserPendingTasksCount } from '@/lib/db';
 import { supabase } from '@/lib/supabase';
 import { isFeatureEnabled } from '@/lib/config/features';
 import { usePermissions } from '@/lib/hooks/usePermissions';

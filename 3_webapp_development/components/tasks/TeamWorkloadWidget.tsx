@@ -19,7 +19,7 @@ import {
   Info,
 } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
-import { getTeamMembers } from '@/lib/db/queries';
+import { getTeamMembers } from '@/lib/db';
 import { cn } from '@/lib/utils';
 
 interface TeamWorkloadWidgetProps {

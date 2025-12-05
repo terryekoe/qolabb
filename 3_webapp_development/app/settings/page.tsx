@@ -49,7 +49,7 @@ import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
 import { useTheme } from '@/lib/theme/ThemeContext';
 import { useSearchParams } from 'next/navigation';
-import { uploadWorkspaceIcon, removeWorkspaceIcon } from '@/lib/db/queries';
+import { uploadWorkspaceIcon, removeWorkspaceIcon } from '@/lib/db';
 import {
   getWorkspaceMembers,
   getProfile,
@@ -57,7 +57,7 @@ import {
   getUserContributions,
   getUserTasks,
   getUserTeams,
-} from '@/lib/db/queries';
+} from '@/lib/db';
 import { supabase } from '@/lib/supabase';
 import type { UserRole } from '@/lib/types/database';
 import { AVAILABLE_GOALS } from '@/lib/constants/goals';

@@ -7,7 +7,7 @@ import { Plus, Users, ArrowRight, Building2, Mail } from 'lucide-react';
 import { Button } from '@/components/Button';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
-import { createWorkspace } from '@/lib/db/queries';
+import { createWorkspace } from '@/lib/db';
 import { joinWorkspaceByInviteCode } from '@/app/actions/workspace';
 
 export default function WorkspacePage() {

@@ -22,7 +22,7 @@ import {
   getWorkspaceJoinRequests,
   respondToJoinRequest,
   isTeamLeaderOrInstructor,
-} from '@/lib/db/queries';
+} from '@/lib/db';
 import { TeamJoinRequestWithDetails } from '@/lib/types/database';
 import { toast } from 'react-hot-toast';
 

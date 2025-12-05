@@ -23,7 +23,7 @@ import {
   getUserTeams,
   getTeamEvaluationsForInstructor,
   type PendingEvaluationWithDetails,
-} from '@/lib/db/queries';
+} from '@/lib/db';
 import { usePermissions } from '@/lib/hooks/usePermissions';
 import { EvaluationCard } from '@/components/evaluations/EvaluationCard';
 import { PeerEvaluationForm } from '@/components/evaluations/PeerEvaluationForm';

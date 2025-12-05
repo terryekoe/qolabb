@@ -16,7 +16,7 @@ import {
 import { Button } from '@/components/Button';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
-import { updateProfile } from '@/lib/db/queries';
+import { updateProfile } from '@/lib/db';
 import { useRouter } from 'next/navigation';
 
 interface TourStep {

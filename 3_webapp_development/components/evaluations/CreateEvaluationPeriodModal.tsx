@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { X, Calendar, Users, AlertCircle, FolderKanban } from 'lucide-react';
 import { Button } from '@/components/Button';
-import { createEvaluationPeriod, getTeamProjects } from '@/lib/db/queries';
+import { createEvaluationPeriod, getTeamProjects } from '@/lib/db';
 import { toast } from 'react-hot-toast';
 
 interface CreateEvaluationPeriodModalProps {

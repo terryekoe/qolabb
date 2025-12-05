@@ -4,7 +4,7 @@
 // =====================================================
 
 import { supabase } from '../supabase';
-import { sendMotivationalMessage } from '../db/queries';
+import { sendMotivationalMessage } from '../db';
 
 interface TriggerContext {
   userId: string;

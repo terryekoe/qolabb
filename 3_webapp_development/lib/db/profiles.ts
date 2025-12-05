@@ -89,7 +89,7 @@ export async function getOrCreateProfile(
       data: { user },
     } = await supabase.auth.getUser();
     if (user) {
-      email = email || user.email || null;
+      email = email || user.email || undefined;
       fullName = fullName || user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
     }
   }

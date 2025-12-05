@@ -30,7 +30,7 @@ import {
   updateTask,
   deleteTask,
   isTeamLeaderOrInstructor,
-} from '@/lib/db/queries';
+} from '@/lib/db';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { supabase } from '@/lib/supabase';
 import type { Task, TaskStatus } from '@/lib/types/database';

@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../supabase';
 import { Profile } from '../types/database';
-import { getOrCreateProfile, createProfile } from '../db/queries';
+import { getOrCreateProfile, createProfile } from '../db';
 
 interface AuthContextType {
   user: User | null;

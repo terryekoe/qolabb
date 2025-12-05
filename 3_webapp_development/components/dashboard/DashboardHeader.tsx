@@ -12,7 +12,7 @@ import {
   markAllNotificationsAsRead,
   deleteNotification,
   Notification,
-} from '@/lib/db/queries';
+} from '@/lib/db';
 import { NotificationDropdown } from '@/components/notifications/NotificationDropdown';
 import { GlobalSearchModal } from '@/components/search/GlobalSearchModal';
 import { supabase } from '@/lib/supabase';

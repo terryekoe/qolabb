@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getProjectTasks } from '@/lib/db/queries';
+import { getProjectTasks } from '@/lib/db';
 import { Loader2, CheckCircle2, Circle, Clock, AlertCircle } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, X, Bell, Trophy, Sparkles, Star, Zap } from 'lucide-react';
-import { Notification } from '@/lib/db/queries';
+import { Notification } from '@/lib/db';
 import { cn } from '@/lib/utils';
 
 interface InAppNotificationProps {

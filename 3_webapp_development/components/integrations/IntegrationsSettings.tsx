@@ -26,7 +26,7 @@ import {
 } from '@/lib/db/integrationQueries';
 import { listUserDocuments } from '@/lib/services/google/docs';
 import { syncProjectDocuments } from '@/lib/services/google/sync';
-import { getWorkspaceProjects } from '@/lib/db/queries';
+import { getWorkspaceProjects } from '@/lib/db';
 import { showToast } from '@/components/ui/Toast';
 
 export function IntegrationsSettings() {

@@ -41,7 +41,7 @@ import {
   getWorkspaceMembers,
   updateTeamMemberRole,
   getPendingEvaluations,
-} from '@/lib/db/queries';
+} from '@/lib/db';
 import { usePermissions } from '@/lib/hooks/usePermissions';
 import type { ProjectResource } from '@/lib/types/database';
 

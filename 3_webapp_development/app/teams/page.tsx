@@ -23,7 +23,7 @@ import { Button } from '@/components/Button';
 import { AvatarGroup } from '@/components/ui/Avatar';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
-import { createTeam, getWorkspaceTeams } from '@/lib/db/queries';
+import { createTeam, getWorkspaceTeams } from '@/lib/db';
 import { supabase } from '@/lib/supabase';
 import AddMemberModal from '@/components/teams/AddMemberModal';
 import TeamDetailsModal from '@/components/teams/TeamDetailsModal';

@@ -29,7 +29,7 @@ import {
   addTeamMember,
   getTeamMembers,
   getProfile,
-} from '@/lib/db/queries';
+} from '@/lib/db';
 import { usePermissions } from '@/lib/hooks/usePermissions';
 import { Profile, Team, TeamMember } from '@/lib/types/database';
 import { toast } from 'react-hot-toast';

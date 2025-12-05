@@ -7,9 +7,9 @@ import {
   getMotivationalMessages,
   markAllMotivationalMessagesAsRead,
   markMotivationalMessageAsRead,
-} from '@/lib/db/queries';
+} from '@/lib/db';
 import { MotivationalMessageCard } from './MotivationalMessageCard';
-import type { MotivationalMessage } from '@/lib/db/queries';
+import type { MotivationalMessage } from '@/lib/db';
 import { Button } from '@/components/Button';
 
 interface MotivationalMessagesPanelProps {

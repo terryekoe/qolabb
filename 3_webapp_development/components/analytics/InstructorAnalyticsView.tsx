@@ -32,7 +32,7 @@ import {
   getTeamAnalytics,
   getStudentPerformance,
   getWorkspaceTeams,
-} from '@/lib/db/queries';
+} from '@/lib/db';
 import { cn } from '@/lib/utils';
 
 export function InstructorAnalyticsView() {

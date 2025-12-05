@@ -22,7 +22,7 @@ import {
   getWorkspaceActivity,
   getWorkspaceProjects,
   getPendingEvaluations,
-} from '@/lib/db/queries';
+} from '@/lib/db';
 import { useRouter } from 'next/navigation';
 import { FirstRunTour } from '@/components/onboarding/FirstRunTour';
 import { OnboardingChecklist } from '@/components/dashboard/OnboardingChecklist';

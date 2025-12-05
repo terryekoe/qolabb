@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Star, Send, AlertCircle, FolderKanban } from 'lucide-react';
 import { Button } from '@/components/Button';
-import { submitPeerEvaluation } from '@/lib/db/queries';
+import { submitPeerEvaluation } from '@/lib/db';
 import { toast } from 'react-hot-toast';
 
 interface PeerEvaluationFormProps {

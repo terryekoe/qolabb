@@ -9,7 +9,7 @@ import {
   createTaskSubtask,
   updateTaskSubtask,
   deleteTaskSubtask,
-} from '@/lib/db/queries';
+} from '@/lib/db';
 import { supabase } from '@/lib/supabase';
 import { TaskSubtask } from '@/lib/types/database';
 import { cn } from '@/lib/utils';

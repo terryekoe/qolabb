@@ -34,7 +34,7 @@ import {
   getTaskAssignees,
   addTaskAssignees,
   removeTaskAssignee,
-} from '@/lib/db/queries';
+} from '@/lib/db';
 import { TaskComments } from './TaskComments';
 import { TaskActivityTimeline } from './TaskActivityTimeline';
 import { TaskTimeTracker } from './TaskTimeTracker';

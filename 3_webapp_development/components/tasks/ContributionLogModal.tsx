@@ -15,7 +15,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { Button } from '@/components/Button';
-import { createContribution } from '@/lib/db/queries';
+import { createContribution } from '@/lib/db';
 import type { ContributionType } from '@/lib/types/database';
 
 interface ContributionLogModalProps {

@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { InAppNotification } from './InAppNotification';
-import { Notification } from '@/lib/db/queries';
+import { Notification } from '@/lib/db';
 import { supabase } from '@/lib/supabase';
 
 interface InAppNotificationManagerProps {

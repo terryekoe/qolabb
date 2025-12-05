@@ -9,7 +9,7 @@ import {
   getAvailableWorkspaceMembers,
   debugWorkspaceMembers,
   fixTeamMemberDataConsistency,
-} from '@/lib/db/queries';
+} from '@/lib/db';
 import { Profile } from '@/lib/types/database';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '@/lib/auth/AuthContext';

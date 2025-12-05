@@ -9,7 +9,7 @@ import {
   Upload,
   CheckSquare,
 } from 'lucide-react';
-import { submitProject, uploadProjectFile } from '@/lib/db/queries';
+import { submitProject, uploadProjectFile } from '@/lib/db';
 import { ProjectSubmission, ProjectResource } from '@/lib/types/database';
 import { toast } from 'react-hot-toast';
 

@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, ArrowLeft, Check, Users, Briefcase, GraduationCap } from 'lucide-react';
 import { Button } from '@/components/Button';
 import { useAuth } from '@/lib/auth/AuthContext';
-import { updateProfile } from '@/lib/db/queries';
+import { updateProfile } from '@/lib/db';
 import { AVAILABLE_GOALS } from '@/lib/constants/goals';
 import { joinWorkspaceByInviteCode } from '@/app/actions/workspace';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';

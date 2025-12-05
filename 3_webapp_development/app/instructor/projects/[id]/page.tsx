@@ -14,7 +14,7 @@ import {
   Filter,
   X,
 } from 'lucide-react';
-import { getProjectTeamsAndSubmissions, getProject, updateProject } from '@/lib/db/queries';
+import { getProjectTeamsAndSubmissions, getProject, updateProject } from '@/lib/db';
 import { TeamOverviewGrid } from '../../../../components/instructor/TeamOverviewGrid';
 import { GradingPanel } from '../../../../components/instructor/GradingPanel';
 import { TeamTaskBoard } from '../../../../components/instructor/TeamTaskBoard';

@@ -14,7 +14,7 @@ import {
   getUnreadDirectMessageCount,
   type Conversation,
   type DirectMessage,
-} from '@/lib/db/queries';
+} from '@/lib/db';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { toast } from 'react-hot-toast';
 

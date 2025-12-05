@@ -39,7 +39,7 @@ import {
   getProjectSubmission,
   getProject,
   getProjectDiscussions,
-} from '@/lib/db/queries';
+} from '@/lib/db';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
 import { usePermissions } from '@/lib/hooks/usePermissions';
@@ -54,7 +54,7 @@ import {
   Team,
   TeamWithMembers,
 } from '@/lib/types/database';
-import { ProjectDiscussion } from '@/lib/db/queries'; // Import from queries as it's defined there
+import { ProjectDiscussion } from '@/lib/db'; // Import from queries as it's defined there
 import { ProjectDiscussions } from '@/components/communication/ProjectDiscussions';
 import { ProjectSubmissionModal } from '@/components/projects/ProjectSubmissionModal';
 import { GroupWorkspaceEditor } from '@/components/editor/GroupWorkspaceEditor';
