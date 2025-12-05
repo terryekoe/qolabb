@@ -1,25 +1,30 @@
-'use client'
+'use client';
 
-import { useState, useEffect, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { X, UserPlus, Search, Loader2, Users } from 'lucide-react'
-import Avatar from '@/components/ui/Avatar'
-import { addTeamMember, getAvailableWorkspaceMembers, debugWorkspaceMembers, fixTeamMemberDataConsistency } from '@/lib/db/queries'
-import { Profile } from '@/lib/types/database'
-import { toast } from 'react-hot-toast'
-import { useAuth } from '@/lib/auth/AuthContext'
+import { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, UserPlus, Search, Loader2, Users } from 'lucide-react';
+import Avatar from '@/components/ui/Avatar';
+import {
+  addTeamMember,
+  getAvailableWorkspaceMembers,
+  debugWorkspaceMembers,
+  fixTeamMemberDataConsistency,
+} from '@/lib/db/queries';
+import { Profile } from '@/lib/types/database';
+import { toast } from 'react-hot-toast';
+import { useAuth } from '@/lib/auth/AuthContext';
 
 interface AddMemberModalProps {
-  isOpen: boolean
-  onClose: () => void
-  teamId: string
-  workspaceId: string
-  onMemberAdded: () => void
+  isOpen: boolean;
+  onClose: () => void;
+  teamId: string;
+  workspaceId: string;
+  onMemberAdded: () => void;
 }
 
 interface WorkspaceMember {
-  user_id: string
-  user: Profile
+  user_id: string;
+  user: Profile;
 }
 
 export default function AddMemberModal({
@@ -27,127 +32,132 @@ export default function AddMemberModal({
   onClose,
   teamId,
   workspaceId,
-  onMemberAdded
+  onMemberAdded,
 }: AddMemberModalProps) {
-  const { user } = useAuth()
-  const [availableMembers, setAvailableMembers] = useState<WorkspaceMember[]>([])
-  const [filteredMembers, setFilteredMembers] = useState<WorkspaceMember[]>([])
-  const [searchQuery, setSearchQuery] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [addingMember, setAddingMember] = useState<string | null>(null)
+  const { user } = useAuth();
+  const [availableMembers, setAvailableMembers] = useState<WorkspaceMember[]>([]);
+  const [filteredMembers, setFilteredMembers] = useState<WorkspaceMember[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [addingMember, setAddingMember] = useState<string | null>(null);
 
   const loadAvailableMembers = useCallback(async () => {
     try {
-      setLoading(true)
-      console.log('🚀 AddMemberModal: Loading available members for team:', teamId, 'in workspace:', workspaceId)
-      
+      setLoading(true);
+      console.log(
+        '🚀 AddMemberModal: Loading available members for team:',
+        teamId,
+        'in workspace:',
+        workspaceId
+      );
+
       // First, fix any data consistency issues
-      console.log('🔧 AddMemberModal: Checking and fixing data consistency...')
-      const fixResult = await fixTeamMemberDataConsistency(workspaceId, teamId)
+      console.log('🔧 AddMemberModal: Checking and fixing data consistency...');
+      const fixResult = await fixTeamMemberDataConsistency(workspaceId, teamId);
       if (fixResult.fixed) {
-        console.log('✅ AddMemberModal: Fixed data consistency issues')
-        toast.success('Fixed team membership data')
+        console.log('✅ AddMemberModal: Fixed data consistency issues');
+        toast.success('Fixed team membership data');
       }
-      
+
       // Debug all workspace members
-      await debugWorkspaceMembers(workspaceId)
-      
+      await debugWorkspaceMembers(workspaceId);
+
       // Then get available members (excluding current team members)
-      const members = await getAvailableWorkspaceMembers(workspaceId, teamId)
-      console.log('📥 AddMemberModal: Received members:', members)
-      
+      const members = await getAvailableWorkspaceMembers(workspaceId, teamId);
+      console.log('📥 AddMemberModal: Received members:', members);
+
       // Normalize and filter members - handle cases where user might be an array or null
       const normalizedMembers = ((members as any) || [])
         .map((member: any) => {
           // Handle array response from Supabase join
-          let user = member.user
+          let user = member.user;
           if (Array.isArray(user)) {
-            user = user[0] || null
+            user = user[0] || null;
           }
-          
+
           // Only return members with valid user data
           if (!member || !member.user_id || !user || !user.id) {
-            return null
+            return null;
           }
-          
+
           return {
             user_id: member.user_id,
-            user: user as Profile
-          }
+            user: user as Profile,
+          };
         })
-        .filter((member: any): member is WorkspaceMember => member !== null)
-      
-      console.log('✅ AddMemberModal: Normalized members, count:', normalizedMembers.length)
-      setAvailableMembers(normalizedMembers)
+        .filter((member: any): member is WorkspaceMember => member !== null);
+
+      console.log('✅ AddMemberModal: Normalized members, count:', normalizedMembers.length);
+      setAvailableMembers(normalizedMembers);
     } catch (error) {
-      console.error('❌ AddMemberModal: Error loading available members:', error)
-      toast.error('Failed to load available members')
-      setAvailableMembers([])
+      console.error('❌ AddMemberModal: Error loading available members:', error);
+      toast.error('Failed to load available members');
+      setAvailableMembers([]);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [teamId, workspaceId])
+  }, [teamId, workspaceId]);
 
   useEffect(() => {
     if (isOpen) {
-      loadAvailableMembers()
+      loadAvailableMembers();
     }
-  }, [isOpen, loadAvailableMembers])
+  }, [isOpen, loadAvailableMembers]);
 
   useEffect(() => {
     if (searchQuery.trim() === '') {
-      setFilteredMembers(availableMembers)
+      setFilteredMembers(availableMembers);
     } else {
-      const filtered = availableMembers.filter(member => {
+      const filtered = availableMembers.filter((member) => {
         // Add null safety checks
-        if (!member || !member.user) return false
-        const fullName = member.user.full_name || ''
-        return fullName.toLowerCase().includes(searchQuery.toLowerCase())
-      })
-      setFilteredMembers(filtered)
+        if (!member || !member.user) return false;
+        const fullName = member.user.full_name || '';
+        return fullName.toLowerCase().includes(searchQuery.toLowerCase());
+      });
+      setFilteredMembers(filtered);
     }
-  }, [searchQuery, availableMembers])
+  }, [searchQuery, availableMembers]);
 
   const handleAddMember = async (userId: string, userName: string) => {
     if (!user) {
-      toast.error('You must be logged in to add members')
-      return
+      toast.error('You must be logged in to add members');
+      return;
     }
-    
+
     try {
-      setAddingMember(userId)
-      await addTeamMember(teamId, userId, 'member', user.id)
-      toast.success(`${userName} has been added to the group`)
-      onMemberAdded()
-      
+      setAddingMember(userId);
+      await addTeamMember(teamId, userId, 'member', user.id);
+      toast.success(`${userName} has been added to the group`);
+      onMemberAdded();
+
       // Remove the added member from the available list
-      setAvailableMembers(prev => prev.filter(member => member.user_id !== userId))
+      setAvailableMembers((prev) => prev.filter((member) => member.user_id !== userId));
     } catch (error) {
-      console.error('Error adding team member:', error)
-      
+      console.error('Error adding team member:', error);
+
       // Handle specific error types
       if (error instanceof Error) {
         if (error.message.includes('already a member')) {
-          toast.error(`${userName} is already a member of this group`)
+          toast.error(`${userName} is already a member of this group`);
         } else if (error.message.includes('duplicate key value')) {
-          toast.error(`${userName} is already a member of this group`)
+          toast.error(`${userName} is already a member of this group`);
         } else {
-          toast.error(`Failed to add ${userName}: ${error.message}`)
+          toast.error(`Failed to add ${userName}: ${error.message}`);
         }
       } else {
-        toast.error('Failed to add group member')
+        toast.error('Failed to add group member');
       }
     } finally {
-      setAddingMember(null)
+      setAddingMember(null);
     }
-  }
+  };
 
   const handleClose = () => {
-    setSearchQuery('')
-    onClose()
-  }
+    setSearchQuery('');
+    onClose();
+  };
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <AnimatePresence>
@@ -208,21 +218,23 @@ export default function AddMemberModal({
               <div className="text-center py-12">
                 <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-500 text-lg font-medium">No available members found</p>
-                <p className="text-gray-400 text-sm mt-1">All class members may already be in this group</p>
+                <p className="text-gray-400 text-sm mt-1">
+                  All class members may already be in this group
+                </p>
               </div>
             ) : (
               <div className="space-y-3">
                 {filteredMembers
                   .filter((member) => {
                     // Double-check for null/undefined members
-                    return member && member.user_id && member.user && member.user.id
+                    return member && member.user_id && member.user && member.user.id;
                   })
                   .map((member) => {
                     // Extract user properties with safe defaults
-                    const fullName = member.user?.full_name ?? 'Unknown User'
-                    const avatarUrl = member.user?.avatar_url ?? null
-                    const role = member.user?.role ?? 'Member'
-                    
+                    const fullName = member.user?.full_name ?? 'Unknown User';
+                    const avatarUrl = member.user?.avatar_url ?? null;
+                    const role = member.user?.role ?? 'Member';
+
                     return (
                       <div
                         key={member.user_id}
@@ -237,7 +249,9 @@ export default function AddMemberModal({
                             className="shadow-md"
                           />
                           <div>
-                            <p className="font-semibold text-gray-900 group-hover:text-blue-700">{fullName}</p>
+                            <p className="font-semibold text-gray-900 group-hover:text-blue-700">
+                              {fullName}
+                            </p>
                             <p className="text-sm text-gray-500">{role}</p>
                           </div>
                         </div>
@@ -254,7 +268,7 @@ export default function AddMemberModal({
                           {addingMember === member.user_id ? 'Adding...' : 'Add'}
                         </button>
                       </div>
-                    )
+                    );
                   })}
               </div>
             )}
@@ -262,5 +276,5 @@ export default function AddMemberModal({
         </motion.div>
       </motion.div>
     </AnimatePresence>
-  )
+  );
 }

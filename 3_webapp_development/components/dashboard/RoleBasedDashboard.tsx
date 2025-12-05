@@ -40,7 +40,7 @@ import {
   Bookmark,
   Share2,
   RefreshCw,
-  X
+  X,
 } from 'lucide-react';
 import { Button } from '@/components/Button';
 import { usePermissions } from '@/lib/hooks/usePermissions';
@@ -94,18 +94,12 @@ interface Notification {
 // =====================================================
 
 export function RoleBasedDashboard() {
-  const { 
-    userRole, 
-    isStudent, 
-    isInstructor, 
-    isAdmin, 
-    isTA, 
-    canAccess, 
-    can 
-  } = usePermissions();
+  const { userRole, isStudent, isInstructor, isAdmin, isTA, canAccess, can } = usePermissions();
   const { currentWorkspace } = useWorkspace();
-  
-  const [activeView, setActiveView] = useState<'dashboard' | 'analytics' | 'management' | 'settings'>('dashboard');
+
+  const [activeView, setActiveView] = useState<
+    'dashboard' | 'analytics' | 'management' | 'settings'
+  >('dashboard');
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([
     {
@@ -116,7 +110,7 @@ export function RoleBasedDashboard() {
       timestamp: '2024-01-12T10:30:00',
       read: false,
       actionLabel: 'View Team',
-      actionUrl: '/teams/alpha'
+      actionUrl: '/teams/alpha',
     },
     {
       id: '2',
@@ -126,10 +120,10 @@ export function RoleBasedDashboard() {
       timestamp: '2024-01-12T09:15:00',
       read: false,
       actionLabel: 'View Task',
-      actionUrl: '/tasks/123'
-    }
+      actionUrl: '/tasks/123',
+    },
   ]);
-  
+
   // Define available widgets based on role and permissions
   const availableWidgets: DashboardWidget[] = [
     {
@@ -141,7 +135,7 @@ export function RoleBasedDashboard() {
       permissions: ['profile:read'],
       roles: ['student', 'instructor', 'teaching_assistant', 'admin'],
       priority: 1,
-      category: 'overview'
+      category: 'overview',
     },
     {
       id: 'team-analytics',
@@ -152,7 +146,7 @@ export function RoleBasedDashboard() {
       permissions: ['analytics:view_basic'],
       roles: ['instructor', 'teaching_assistant', 'admin'],
       priority: 2,
-      category: 'analytics'
+      category: 'analytics',
     },
     {
       id: 'student-progress',
@@ -163,7 +157,7 @@ export function RoleBasedDashboard() {
       permissions: ['analytics:view_detailed'],
       roles: ['instructor', 'admin'],
       priority: 3,
-      category: 'analytics'
+      category: 'analytics',
     },
     {
       id: 'my-tasks',
@@ -174,7 +168,7 @@ export function RoleBasedDashboard() {
       permissions: ['task:read'],
       roles: ['student', 'instructor', 'teaching_assistant'],
       priority: 4,
-      category: 'personal'
+      category: 'personal',
     },
     {
       id: 'workspace-management',
@@ -185,7 +179,7 @@ export function RoleBasedDashboard() {
       permissions: ['workspace:manage'],
       roles: ['instructor', 'admin'],
       priority: 5,
-      category: 'management'
+      category: 'management',
     },
     {
       id: 'collaboration-hub',
@@ -196,20 +190,22 @@ export function RoleBasedDashboard() {
       permissions: ['team:read'],
       roles: ['student', 'instructor', 'teaching_assistant'],
       priority: 6,
-      category: 'collaboration'
-    }
+      category: 'collaboration',
+    },
   ];
-  
+
   // Filter widgets based on user permissions and role
-  const visibleWidgets = availableWidgets.filter(widget => {
-    const hasRole = widget.roles.includes(userRole);
-    const hasPermissions = widget.permissions.every(permission => {
-      const [category, action] = permission.split(':');
-      return can(category as any, action as any);
-    });
-    return hasRole && hasPermissions;
-  }).sort((a, b) => a.priority - b.priority);
-  
+  const visibleWidgets = availableWidgets
+    .filter((widget) => {
+      const hasRole = widget.roles.includes(userRole);
+      const hasPermissions = widget.permissions.every((permission) => {
+        const [category, action] = permission.split(':');
+        return can(category as any, action as any);
+      });
+      return hasRole && hasPermissions;
+    })
+    .sort((a, b) => a.priority - b.priority);
+
   // Define quick actions based on role
   const quickActions: QuickAction[] = [
     {
@@ -220,7 +216,7 @@ export function RoleBasedDashboard() {
       action: () => console.log('Create team'),
       permissions: ['team:create'],
       roles: ['instructor', 'admin'],
-      variant: 'primary' as const
+      variant: 'primary' as const,
     },
     {
       id: 'new-task',
@@ -230,7 +226,7 @@ export function RoleBasedDashboard() {
       action: () => console.log('New task'),
       permissions: ['task:create'],
       roles: ['student', 'instructor', 'teaching_assistant'],
-      variant: 'secondary' as const
+      variant: 'secondary' as const,
     },
     {
       id: 'view-analytics',
@@ -240,7 +236,7 @@ export function RoleBasedDashboard() {
       action: () => console.log('View analytics'),
       permissions: ['analytics:view_basic'],
       roles: ['instructor', 'teaching_assistant', 'admin'],
-      variant: 'outline' as const
+      variant: 'outline' as const,
     },
     {
       id: 'manage-workspace',
@@ -250,19 +246,19 @@ export function RoleBasedDashboard() {
       action: () => console.log('Workspace settings'),
       permissions: ['workspace:manage'],
       roles: ['instructor', 'admin'],
-      variant: 'outline' as const
-    }
-  ].filter(action => {
+      variant: 'outline' as const,
+    },
+  ].filter((action) => {
     const hasRole = action.roles.includes(userRole);
-    const hasPermissions = action.permissions.every(permission => {
+    const hasPermissions = action.permissions.every((permission) => {
       const [resource, action_type] = permission.split(':');
       return can(resource as any, action_type as any);
     });
     return hasRole && hasPermissions;
   });
-  
-  const unreadNotifications = notifications.filter(n => !n.read).length;
-  
+
+  const unreadNotifications = notifications.filter((n) => !n.read).length;
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -277,25 +273,35 @@ export function RoleBasedDashboard() {
                 </div>
                 <div>
                   <h1 className="text-xl font-bold text-gray-900">Qolabb</h1>
-                  <p className="text-xs text-gray-500">
-                    {currentWorkspace?.name || 'Workspace'}
-                  </p>
+                  <p className="text-xs text-gray-500">{currentWorkspace?.name || 'Workspace'}</p>
                 </div>
               </div>
-              
+
               <nav className="hidden md:flex space-x-6">
                 {[
                   { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
-                  { id: 'analytics', label: 'Analytics', icon: TrendingUp, permissions: ['analytics:view_basic'] },
-                  { id: 'management', label: 'Management', icon: Settings, permissions: ['workspace:manage'] }
-                ].map(item => {
-                  const hasPermissions = !item.permissions || item.permissions.every(permission => {
-                    const [category, action] = permission.split(':');
-                    return can(category as any, action as any);
-                  });
-                  
+                  {
+                    id: 'analytics',
+                    label: 'Analytics',
+                    icon: TrendingUp,
+                    permissions: ['analytics:view_basic'],
+                  },
+                  {
+                    id: 'management',
+                    label: 'Management',
+                    icon: Settings,
+                    permissions: ['workspace:manage'],
+                  },
+                ].map((item) => {
+                  const hasPermissions =
+                    !item.permissions ||
+                    item.permissions.every((permission) => {
+                      const [category, action] = permission.split(':');
+                      return can(category as any, action as any);
+                    });
+
                   if (!hasPermissions) return null;
-                  
+
                   return (
                     <button
                       key={item.id}
@@ -314,7 +320,7 @@ export function RoleBasedDashboard() {
                 })}
               </nav>
             </div>
-            
+
             {/* Right side actions */}
             <div className="flex items-center space-x-4">
               {/* Search */}
@@ -326,7 +332,7 @@ export function RoleBasedDashboard() {
                   className="pl-10 pr-4 py-2 w-64 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
-              
+
               {/* Notifications */}
               <div className="relative">
                 <button
@@ -340,7 +346,7 @@ export function RoleBasedDashboard() {
                     </span>
                   )}
                 </button>
-                
+
                 {showNotifications && (
                   <NotificationDropdown
                     notifications={notifications}
@@ -348,7 +354,7 @@ export function RoleBasedDashboard() {
                   />
                 )}
               </div>
-              
+
               {/* User menu */}
               <div className="flex items-center space-x-3">
                 <div className="text-right hidden sm:block">
@@ -363,7 +369,7 @@ export function RoleBasedDashboard() {
           </div>
         </div>
       </header>
-      
+
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <AnimatePresence mode="wait">
@@ -375,18 +381,18 @@ export function RoleBasedDashboard() {
             transition={{ duration: 0.2 }}
           >
             {activeView === 'dashboard' && (
-          <DashboardView
-            widgets={visibleWidgets}
-            quickActions={quickActions}
-            userRole={userRole}
-          />
-        )}
-        {activeView === 'analytics' && can('analytics' as any, 'view_basic' as any) && (
-          <AnalyticsView userRole={userRole} />
-        )}
-        {activeView === 'management' && can('workspace' as any, 'manage' as any) && (
-          <ManagementView />
-        )}
+              <DashboardView
+                widgets={visibleWidgets}
+                quickActions={quickActions}
+                userRole={userRole}
+              />
+            )}
+            {activeView === 'analytics' && can('analytics' as any, 'view_basic' as any) && (
+              <AnalyticsView userRole={userRole} />
+            )}
+            {activeView === 'management' && can('workspace' as any, 'manage' as any) && (
+              <ManagementView />
+            )}
           </motion.div>
         </AnimatePresence>
       </main>
@@ -398,14 +404,14 @@ export function RoleBasedDashboard() {
 // DASHBOARD VIEW
 // =====================================================
 
-function DashboardView({ 
-  widgets, 
-  quickActions, 
-  userRole 
-}: { 
-  widgets: DashboardWidget[]; 
-  quickActions: QuickAction[]; 
-  userRole: string; 
+function DashboardView({
+  widgets,
+  quickActions,
+  userRole,
+}: {
+  widgets: DashboardWidget[];
+  quickActions: QuickAction[];
+  userRole: string;
 }) {
   return (
     <div className="space-y-8">
@@ -413,14 +419,11 @@ function DashboardView({
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold mb-2">
-              Welcome back, John! 👋
-            </h2>
+            <h2 className="text-2xl font-bold mb-2">Welcome back, John! 👋</h2>
             <p className="text-blue-100">
-              {userRole === 'student' 
-                ? "Ready to collaborate and learn with your team?"
-                : "Let's check on your students' progress and team dynamics."
-              }
+              {userRole === 'student'
+                ? 'Ready to collaborate and learn with your team?'
+                : "Let's check on your students' progress and team dynamics."}
             </p>
           </div>
           <div className="hidden md:block">
@@ -430,13 +433,11 @@ function DashboardView({
           </div>
         </div>
       </div>
-      
+
       {/* Quick Actions */}
       {quickActions.length > 0 && (
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Quick Actions
-          </h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {quickActions.map((action) => (
               <motion.button
@@ -446,27 +447,36 @@ function DashboardView({
                 whileTap={{ scale: 0.98 }}
                 className={cn(
                   'p-4 rounded-lg border text-left transition-all duration-200',
-                  action.variant === 'primary' && 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700',
-                  action.variant === 'secondary' && 'bg-gray-100 text-gray-900 border-gray-200 hover:bg-gray-200',
-                  action.variant === 'outline' && 'bg-white text-gray-900 border-gray-300 hover:bg-gray-50'
+                  action.variant === 'primary' &&
+                    'bg-blue-600 text-white border-blue-600 hover:bg-blue-700',
+                  action.variant === 'secondary' &&
+                    'bg-gray-100 text-gray-900 border-gray-200 hover:bg-gray-200',
+                  action.variant === 'outline' &&
+                    'bg-white text-gray-900 border-gray-300 hover:bg-gray-50'
                 )}
               >
                 <div className="flex items-center space-x-3">
-                  <action.icon className={cn(
-                    'w-5 h-5',
-                    action.variant === 'primary' ? 'text-white' : 'text-gray-600'
-                  )} />
+                  <action.icon
+                    className={cn(
+                      'w-5 h-5',
+                      action.variant === 'primary' ? 'text-white' : 'text-gray-600'
+                    )}
+                  />
                   <div>
-                    <p className={cn(
-                      'font-medium',
-                      action.variant === 'primary' ? 'text-white' : 'text-gray-900'
-                    )}>
+                    <p
+                      className={cn(
+                        'font-medium',
+                        action.variant === 'primary' ? 'text-white' : 'text-gray-900'
+                      )}
+                    >
                       {action.label}
                     </p>
-                    <p className={cn(
-                      'text-sm',
-                      action.variant === 'primary' ? 'text-blue-100' : 'text-gray-600'
-                    )}>
+                    <p
+                      className={cn(
+                        'text-sm',
+                        action.variant === 'primary' ? 'text-blue-100' : 'text-gray-600'
+                      )}
+                    >
                       {action.description}
                     </p>
                   </div>
@@ -476,12 +486,10 @@ function DashboardView({
           </div>
         </div>
       )}
-      
+
       {/* Widgets Grid */}
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Dashboard Widgets
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Dashboard Widgets</h3>
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {widgets.map((widget) => (
             <motion.div
@@ -497,12 +505,8 @@ function DashboardView({
                     <widget.icon className="w-5 h-5 text-blue-600" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900">
-                      {widget.title}
-                    </h4>
-                    <p className="text-sm text-gray-600">
-                      {widget.description}
-                    </p>
+                    <h4 className="font-semibold text-gray-900">{widget.title}</h4>
+                    <p className="text-sm text-gray-600">{widget.description}</p>
                   </div>
                 </div>
               </div>
@@ -513,12 +517,14 @@ function DashboardView({
           ))}
         </div>
       </div>
-      
+
       {/* Role-specific content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           {userRole === 'student' && <StudentDashboard />}
-          {(userRole === 'instructor' || userRole === 'teaching_assistant') && <InstructorDashboard />}
+          {(userRole === 'instructor' || userRole === 'teaching_assistant') && (
+            <InstructorDashboard />
+          )}
         </div>
         <div>
           <RoleBasedNavigation />
@@ -553,14 +559,12 @@ function AnalyticsView({ userRole }: { userRole: string }) {
           </Button>
         </div>
       </div>
-      
+
       <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Analytics Content
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Analytics Content</h3>
         <p className="text-gray-600">
-          Detailed analytics dashboard would be implemented here with charts,
-          metrics, and insights based on user role and permissions.
+          Detailed analytics dashboard would be implemented here with charts, metrics, and insights
+          based on user role and permissions.
         </p>
       </div>
     </div>
@@ -575,14 +579,10 @@ function ManagementView() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Workspace Management
-        </h2>
-        <p className="text-gray-600">
-          Manage your workspace settings, members, and permissions
-        </p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Workspace Management</h2>
+        <p className="text-gray-600">Manage your workspace settings, members, and permissions</p>
       </div>
-      
+
       <WorkspaceRoleManager />
     </div>
   );
@@ -600,8 +600,8 @@ function OverviewWidget() {
           { label: 'Active Groups', value: '3', icon: Users, href: '/teams' },
           { label: 'Pending Tasks', value: '7', icon: Target, href: '/tasks' },
           { label: 'This Week', value: '12h', icon: Clock, href: '/analytics' },
-          { label: 'Contributions', value: '24', icon: Activity, href: '/tasks' }
-        ].map((stat) => (
+          { label: 'Contributions', value: '24', icon: Activity, href: '/tasks' },
+        ].map((stat) =>
           stat.href ? (
             <Link key={stat.label} href={stat.href} className="block">
               <div className="text-center hover:bg-gray-50 rounded-lg p-2 transition-colors cursor-pointer">
@@ -621,7 +621,7 @@ function OverviewWidget() {
               <p className="text-xs text-gray-600">{stat.label}</p>
             </div>
           )
-        ))}
+        )}
       </div>
     </div>
   );
@@ -640,8 +640,8 @@ function TeamAnalyticsWidget() {
             <span className="text-sm text-gray-600">{team}</span>
             <div className="flex items-center space-x-2">
               <div className="w-16 bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-blue-600 h-2 rounded-full" 
+                <div
+                  className="bg-blue-600 h-2 rounded-full"
                   style={{ width: `${85 - index * 10}%` }}
                 />
               </div>
@@ -668,13 +668,13 @@ function StudentProgressWidget() {
         {[
           { name: 'Alice Chen', progress: 92, status: 'excellent' },
           { name: 'Bob Smith', progress: 78, status: 'good' },
-          { name: 'Carol Davis', progress: 65, status: 'needs-attention' }
+          { name: 'Carol Davis', progress: 65, status: 'needs-attention' },
         ].map((student) => (
           <div key={student.name} className="flex items-center justify-between">
             <span className="text-sm text-gray-600">{student.name}</span>
             <div className="flex items-center space-x-2">
               <div className="w-12 bg-gray-200 rounded-full h-1.5">
-                <div 
+                <div
                   className={cn(
                     'h-1.5 rounded-full',
                     student.status === 'excellent' && 'bg-green-500',
@@ -707,19 +707,24 @@ function MyTasksWidget() {
         {[
           { title: 'Literature Review', due: '2 days', priority: 'high' },
           { title: 'Team Meeting Prep', due: '1 week', priority: 'medium' },
-          { title: 'Code Review', due: '3 days', priority: 'low' }
+          { title: 'Code Review', due: '3 days', priority: 'low' },
         ].map((task) => (
-          <div key={task.title} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+          <div
+            key={task.title}
+            className="flex items-center justify-between p-2 bg-gray-50 rounded"
+          >
             <div>
               <p className="text-sm font-medium text-gray-900">{task.title}</p>
               <p className="text-xs text-gray-500">Due in {task.due}</p>
             </div>
-            <div className={cn(
-              'w-2 h-2 rounded-full',
-              task.priority === 'high' && 'bg-red-500',
-              task.priority === 'medium' && 'bg-yellow-500',
-              task.priority === 'low' && 'bg-green-500'
-            )} />
+            <div
+              className={cn(
+                'w-2 h-2 rounded-full',
+                task.priority === 'high' && 'bg-red-500',
+                task.priority === 'medium' && 'bg-yellow-500',
+                task.priority === 'low' && 'bg-green-500'
+              )}
+            />
           </div>
         ))}
       </div>
@@ -742,8 +747,8 @@ function WorkspaceManagementWidget() {
           { label: 'Members', value: '24', icon: Users, href: '/settings' },
           { label: 'Groups', value: '6', icon: Users, href: '/teams' },
           { label: 'Projects', value: '3', icon: BookOpen, href: '/projects' },
-          { label: 'Active', value: '18', icon: Activity, href: '/analytics' }
-        ].map((stat) => (
+          { label: 'Active', value: '18', icon: Activity, href: '/analytics' },
+        ].map((stat) =>
           stat.href ? (
             <Link key={stat.label} href={stat.href} className="block">
               <div className="text-center p-2 bg-gray-50 rounded hover:bg-gray-100 transition-colors cursor-pointer h-full">
@@ -759,7 +764,7 @@ function WorkspaceManagementWidget() {
               <p className="text-xs text-gray-600">{stat.label}</p>
             </div>
           )
-        ))}
+        )}
       </div>
     </div>
   );
@@ -779,13 +784,11 @@ function CollaborationWidget() {
         {[
           { user: 'Alice', action: 'commented on task', time: '2h ago' },
           { user: 'Bob', action: 'shared a file', time: '4h ago' },
-          { user: 'Carol', action: 'updated project', time: '1d ago' }
+          { user: 'Carol', action: 'updated project', time: '1d ago' },
         ].map((activity, index) => (
           <div key={index} className="flex items-center space-x-2 text-sm">
             <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
-              <span className="text-xs font-medium text-blue-600">
-                {activity.user[0]}
-              </span>
+              <span className="text-xs font-medium text-blue-600">{activity.user[0]}</span>
             </div>
             <div className="flex-1">
               <span className="font-medium text-gray-900">{activity.user}</span>
@@ -803,32 +806,27 @@ function CollaborationWidget() {
 // NOTIFICATION DROPDOWN
 // =====================================================
 
-function NotificationDropdown({ 
-  notifications, 
-  onClose 
-}: { 
-  notifications: Notification[]; 
-  onClose: () => void; 
+function NotificationDropdown({
+  notifications,
+  onClose,
+}: {
+  notifications: Notification[];
+  onClose: () => void;
 }) {
   return (
     <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-          >
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X className="w-5 h-5" />
           </button>
         </div>
       </div>
-      
+
       <div className="max-h-96 overflow-y-auto">
         {notifications.length === 0 ? (
-          <div className="p-4 text-center text-gray-500">
-            No notifications
-          </div>
+          <div className="p-4 text-center text-gray-500">No notifications</div>
         ) : (
           notifications.map((notification) => (
             <div
@@ -839,20 +837,18 @@ function NotificationDropdown({
               )}
             >
               <div className="flex items-start space-x-3">
-                <div className={cn(
-                  'w-2 h-2 rounded-full mt-2',
-                  notification.type === 'info' && 'bg-blue-500',
-                  notification.type === 'success' && 'bg-green-500',
-                  notification.type === 'warning' && 'bg-yellow-500',
-                  notification.type === 'error' && 'bg-red-500'
-                )} />
+                <div
+                  className={cn(
+                    'w-2 h-2 rounded-full mt-2',
+                    notification.type === 'info' && 'bg-blue-500',
+                    notification.type === 'success' && 'bg-green-500',
+                    notification.type === 'warning' && 'bg-yellow-500',
+                    notification.type === 'error' && 'bg-red-500'
+                  )}
+                />
                 <div className="flex-1">
-                  <h4 className="text-sm font-medium text-gray-900">
-                    {notification.title}
-                  </h4>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {notification.message}
-                  </p>
+                  <h4 className="text-sm font-medium text-gray-900">{notification.title}</h4>
+                  <p className="text-sm text-gray-600 mt-1">{notification.message}</p>
                   <p className="text-xs text-gray-500 mt-2">
                     {new Date(notification.timestamp).toLocaleString()}
                   </p>
@@ -867,12 +863,10 @@ function NotificationDropdown({
           ))
         )}
       </div>
-      
+
       {notifications.length > 0 && (
         <div className="p-4 border-t border-gray-200">
-          <button className="text-sm text-blue-600 hover:text-blue-800">
-            Mark all as read
-          </button>
+          <button className="text-sm text-blue-600 hover:text-blue-800">Mark all as read</button>
         </div>
       )}
     </div>

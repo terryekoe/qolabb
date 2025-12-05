@@ -22,10 +22,7 @@ interface SyncResult {
 /**
  * Sync a single linked document
  */
-export async function syncLinkedDocument(
-  linkedDocId: string,
-  userId: string
-): Promise<SyncResult> {
+export async function syncLinkedDocument(linkedDocId: string, userId: string): Promise<SyncResult> {
   const result: SyncResult = {
     success: true,
     contributionsCreated: 0,
@@ -94,7 +91,11 @@ export async function syncLinkedDocument(
     let baselineContent = null;
     if (lastSyncedRevision) {
       try {
-        baselineContent = await getDocumentContent(accessToken, linkedDoc.document_id, lastSyncedRevision);
+        baselineContent = await getDocumentContent(
+          accessToken,
+          linkedDoc.document_id,
+          lastSyncedRevision
+        );
       } catch (error) {
         // If we can't get baseline, use current content
         console.warn('Could not get baseline content, using current');
@@ -196,9 +197,7 @@ export async function syncLinkedDocument(
 /**
  * Sync all linked documents for a project
  */
-export async function syncProjectDocuments(
-  projectId: string
-): Promise<SyncResult> {
+export async function syncProjectDocuments(projectId: string): Promise<SyncResult> {
   const result: SyncResult = {
     success: true,
     contributionsCreated: 0,

@@ -29,7 +29,7 @@ import {
   Clock,
   CheckSquare,
   PieChart,
-  Activity
+  Activity,
 } from 'lucide-react';
 import { usePermissions } from '@/lib/hooks/usePermissions';
 import { cn } from '@/lib/utils';
@@ -64,9 +64,9 @@ const NAVIGATION_ITEMS: NavItem[] = [
     label: 'Dashboard',
     href: '/dashboard',
     icon: Home,
-    description: 'Overview and quick actions'
+    description: 'Overview and quick actions',
   },
-  
+
   // Student-focused items
   {
     id: 'my-teams',
@@ -74,15 +74,15 @@ const NAVIGATION_ITEMS: NavItem[] = [
     href: '/teams',
     icon: Users,
     description: 'Your team memberships and projects',
-    allowedRoles: ['student', 'both']
+    allowedRoles: ['student', 'both'],
   },
   {
     id: 'my-projects',
     label: 'My Projects',
     href: '/projects',
     icon: FolderOpen,
-    description: 'Projects you\'re working on',
-    allowedRoles: ['student', 'both']
+    description: "Projects you're working on",
+    allowedRoles: ['student', 'both'],
   },
   {
     id: 'my-tasks',
@@ -90,7 +90,7 @@ const NAVIGATION_ITEMS: NavItem[] = [
     href: '/tasks',
     icon: CheckSquare,
     description: 'Your assigned tasks and deadlines',
-    allowedRoles: ['student', 'both']
+    allowedRoles: ['student', 'both'],
   },
   {
     id: 'my-contributions',
@@ -98,9 +98,9 @@ const NAVIGATION_ITEMS: NavItem[] = [
     href: '/contributions',
     icon: Clock,
     description: 'Track and log your contributions',
-    allowedRoles: ['student', 'both']
+    allowedRoles: ['student', 'both'],
   },
-  
+
   // Instructor-focused items
   {
     id: 'course-management',
@@ -109,9 +109,7 @@ const NAVIGATION_ITEMS: NavItem[] = [
     icon: BookOpen,
     description: 'Manage your courses and workspaces',
     allowedRoles: ['instructor', 'teaching_assistant', 'both', 'admin'],
-    requiredPermissions: [
-      { category: 'workspace', action: 'view_all' }
-    ]
+    requiredPermissions: [{ category: 'workspace', action: 'view_all' }],
   },
   {
     id: 'student-monitoring',
@@ -120,9 +118,7 @@ const NAVIGATION_ITEMS: NavItem[] = [
     icon: UserCheck,
     description: 'Monitor student participation and progress',
     allowedRoles: ['instructor', 'teaching_assistant', 'both', 'admin'],
-    requiredPermissions: [
-      { category: 'analytics', action: 'view_team_stats' }
-    ]
+    requiredPermissions: [{ category: 'analytics', action: 'view_team_stats' }],
   },
   {
     id: 'team-analytics',
@@ -131,9 +127,7 @@ const NAVIGATION_ITEMS: NavItem[] = [
     icon: TrendingUp,
     description: 'Detailed team performance analytics',
     allowedRoles: ['instructor', 'teaching_assistant', 'both', 'admin'],
-    requiredPermissions: [
-      { category: 'analytics', action: 'view_workspace_stats' }
-    ]
+    requiredPermissions: [{ category: 'analytics', action: 'view_workspace_stats' }],
   },
   {
     id: 'reports',
@@ -142,11 +136,9 @@ const NAVIGATION_ITEMS: NavItem[] = [
     icon: FileText,
     description: 'Generate and export reports',
     allowedRoles: ['instructor', 'both', 'admin'],
-    requiredPermissions: [
-      { category: 'analytics', action: 'generate_reports' }
-    ]
+    requiredPermissions: [{ category: 'analytics', action: 'generate_reports' }],
   },
-  
+
   // Shared items with role-based features
   {
     id: 'analytics',
@@ -160,7 +152,7 @@ const NAVIGATION_ITEMS: NavItem[] = [
         label: 'Personal Stats',
         href: '/analytics/personal',
         icon: Activity,
-        description: 'Your personal performance metrics'
+        description: 'Your personal performance metrics',
       },
       {
         id: 'team-analytics-detailed',
@@ -168,13 +160,11 @@ const NAVIGATION_ITEMS: NavItem[] = [
         href: '/analytics/teams',
         icon: PieChart,
         description: 'Team performance and collaboration metrics',
-        requiredPermissions: [
-          { category: 'analytics', action: 'view_team_stats' }
-        ]
-      }
-    ]
+        requiredPermissions: [{ category: 'analytics', action: 'view_team_stats' }],
+      },
+    ],
   },
-  
+
   // Administrative items
   {
     id: 'user-management',
@@ -183,9 +173,7 @@ const NAVIGATION_ITEMS: NavItem[] = [
     icon: UserPlus,
     description: 'Manage platform users',
     allowedRoles: ['admin'],
-    requiredPermissions: [
-      { category: 'admin', action: 'manage_users' }
-    ]
+    requiredPermissions: [{ category: 'admin', action: 'manage_users' }],
   },
   {
     id: 'system-settings',
@@ -194,19 +182,17 @@ const NAVIGATION_ITEMS: NavItem[] = [
     icon: Shield,
     description: 'Platform configuration and settings',
     allowedRoles: ['admin'],
-    requiredPermissions: [
-      { category: 'admin', action: 'manage_platform_settings' }
-    ]
+    requiredPermissions: [{ category: 'admin', action: 'manage_platform_settings' }],
   },
-  
+
   // Universal settings (always last)
   {
     id: 'settings',
     label: 'Settings',
     href: '/settings',
     icon: Settings,
-    description: 'Account and preferences'
-  }
+    description: 'Account and preferences',
+  },
 ];
 
 // =====================================================
@@ -224,28 +210,26 @@ export function RoleBasedNavigation({
   className,
   variant = 'sidebar',
   showLabels = true,
-  showDescriptions = false
+  showDescriptions = false,
 }: RoleBasedNavigationProps) {
   const { userRole, can } = usePermissions();
   const pathname = usePathname();
-  
+
   // Filter navigation items based on permissions and roles
-  const filteredItems = NAVIGATION_ITEMS.filter(item => {
+  const filteredItems = NAVIGATION_ITEMS.filter((item) => {
     // Check role-based access
     if (item.allowedRoles && !item.allowedRoles.includes(userRole)) {
       return false;
     }
-    
+
     // Check permission-based access
     if (item.requiredPermissions) {
-      return item.requiredPermissions.every(perm => 
-        can(perm.category as any, perm.action)
-      );
+      return item.requiredPermissions.every((perm) => can(perm.category as any, perm.action));
     }
-    
+
     return true;
   });
-  
+
   const baseClasses = cn(
     'flex',
     variant === 'sidebar' && 'flex-col space-y-1',
@@ -253,10 +237,10 @@ export function RoleBasedNavigation({
     variant === 'mobile' && 'flex-col space-y-1',
     className
   );
-  
+
   return (
     <nav className={baseClasses}>
-      {filteredItems.map(item => (
+      {filteredItems.map((item) => (
         <NavItemComponent
           key={item.id}
           item={item}
@@ -287,23 +271,21 @@ function NavItemComponent({
   pathname,
   variant,
   showLabels,
-  showDescriptions
+  showDescriptions,
 }: NavItemComponentProps) {
   const { can } = usePermissions();
   const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
-  
+
   // Filter children based on permissions
-  const filteredChildren = item.children?.filter(child => {
+  const filteredChildren = item.children?.filter((child) => {
     if (child.requiredPermissions) {
-      return child.requiredPermissions.every(perm => 
-        can(perm.category as any, perm.action)
-      );
+      return child.requiredPermissions.every((perm) => can(perm.category as any, perm.action));
     }
     return true;
   });
-  
+
   const hasChildren = filteredChildren && filteredChildren.length > 0;
-  
+
   const itemClasses = cn(
     'group relative flex items-center rounded-lg transition-all duration-200',
     variant === 'sidebar' && 'px-3 py-2',
@@ -314,7 +296,7 @@ function NavItemComponent({
       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
     'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
   );
-  
+
   const iconClasses = cn(
     'flex-shrink-0',
     variant === 'sidebar' && 'w-5 h-5',
@@ -322,47 +304,43 @@ function NavItemComponent({
     variant === 'mobile' && 'w-5 h-5',
     showLabels && 'mr-3'
   );
-  
+
   return (
     <div>
       <Link href={item.href} className={itemClasses}>
         <item.icon className={iconClasses} />
-        
+
         {showLabels && (
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium truncate">
-                {item.label}
-              </span>
+              <span className="text-sm font-medium truncate">{item.label}</span>
               {item.badge && (
                 <span className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
                   {item.badge}
                 </span>
               )}
             </div>
-            
+
             {showDescriptions && item.description && (
-              <p className="text-xs text-gray-500 mt-1 truncate">
-                {item.description}
-              </p>
+              <p className="text-xs text-gray-500 mt-1 truncate">{item.description}</p>
             )}
           </div>
         )}
-        
+
         {isActive && (
           <motion.div
             className="absolute inset-0 bg-blue-50 rounded-lg -z-10"
             layoutId="activeNavItem"
             initial={false}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
           />
         )}
       </Link>
-      
+
       {/* Render children if they exist */}
       {hasChildren && variant === 'sidebar' && (
         <div className="ml-6 mt-1 space-y-1">
-          {filteredChildren!.map(child => (
+          {filteredChildren!.map((child) => (
             <Link
               key={child.id}
               href={child.href}
@@ -389,17 +367,13 @@ function NavItemComponent({
 
 export function RoleIndicator({ className }: { className?: string }) {
   const { roleInfo, userRole } = usePermissions();
-  
+
   return (
     <div className={cn('flex items-center space-x-2', className)}>
       <span className="text-lg">{roleInfo.icon}</span>
       <div className="flex flex-col">
-        <span className="text-sm font-medium text-gray-900">
-          {roleInfo.label}
-        </span>
-        <span className="text-xs text-gray-500">
-          {roleInfo.description}
-        </span>
+        <span className="text-sm font-medium text-gray-900">{roleInfo.label}</span>
+        <span className="text-xs text-gray-500">{roleInfo.description}</span>
       </div>
     </div>
   );
@@ -411,52 +385,56 @@ export function RoleIndicator({ className }: { className?: string }) {
 
 export function QuickActions({ className }: { className?: string }) {
   const { can, isInstructor, isStudent } = usePermissions();
-  
+
   const quickActions = [
     // Student actions
-    ...(isStudent ? [
-      {
-        label: 'Log Work',
-        href: '/contributions/new',
-        icon: Clock,
-        color: 'blue'
-      },
-      {
-        label: 'View Tasks',
-        href: '/tasks',
-        icon: CheckSquare,
-        color: 'green'
-      }
-    ] : []),
-    
+    ...(isStudent
+      ? [
+          {
+            label: 'Log Work',
+            href: '/contributions/new',
+            icon: Clock,
+            color: 'blue',
+          },
+          {
+            label: 'View Tasks',
+            href: '/tasks',
+            icon: CheckSquare,
+            color: 'green',
+          },
+        ]
+      : []),
+
     // Instructor actions
-    ...(isInstructor && can('workspace', 'create') ? [
-      {
-        label: 'Create Course',
-        href: '/courses/new',
-        icon: BookOpen,
-        color: 'purple'
-      },
-      {
-        label: 'View Reports',
-        href: '/reports',
-        icon: FileText,
-        color: 'orange'
-      }
-    ] : []),
-    
+    ...(isInstructor && can('workspace', 'create')
+      ? [
+          {
+            label: 'Create Course',
+            href: '/courses/new',
+            icon: BookOpen,
+            color: 'purple',
+          },
+          {
+            label: 'View Reports',
+            href: '/reports',
+            icon: FileText,
+            color: 'orange',
+          },
+        ]
+      : []),
+
     // Universal actions
     {
       label: 'Settings',
       href: '/settings',
       icon: Settings,
-      color: 'gray'
-    }
+      color: 'gray',
+    },
   ];
-  
+
   return (
     <div className={cn('grid grid-cols-2 gap-2', className)}>
-      {quickActions.map(action => (
+      {quickActions.map((action) => (
         <Link
           key={action.label}
           href={action.href}

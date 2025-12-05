@@ -2,7 +2,15 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, CheckCircle2, MessageSquare, Users, ThumbsUp, ThumbsDown, Sparkles } from 'lucide-react';
+import {
+  Calendar,
+  CheckCircle2,
+  MessageSquare,
+  Users,
+  ThumbsUp,
+  ThumbsDown,
+  Sparkles,
+} from 'lucide-react';
 import { Button } from '@/components/Button';
 
 interface RetroTemplate {
@@ -54,7 +62,12 @@ interface WeeklyRetrospectiveProps {
   onSkip?: () => void;
 }
 
-export function WeeklyRetrospective({ teamId, teamName, onComplete, onSkip }: WeeklyRetrospectiveProps) {
+export function WeeklyRetrospective({
+  teamId,
+  teamName,
+  onComplete,
+  onSkip,
+}: WeeklyRetrospectiveProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<RetroTemplate | null>(null);
   const [responses, setResponses] = useState<Record<string, string>>({});
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -115,8 +128,11 @@ export function WeeklyRetrospective({ teamId, teamName, onComplete, onSkip }: We
 
   const currentQuestion = selectedTemplate?.questions[currentQuestionIndex];
   const currentResponse = responses[`q${currentQuestionIndex}`] || '';
-  const isLastQuestion = selectedTemplate && currentQuestionIndex === selectedTemplate.questions.length - 1;
-  const allResponsesFilled = selectedTemplate && selectedTemplate.questions.every((_, index) => responses[`q${index}`]?.trim());
+  const isLastQuestion =
+    selectedTemplate && currentQuestionIndex === selectedTemplate.questions.length - 1;
+  const allResponsesFilled =
+    selectedTemplate &&
+    selectedTemplate.questions.every((_, index) => responses[`q${index}`]?.trim());
 
   if (!selectedTemplate) {
     return (
@@ -171,7 +187,9 @@ export function WeeklyRetrospective({ teamId, teamName, onComplete, onSkip }: We
         <div className="w-full bg-gray-200 rounded-full h-2">
           <motion.div
             initial={{ width: 0 }}
-            animate={{ width: `${((currentQuestionIndex + 1) / selectedTemplate.questions.length) * 100}%` }}
+            animate={{
+              width: `${((currentQuestionIndex + 1) / selectedTemplate.questions.length) * 100}%`,
+            }}
             className="bg-blue-500 h-2 rounded-full"
           />
         </div>

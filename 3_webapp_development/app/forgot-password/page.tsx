@@ -44,10 +44,7 @@ export default function ForgotPasswordPage() {
           {/* Logo */}
           <div>
             <Link href="/" className="inline-block">
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                className="text-4xl font-bold mb-2"
-              >
+              <motion.div whileHover={{ scale: 1.05 }} className="text-4xl font-bold mb-2">
                 <span className="text-black dark:text-white">Qol</span>
                 <span className="text-blue-600 dark:text-blue-400">abb</span>
               </motion.div>
@@ -57,7 +54,10 @@ export default function ForgotPasswordPage() {
             </h2>
             <p className="mt-2 text-gray-600 dark:text-gray-400">
               Remember your password?{' '}
-              <Link href="/login" className="text-blue-600 dark:text-blue-400 font-medium hover:text-blue-700 dark:hover:text-blue-300">
+              <Link
+                href="/login"
+                className="text-blue-600 dark:text-blue-400 font-medium hover:text-blue-700 dark:hover:text-blue-300"
+              >
                 Sign in
               </Link>
             </p>
@@ -70,7 +70,10 @@ export default function ForgotPasswordPage() {
               animate={{ opacity: 1, y: 0 }}
               className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 flex items-start space-x-3"
             >
-              <AlertCircle className="text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" size={20} />
+              <AlertCircle
+                className="text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5"
+                size={20}
+              />
               <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
             </motion.div>
           )}
@@ -82,13 +85,17 @@ export default function ForgotPasswordPage() {
               animate={{ opacity: 1, y: 0 }}
               className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 flex items-start space-x-3"
             >
-              <CheckCircle2 className="text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" size={20} />
+              <CheckCircle2
+                className="text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5"
+                size={20}
+              />
               <div>
                 <p className="text-sm font-medium text-green-800 dark:text-green-200">
                   Check your email
                 </p>
                 <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-                  We've sent a password reset link to <strong>{email}</strong>. Please check your inbox and follow the instructions.
+                  We've sent a password reset link to <strong>{email}</strong>. Please check your
+                  inbox and follow the instructions.
                 </p>
               </div>
             </motion.div>
@@ -98,7 +105,10 @@ export default function ForgotPasswordPage() {
           {!success && (
             <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
                   Email address
                 </label>
                 <div className="relative">
@@ -131,7 +141,10 @@ export default function ForgotPasswordPage() {
                 disabled={loading}
               >
                 {loading ? 'Sending...' : 'Send reset link'}
-                <ArrowRight className="inline-block ml-2 group-hover:translate-x-1 transition-transform" size={20} />
+                <ArrowRight
+                  className="inline-block ml-2 group-hover:translate-x-1 transition-transform"
+                  size={20}
+                />
               </Button>
             </form>
           )}
@@ -140,12 +153,11 @@ export default function ForgotPasswordPage() {
           {success && (
             <div className="mt-6">
               <Link href="/login">
-                <Button
-                  variant="ghost"
-                  size="lg"
-                  className="w-full group"
-                >
-                  <ArrowLeft className="inline-block mr-2 group-hover:-translate-x-1 transition-transform" size={20} />
+                <Button variant="ghost" size="lg" className="w-full group">
+                  <ArrowLeft
+                    className="inline-block mr-2 group-hover:-translate-x-1 transition-transform"
+                    size={20}
+                  />
                   Back to sign in
                 </Button>
               </Link>
@@ -162,14 +174,17 @@ export default function ForgotPasswordPage() {
           transition={{ duration: 0.8 }}
           className="max-w-lg text-white"
         >
-          <h2 className="text-4xl font-bold mb-6">
-            Secure password reset
-          </h2>
+          <h2 className="text-4xl font-bold mb-6">Secure password reset</h2>
           <p className="text-xl text-white/90 mb-8">
-            We'll send you a secure link to reset your password. This link will expire in 1 hour for your security.
+            We'll send you a secure link to reset your password. This link will expire in 1 hour for
+            your security.
           </p>
           <div className="space-y-4">
-            {['Secure email verification', 'Time-limited reset links', 'One-click password update'].map((feature, i) => (
+            {[
+              'Secure email verification',
+              'Time-limited reset links',
+              'One-click password update',
+            ].map((feature, i) => (
               <motion.div
                 key={feature}
                 initial={{ opacity: 0, x: -20 }}

@@ -16,7 +16,7 @@ export const showToast = {
       },
     });
   },
-  
+
   error: (message: string) => {
     toast.error(message, {
       icon: <XCircle className="w-5 h-5" />,
@@ -28,7 +28,7 @@ export const showToast = {
       },
     });
   },
-  
+
   warning: (message: string) => {
     toast(message, {
       icon: <AlertCircle className="w-5 h-5" />,
@@ -40,7 +40,7 @@ export const showToast = {
       },
     });
   },
-  
+
   info: (message: string) => {
     toast(message, {
       icon: <Info className="w-5 h-5" />,
@@ -52,7 +52,7 @@ export const showToast = {
       },
     });
   },
-  
+
   loading: (message: string) => {
     return toast.loading(message, {
       style: {
@@ -63,7 +63,7 @@ export const showToast = {
       },
     });
   },
-  
+
   dismiss: (toastId?: string) => {
     toast.dismiss(toastId);
   },

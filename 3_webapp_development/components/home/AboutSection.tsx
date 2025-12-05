@@ -6,7 +6,10 @@ import { Target, Eye, Heart } from 'lucide-react';
 
 export const AboutSection: React.FC = () => {
   return (
-    <section id="about" className="py-20 md:py-32 bg-gradient-to-br from-gray-50 to-qolabb-beige-50">
+    <section
+      id="about"
+      className="py-20 md:py-32 bg-gradient-to-br from-gray-50 to-qolabb-beige-50"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Main About Content */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-20">
@@ -21,12 +24,13 @@ export const AboutSection: React.FC = () => {
             <div className="bg-gradient-to-br from-blue-500 to-qolabb-beige-500 rounded-2xl p-12 text-white">
               <h3 className="text-3xl font-bold mb-4">The Problem</h3>
               <p className="text-lg leading-relaxed mb-6">
-                In most student projects, participation is uneven. Some members do most of the work while others contribute very little.
+                In most student projects, participation is uneven. Some members do most of the work
+                while others contribute very little.
               </p>
               <p className="text-lg leading-relaxed">
                 This leads to frustration, unfair grading, and missed learning opportunities.
               </p>
-              
+
               {/* Stats Visualization */}
               <div className="mt-8 space-y-4">
                 <div>
@@ -62,12 +66,15 @@ export const AboutSection: React.FC = () => {
               About <span className="text-blue-600">Qolabb</span>
             </h2>
             <p className="text-xl text-gray-600 mb-6 leading-relaxed">
-              Qolabb is designed to solve this challenge by making team participation transparent, trackable, and fair.
+              Qolabb is designed to solve this challenge by making team participation transparent,
+              trackable, and fair.
             </p>
             <p className="text-lg text-gray-600 mb-8 leading-relaxed">
-              We combine simple data analytics with an intuitive user experience to help both students and instructors track contributions, visualize engagement, and encourage equitable teamwork.
+              We combine simple data analytics with an intuitive user experience to help both
+              students and instructors track contributions, visualize engagement, and encourage
+              equitable teamwork.
             </p>
-            
+
             {/* Key Points */}
             <div className="space-y-4">
               {[
@@ -106,17 +113,20 @@ export const AboutSection: React.FC = () => {
             {
               icon: Target,
               title: 'Our Mission',
-              description: 'To promote equitable participation and fair assessment in student group projects through data-driven transparency.',
+              description:
+                'To promote equitable participation and fair assessment in student group projects through data-driven transparency.',
             },
             {
               icon: Eye,
               title: 'Our Vision',
-              description: 'A world where every student contributes meaningfully to team projects and receives recognition for their work.',
+              description:
+                'A world where every student contributes meaningfully to team projects and receives recognition for their work.',
             },
             {
               icon: Heart,
               title: 'Our Values',
-              description: 'Transparency, fairness, accountability, and collaboration. We believe in empowering students through data.',
+              description:
+                'Transparency, fairness, accountability, and collaboration. We believe in empowering students through data.',
             },
           ].map((item, index) => (
             <motion.div
@@ -130,12 +140,8 @@ export const AboutSection: React.FC = () => {
               <div className="bg-qolabb-beige-100 w-14 h-14 rounded-xl flex items-center justify-center mb-6">
                 <item.icon className="text-blue-700" size={28} />
               </div>
-              <h3 className="text-2xl font-bold mb-4 text-gray-900">
-                {item.title}
-              </h3>
-              <p className="text-gray-600 leading-relaxed">
-                {item.description}
-              </p>
+              <h3 className="text-2xl font-bold mb-4 text-gray-900">{item.title}</h3>
+              <p className="text-gray-600 leading-relaxed">{item.description}</p>
             </motion.div>
           ))}
         </motion.div>

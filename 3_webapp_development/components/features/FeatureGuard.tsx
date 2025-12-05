@@ -15,32 +15,27 @@ interface FeatureGuardProps {
 
 /**
  * FeatureGuard component - Conditionally renders children based on feature flag
- * 
+ *
  * Usage:
  * <FeatureGuard feature="TASKS" featureName="Task Management">
  *   <TaskPage />
  * </FeatureGuard>
  */
-export function FeatureGuard({ 
-  feature, 
-  featureName, 
+export function FeatureGuard({
+  feature,
+  featureName,
   description,
-  children, 
-  fallback 
+  children,
+  fallback,
 }: FeatureGuardProps) {
   const isEnabled = useFeatureFlag(feature);
-  
+
   if (!isEnabled) {
     if (fallback) {
       return <>{fallback}</>;
     }
-    return (
-      <FeatureDisabled 
-        featureName={featureName}
-        description={description}
-      />
-    );
+    return <FeatureDisabled featureName={featureName} description={description} />;
   }
-  
+
   return <>{children}</>;
 }

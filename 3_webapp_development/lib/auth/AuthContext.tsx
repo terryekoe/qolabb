@@ -24,7 +24,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 /**
  * AuthProvider component that wraps the app and provides authentication state.
  * Manages user session, profile loading, and auth actions (sign in, sign up, etc.).
- * 
+ *
  * @param children - Child components to wrap
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -35,55 +35,61 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Get initial session with error handling
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (error) {
-        console.warn('⚠️ Session error:', error.message);
-        // If there's a session error, clear any stale data
-        if (error.message.includes('refresh_token_not_found') || error.message.includes('Invalid Refresh Token')) {
-          console.log('🧹 Clearing stale session data');
-          clearExpiredAuthCookies();
-          setSession(null);
-          setUser(null);
-          setProfile(null);
-          setLoading(false);
-          return;
+    supabase.auth
+      .getSession()
+      .then(({ data: { session }, error }) => {
+        if (error) {
+          console.warn('⚠️ Session error:', error.message);
+          // If there's a session error, clear any stale data
+          if (
+            error.message.includes('refresh_token_not_found') ||
+            error.message.includes('Invalid Refresh Token')
+          ) {
+            console.log('🧹 Clearing stale session data');
+            clearExpiredAuthCookies();
+            setSession(null);
+            setUser(null);
+            setProfile(null);
+            setLoading(false);
+            return;
+          }
         }
-      }
-      
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        loadProfile(session.user.id);
-      } else {
+
+        setSession(session);
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          loadProfile(session.user.id);
+        } else {
+          setLoading(false);
+        }
+      })
+      .catch((error) => {
+        console.error('❌ Failed to get session:', error);
+        clearExpiredAuthCookies();
         setLoading(false);
-      }
-    }).catch((error) => {
-      console.error('❌ Failed to get session:', error);
-      clearExpiredAuthCookies();
-      setLoading(false);
-    });
+      });
 
     // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('🔄 Auth state change:', event, session?.user?.id);
-      
+
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
         loadProfile(session.user.id);
       } else {
         setProfile(null);
         setLoading(false);
-        
+
         // Clear expired cookies when user is signed out or session is invalid
         if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
           clearExpiredAuthCookies();
         }
       }
-      
+
       // Handle specific auth events
       if (event === 'TOKEN_REFRESHED') {
         console.log('✅ Token refreshed successfully');
@@ -99,16 +105,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loadProfile = useCallback(async (userId: string) => {
     try {
       setLoading(true);
-      
+
       // Get user data from auth for fallback
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       // Get or create profile
       const profileData = await getOrCreateProfile(userId, {
         full_name: user?.user_metadata?.full_name,
         email: user?.email,
       });
-      
+
       setProfile(profileData);
     } catch (error: any) {
       console.error('Failed to load profile:', error?.message || error);
@@ -184,7 +192,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
     setProfile(null);
-    
+
     // Clear any expired auth cookies
     clearExpiredAuthCookies();
   }
@@ -208,11 +216,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (typeof document !== 'undefined') {
       // Get all cookies
       const cookies = document.cookie.split(';');
-      
+
       // Find and clear Supabase auth token cookies
-      cookies.forEach(cookie => {
+      cookies.forEach((cookie) => {
         const [name] = cookie.trim().split('=');
-        if (name.includes('sb-') && name.includes('auth-token') && !name.includes('code-verifier')) {
+        if (
+          name.includes('sb-') &&
+          name.includes('auth-token') &&
+          !name.includes('code-verifier')
+        ) {
           console.log('🧹 Clearing expired auth cookie:', name);
           // Set cookie to expire in the past
           document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname}`;

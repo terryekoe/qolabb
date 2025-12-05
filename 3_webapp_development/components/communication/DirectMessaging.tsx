@@ -186,10 +186,7 @@ export function DirectMessaging({ userId }: DirectMessagingProps) {
             <h3 className="font-semibold text-gray-900 dark:text-gray-100">Messages</h3>
           </div>
           <div className="relative">
-            <Search
-              size={18}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-            />
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
               value={searchQuery}
@@ -291,8 +288,9 @@ export function DirectMessaging({ userId }: DirectMessagingProps) {
               ) : (
                 messages.map((message) => {
                   const isOwnMessage = message.sender_id === userId;
-                  const showAvatar = !isOwnMessage ||
-                    (messages[messages.indexOf(message) - 1]?.sender_id !== message.sender_id);
+                  const showAvatar =
+                    !isOwnMessage ||
+                    messages[messages.indexOf(message) - 1]?.sender_id !== message.sender_id;
 
                   return (
                     <motion.div
@@ -304,7 +302,9 @@ export function DirectMessaging({ userId }: DirectMessagingProps) {
                       {showAvatar ? (
                         <Avatar
                           userId={message.sender_id}
-                          name={message.sender?.full_name || message.recipient?.full_name || 'Unknown'}
+                          name={
+                            message.sender?.full_name || message.recipient?.full_name || 'Unknown'
+                          }
                           src={message.sender?.avatar_url || message.recipient?.avatar_url}
                           size="md"
                         />
@@ -316,7 +316,9 @@ export function DirectMessaging({ userId }: DirectMessagingProps) {
                         {showAvatar && (
                           <div className="flex items-center gap-2 mb-1">
                             <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                              {message.sender?.full_name || message.recipient?.full_name || 'Unknown'}
+                              {message.sender?.full_name ||
+                                message.recipient?.full_name ||
+                                'Unknown'}
                             </span>
                             <span className="text-xs text-gray-500 dark:text-gray-400">
                               {formatTime(message.created_at)}
@@ -431,4 +433,3 @@ export function DirectMessaging({ userId }: DirectMessagingProps) {
     </div>
   );
 }
-

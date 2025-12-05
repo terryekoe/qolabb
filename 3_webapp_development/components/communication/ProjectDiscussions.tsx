@@ -127,7 +127,10 @@ export function ProjectDiscussions({ projectId, userId }: ProjectDiscussionsProp
 
     setSubmitting(true);
     try {
-      const tags = newTags.split(',').map((t) => t.trim()).filter(Boolean);
+      const tags = newTags
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean);
       await createProjectDiscussion(projectId, userId, newTitle, newContent, tags);
       toast.success('Discussion created');
       setShowCreateModal(false);
@@ -148,12 +151,7 @@ export function ProjectDiscussions({ projectId, userId }: ProjectDiscussionsProp
 
     setSubmitting(true);
     try {
-      await addProjectDiscussionComment(
-        selectedDiscussion.id,
-        userId,
-        newComment,
-        replyingTo?.id
-      );
+      await addProjectDiscussionComment(selectedDiscussion.id, userId, newComment, replyingTo?.id);
       toast.success('Comment added');
       setNewComment('');
       setReplyingTo(null);
@@ -222,9 +220,7 @@ export function ProjectDiscussions({ projectId, userId }: ProjectDiscussionsProp
                 </h3>
               </div>
               <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-                <span>
-                  by {selectedDiscussion.user?.full_name || 'Unknown'}
-                </span>
+                <span>by {selectedDiscussion.user?.full_name || 'Unknown'}</span>
                 <span>{formatTime(selectedDiscussion.created_at)}</span>
                 {selectedDiscussion.tags && selectedDiscussion.tags.length > 0 && (
                   <div className="flex items-center gap-1">
@@ -345,7 +341,7 @@ export function ProjectDiscussions({ projectId, userId }: ProjectDiscussionsProp
               <div className="absolute inset-0 bg-blue-100 dark:bg-blue-900/20 rounded-full blur-2xl opacity-50"></div>
               <MessageSquare size={56} className="relative text-blue-400 dark:text-blue-500 mb-2" />
             </div>
-            
+
             {/* Heading */}
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
               Start Collaborating!
@@ -353,7 +349,7 @@ export function ProjectDiscussions({ projectId, userId }: ProjectDiscussionsProp
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 max-w-sm mx-auto">
               Ask a question, share an update, or discuss ideas with your team
             </p>
-            
+
             {/* Quick Starters */}
             <div className="space-y-3 max-w-md mx-auto">
               <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
@@ -374,10 +370,12 @@ export function ProjectDiscussions({ projectId, userId }: ProjectDiscussionsProp
                   <p className="text-sm font-medium text-gray-900 dark:text-gray-100 group-hover:text-purple-700 dark:group-hover:text-purple-300 transition-colors">
                     Ask a Question
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Get help from your teammates</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Get help from your teammates
+                  </p>
                 </div>
               </button>
-              
+
               <button
                 onClick={() => {
                   setShowCreateModal(true);
@@ -393,10 +391,12 @@ export function ProjectDiscussions({ projectId, userId }: ProjectDiscussionsProp
                   <p className="text-sm font-medium text-gray-900 dark:text-gray-100 group-hover:text-green-700 dark:group-hover:text-green-300 transition-colors">
                     Share an Update
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Keep everyone in the loop</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Keep everyone in the loop
+                  </p>
                 </div>
               </button>
-              
+
               <button
                 onClick={() => {
                   setShowCreateModal(true);
@@ -412,7 +412,9 @@ export function ProjectDiscussions({ projectId, userId }: ProjectDiscussionsProp
                   <p className="text-sm font-medium text-gray-900 dark:text-gray-100 group-hover:text-yellow-700 dark:group-hover:text-yellow-300 transition-colors">
                     Suggest an Idea
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Brainstorm with the team</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Brainstorm with the team
+                  </p>
                 </div>
               </button>
             </div>

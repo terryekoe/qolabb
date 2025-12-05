@@ -1,11 +1,11 @@
-'use client'
+'use client';
 
-import { useState, useEffect, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Bell, 
+import { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Bell,
   BellRing,
-  Check, 
+  Check,
   X,
   Users,
   UserPlus,
@@ -13,151 +13,151 @@ import {
   Crown,
   Clock,
   Trash2,
-  Settings
-} from 'lucide-react'
-import { Button } from '@/components/Button'
-import Avatar from '@/components/ui/Avatar'
-import { useAuth } from '@/lib/auth/AuthContext'
-import { useWorkspace } from '@/lib/workspace/WorkspaceContext'
+  Settings,
+} from 'lucide-react';
+import { Button } from '@/components/Button';
+import Avatar from '@/components/ui/Avatar';
+import { useAuth } from '@/lib/auth/AuthContext';
+import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
 // Note: These notification functions would need to be implemented in the database queries
 // For now, using placeholder implementations
-import { toast } from 'react-hot-toast'
-import { 
-  getUserNotifications, 
-  markNotificationAsRead, 
-  markAllNotificationsAsRead, 
+import { toast } from 'react-hot-toast';
+import {
+  getUserNotifications,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
   deleteNotification,
-  Notification
-} from '@/lib/db/queries'
+  Notification,
+} from '@/lib/db/queries';
 
 interface TeamNotificationsProps {
-  onNotificationUpdate?: () => void
+  onNotificationUpdate?: () => void;
 }
 
 export default function TeamNotifications({ onNotificationUpdate }: TeamNotificationsProps) {
-  const { user } = useAuth()
-  const { currentWorkspace } = useWorkspace()
-  const [notifications, setNotifications] = useState<Notification[]>([])
-  const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('all')
-  const [showSettings, setShowSettings] = useState(false)
+  const { user } = useAuth();
+  const { currentWorkspace } = useWorkspace();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('all');
+  const [showSettings, setShowSettings] = useState(false);
 
   const loadNotifications = useCallback(async () => {
-    if (!user?.id) return
-    
+    if (!user?.id) return;
+
     try {
-      setLoading(true)
-      const userNotifications = await getUserNotifications(user.id)
-      setNotifications(userNotifications)
+      setLoading(true);
+      const userNotifications = await getUserNotifications(user.id);
+      setNotifications(userNotifications);
     } catch (error) {
-      console.error('Error loading notifications:', error)
-      toast.error('Failed to load notifications')
+      console.error('Error loading notifications:', error);
+      toast.error('Failed to load notifications');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [user?.id])
+  }, [user?.id]);
 
   useEffect(() => {
     if (user?.id) {
-      loadNotifications()
+      loadNotifications();
     }
-  }, [user?.id, loadNotifications])
+  }, [user?.id, loadNotifications]);
 
   const handleMarkAsRead = async (notificationId: string) => {
-    if (!user?.id) return
-    
+    if (!user?.id) return;
+
     try {
-      await markNotificationAsRead(notificationId, user.id)
-      setNotifications(prev => 
-        prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
-      )
+      await markNotificationAsRead(notificationId, user.id);
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n))
+      );
       if (onNotificationUpdate) {
-        onNotificationUpdate()
+        onNotificationUpdate();
       }
-      toast.success('Notification marked as read')
+      toast.success('Notification marked as read');
     } catch (error) {
-      console.error('Error marking notification as read:', error)
-      toast.error('Failed to mark notification as read')
+      console.error('Error marking notification as read:', error);
+      toast.error('Failed to mark notification as read');
     }
-  }
+  };
 
   const handleMarkAllAsRead = async () => {
-    if (!user?.id) return
-    
-    const unreadCount = notifications.filter(n => !n.read).length
+    if (!user?.id) return;
+
+    const unreadCount = notifications.filter((n) => !n.read).length;
     if (unreadCount === 0) {
-      toast('No unread notifications')
-      return
+      toast('No unread notifications');
+      return;
     }
-    
+
     try {
-      await markAllNotificationsAsRead(user.id)
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })))
-      toast.success('All notifications marked as read')
+      await markAllNotificationsAsRead(user.id);
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+      toast.success('All notifications marked as read');
       if (onNotificationUpdate) {
-        onNotificationUpdate()
+        onNotificationUpdate();
       }
     } catch (error) {
-      console.error('Error marking all notifications as read:', error)
-      toast.error('Failed to mark all notifications as read')
+      console.error('Error marking all notifications as read:', error);
+      toast.error('Failed to mark all notifications as read');
     }
-  }
+  };
 
   const handleDeleteNotification = async (notificationId: string) => {
-    if (!user?.id) return
-    
+    if (!user?.id) return;
+
     try {
-      await deleteNotification(notificationId, user.id)
-      setNotifications(prev => prev.filter(n => n.id !== notificationId))
-      toast.success('Notification deleted')
+      await deleteNotification(notificationId, user.id);
+      setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
+      toast.success('Notification deleted');
       if (onNotificationUpdate) {
-        onNotificationUpdate()
+        onNotificationUpdate();
       }
     } catch (error) {
-      console.error('Error deleting notification:', error)
-      toast.error('Failed to delete notification')
+      console.error('Error deleting notification:', error);
+      toast.error('Failed to delete notification');
     }
-  }
+  };
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'team_assignment':
-        return <UserPlus className="w-5 h-5 text-green-600" />
+        return <UserPlus className="w-5 h-5 text-green-600" />;
       case 'team_removal':
-        return <UserMinus className="w-5 h-5 text-red-600" />
+        return <UserMinus className="w-5 h-5 text-red-600" />;
       case 'role_change':
-        return <Crown className="w-5 h-5 text-yellow-600" />
+        return <Crown className="w-5 h-5 text-yellow-600" />;
       case 'join_request_approved':
-        return <Check className="w-5 h-5 text-green-600" />
+        return <Check className="w-5 h-5 text-green-600" />;
       case 'join_request_rejected':
-        return <X className="w-5 h-5 text-red-600" />
+        return <X className="w-5 h-5 text-red-600" />;
       default:
-        return <Bell className="w-5 h-5 text-blue-600" />
+        return <Bell className="w-5 h-5 text-blue-600" />;
     }
-  }
+  };
 
   const getNotificationColor = (type: string) => {
     switch (type) {
       case 'team_assignment':
       case 'join_request_approved':
-        return 'border-l-green-500 bg-green-50'
+        return 'border-l-green-500 bg-green-50';
       case 'team_removal':
       case 'join_request_rejected':
-        return 'border-l-red-500 bg-red-50'
+        return 'border-l-red-500 bg-red-50';
       case 'role_change':
-        return 'border-l-yellow-500 bg-yellow-50'
+        return 'border-l-yellow-500 bg-yellow-50';
       default:
-        return 'border-l-blue-500 bg-blue-50'
+        return 'border-l-blue-500 bg-blue-50';
     }
-  }
+  };
 
-  const filteredNotifications = notifications.filter(notification => {
-    if (filter === 'unread') return !notification.read
-    if (filter === 'read') return notification.read
-    return true
-  })
+  const filteredNotifications = notifications.filter((notification) => {
+    if (filter === 'unread') return !notification.read;
+    if (filter === 'read') return notification.read;
+    return true;
+  });
 
-  const unreadCount = notifications.filter(n => !n.read).length
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
     <div className="space-y-6">
@@ -179,7 +179,7 @@ export default function TeamNotifications({ onNotificationUpdate }: TeamNotifica
             </p>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-2">
           {unreadCount > 0 && (
             <Button
@@ -293,16 +293,18 @@ export default function TeamNotifications({ onNotificationUpdate }: TeamNotifica
         >
           <Bell size={64} className="mx-auto text-gray-300 mb-4" />
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            {filter === 'unread' ? 'No Unread Notifications' : 
-             filter === 'read' ? 'No Read Notifications' : 'No Notifications'}
+            {filter === 'unread'
+              ? 'No Unread Notifications'
+              : filter === 'read'
+                ? 'No Read Notifications'
+                : 'No Notifications'}
           </h3>
           <p className="text-gray-600">
-            {filter === 'unread' 
+            {filter === 'unread'
               ? "You're all caught up! No new notifications to review."
               : filter === 'read'
-              ? "No notifications have been read yet."
-              : "You'll see group assignment notifications here when they arrive."
-            }
+                ? 'No notifications have been read yet.'
+                : "You'll see group assignment notifications here when they arrive."}
           </p>
         </motion.div>
       ) : (
@@ -313,29 +315,27 @@ export default function TeamNotifications({ onNotificationUpdate }: TeamNotifica
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.05 }}
-              className={`bg-white rounded-xl border-l-4 p-4 shadow-sm transition-all duration-200 hover:shadow-md ${
-                getNotificationColor(notification.type)
-              } ${!notification.read ? 'border-r-4 border-r-blue-200' : ''}`}
+              className={`bg-white rounded-xl border-l-4 p-4 shadow-sm transition-all duration-200 hover:shadow-md ${getNotificationColor(
+                notification.type
+              )} ${!notification.read ? 'border-r-4 border-r-blue-200' : ''}`}
             >
               <div className="flex items-start gap-4">
                 {/* Notification Icon */}
-                <div className="flex-shrink-0 mt-1">
-                  {getNotificationIcon(notification.type)}
-                </div>
+                <div className="flex-shrink-0 mt-1">{getNotificationIcon(notification.type)}</div>
 
                 {/* Notification Content */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
-                      <h4 className={`font-semibold mb-1 ${
-                        !notification.read ? 'text-gray-900' : 'text-gray-700'
-                      }`}>
+                      <h4
+                        className={`font-semibold mb-1 ${
+                          !notification.read ? 'text-gray-900' : 'text-gray-700'
+                        }`}
+                      >
                         {notification.title}
                       </h4>
-                      <p className="text-gray-600 text-sm mb-2">
-                        {notification.message}
-                      </p>
-                      
+                      <p className="text-gray-600 text-sm mb-2">{notification.message}</p>
+
                       {/* Actor Info */}
                       {notification.data?.actor_name && (
                         <div className="flex items-center gap-2 mb-2">
@@ -349,7 +349,7 @@ export default function TeamNotifications({ onNotificationUpdate }: TeamNotifica
                           </span>
                         </div>
                       )}
-                      
+
                       {/* Timestamp */}
                       <div className="flex items-center gap-2 text-xs text-gray-500">
                         <Clock size={12} />
@@ -391,14 +391,19 @@ export default function TeamNotifications({ onNotificationUpdate }: TeamNotifica
         </div>
       )}
     </div>
-  )
+  );
 }
 
 // Hook for creating team assignment notifications
 export const useTeamNotifications = () => {
   const createNotification = async (
     userId: string,
-    type: 'team_assignment' | 'team_removal' | 'role_change' | 'join_request_approved' | 'join_request_rejected',
+    type:
+      | 'team_assignment'
+      | 'team_removal'
+      | 'role_change'
+      | 'join_request_approved'
+      | 'join_request_rejected',
     title: string,
     message: string,
     data?: any
@@ -406,20 +411,20 @@ export const useTeamNotifications = () => {
     try {
       // This would typically call a backend API to create the notification
       // For now, we'll use a placeholder implementation
-      console.log('Creating notification:', { userId, type, title, message, data })
-      
+      console.log('Creating notification:', { userId, type, title, message, data });
+
       // In a real implementation, this would:
       // 1. Insert into notifications table
       // 2. Send real-time update via WebSocket
       // 3. Send email notification if enabled
       // 4. Send push notification if enabled
-      
-      return true
+
+      return true;
     } catch (error) {
-      console.error('Error creating notification:', error)
-      return false
+      console.error('Error creating notification:', error);
+      return false;
     }
-  }
+  };
 
   const notifyTeamAssignment = async (
     userId: string,
@@ -434,8 +439,8 @@ export const useTeamNotifications = () => {
       'Added to Group',
       `You have been added to ${teamName} as a ${role}.`,
       { team_name: teamName, role, actor_name: actorName, actor_id: actorId }
-    )
-  }
+    );
+  };
 
   const notifyTeamRemoval = async (
     userId: string,
@@ -449,8 +454,8 @@ export const useTeamNotifications = () => {
       'Removed from Group',
       `You have been removed from ${teamName}.`,
       { team_name: teamName, actor_name: actorName, actor_id: actorId }
-    )
-  }
+    );
+  };
 
   const notifyRoleChange = async (
     userId: string,
@@ -465,41 +470,34 @@ export const useTeamNotifications = () => {
       'Role Updated',
       `Your role in ${teamName} has been changed to ${newRole}.`,
       { team_name: teamName, role: newRole, actor_name: actorName, actor_id: actorId }
-    )
-  }
+    );
+  };
 
-  const notifyJoinRequestApproved = async (
-    userId: string,
-    teamName: string,
-    role: string
-  ) => {
+  const notifyJoinRequestApproved = async (userId: string, teamName: string, role: string) => {
     return createNotification(
       userId,
       'join_request_approved',
       'Join Request Approved',
       `Your request to join ${teamName} has been approved. You are now a ${role}.`,
       { team_name: teamName, role }
-    )
-  }
+    );
+  };
 
-  const notifyJoinRequestRejected = async (
-    userId: string,
-    teamName: string
-  ) => {
+  const notifyJoinRequestRejected = async (userId: string, teamName: string) => {
     return createNotification(
       userId,
       'join_request_rejected',
       'Join Request Declined',
       `Your request to join ${teamName} has been declined.`,
       { team_name: teamName }
-    )
-  }
+    );
+  };
 
   return {
     notifyTeamAssignment,
     notifyTeamRemoval,
     notifyRoleChange,
     notifyJoinRequestApproved,
-    notifyJoinRequestRejected
-  }
-}
+    notifyJoinRequestRejected,
+  };
+};

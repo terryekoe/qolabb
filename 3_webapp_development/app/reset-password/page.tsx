@@ -35,9 +35,11 @@ function ResetPasswordContent() {
             return;
           }
         }
-        
+
         // Also check regular session
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         if (session) {
           setIsValidSession(true);
         } else {
@@ -108,10 +110,7 @@ function ResetPasswordContent() {
           {/* Logo */}
           <div>
             <Link href="/" className="inline-block">
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                className="text-4xl font-bold mb-2"
-              >
+              <motion.div whileHover={{ scale: 1.05 }} className="text-4xl font-bold mb-2">
                 <span className="text-black dark:text-white">Qol</span>
                 <span className="text-blue-600 dark:text-blue-400">abb</span>
               </motion.div>
@@ -131,7 +130,10 @@ function ResetPasswordContent() {
               animate={{ opacity: 1, y: 0 }}
               className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 flex items-start space-x-3"
             >
-              <AlertCircle className="text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" size={20} />
+              <AlertCircle
+                className="text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5"
+                size={20}
+              />
               <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
             </motion.div>
           )}
@@ -143,7 +145,10 @@ function ResetPasswordContent() {
               animate={{ opacity: 1, y: 0 }}
               className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 flex items-start space-x-3"
             >
-              <CheckCircle2 className="text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" size={20} />
+              <CheckCircle2
+                className="text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5"
+                size={20}
+              />
               <p className="text-sm text-green-800 dark:text-green-200">
                 Your password has been successfully updated!
               </p>
@@ -156,7 +161,10 @@ function ResetPasswordContent() {
               <div className="space-y-4">
                 {/* New Password */}
                 <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label
+                    htmlFor="password"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                  >
                     New Password
                   </label>
                   <div className="relative">
@@ -166,7 +174,7 @@ function ResetPasswordContent() {
                     <input
                       id="password"
                       name="password"
-                      type={showPassword ? "text" : "password"}
+                      type={showPassword ? 'text' : 'password'}
                       autoComplete="new-password"
                       required
                       value={password}
@@ -182,12 +190,17 @@ function ResetPasswordContent() {
                       {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
                   </div>
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Must be at least 6 characters</p>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Must be at least 6 characters
+                  </p>
                 </div>
 
                 {/* Confirm Password */}
                 <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label
+                    htmlFor="confirmPassword"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                  >
                     Confirm New Password
                   </label>
                   <div className="relative">
@@ -197,7 +210,7 @@ function ResetPasswordContent() {
                     <input
                       id="confirmPassword"
                       name="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
+                      type={showConfirmPassword ? 'text' : 'password'}
                       autoComplete="new-password"
                       required
                       value={confirmPassword}
@@ -225,7 +238,10 @@ function ResetPasswordContent() {
                 disabled={loading}
               >
                 {loading ? 'Updating password...' : 'Update password'}
-                <ArrowRight className="inline-block ml-2 group-hover:translate-x-1 transition-transform" size={20} />
+                <ArrowRight
+                  className="inline-block ml-2 group-hover:translate-x-1 transition-transform"
+                  size={20}
+                />
               </Button>
             </form>
           )}
@@ -234,11 +250,7 @@ function ResetPasswordContent() {
           {error && !isValidSession && (
             <div className="mt-6">
               <Link href="/forgot-password">
-                <Button
-                  variant="primary"
-                  size="lg"
-                  className="w-full"
-                >
+                <Button variant="primary" size="lg" className="w-full">
                   Request new reset link
                 </Button>
               </Link>
@@ -255,27 +267,28 @@ function ResetPasswordContent() {
           transition={{ duration: 0.8 }}
           className="max-w-lg text-white"
         >
-          <h2 className="text-4xl font-bold mb-6">
-            Secure your account
-          </h2>
+          <h2 className="text-4xl font-bold mb-6">Secure your account</h2>
           <p className="text-xl text-white/90 mb-8">
-            Choose a strong password to keep your account safe. Make sure it's unique and hard to guess.
+            Choose a strong password to keep your account safe. Make sure it's unique and hard to
+            guess.
           </p>
           <div className="space-y-4">
-            {['At least 6 characters', 'Mix of letters and numbers', 'Unique to this account'].map((tip, i) => (
-              <motion.div
-                key={tip}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 + i * 0.1 }}
-                className="flex items-center space-x-3"
-              >
-                <div className="bg-white/20 rounded-full p-1">
-                  <div className="w-2 h-2 bg-white rounded-full"></div>
-                </div>
-                <span className="text-lg">{tip}</span>
-              </motion.div>
-            ))}
+            {['At least 6 characters', 'Mix of letters and numbers', 'Unique to this account'].map(
+              (tip, i) => (
+                <motion.div
+                  key={tip}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 + i * 0.1 }}
+                  className="flex items-center space-x-3"
+                >
+                  <div className="bg-white/20 rounded-full p-1">
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                  </div>
+                  <span className="text-lg">{tip}</span>
+                </motion.div>
+              )
+            )}
           </div>
         </motion.div>
       </div>
@@ -285,11 +298,13 @@ function ResetPasswordContent() {
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      }
+    >
       <ResetPasswordContent />
     </Suspense>
   );

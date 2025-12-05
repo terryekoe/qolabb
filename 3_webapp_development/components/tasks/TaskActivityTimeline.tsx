@@ -69,14 +69,16 @@ export function TaskActivityTimeline({ taskId, projectId }: TaskActivityTimeline
       setLoading(true);
       const { data, error } = await supabase
         .from('activity_log')
-        .select(`
+        .select(
+          `
           id,
           action_type,
           user_id,
           created_at,
           metadata,
           user:profiles!user_id(id, full_name, avatar_url)
-        `)
+        `
+        )
         .eq('entity_type', 'task')
         .eq('entity_id', taskId)
         .order('created_at', { ascending: false })
@@ -160,7 +162,7 @@ export function TaskActivityTimeline({ taskId, projectId }: TaskActivityTimeline
     if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
     if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
     if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
-    
+
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -169,11 +171,7 @@ export function TaskActivityTimeline({ taskId, projectId }: TaskActivityTimeline
   }
 
   if (loading && activities.length === 0) {
-    return (
-      <div className="text-center py-8 text-sm text-gray-500">
-        Loading activity...
-      </div>
-    );
+    return <div className="text-center py-8 text-sm text-gray-500">Loading activity...</div>;
   }
 
   if (activities.length === 0) {
@@ -181,9 +179,7 @@ export function TaskActivityTimeline({ taskId, projectId }: TaskActivityTimeline
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
         <Clock size={24} className="mx-auto text-gray-300 mb-2" />
         <p className="text-sm text-gray-500">No activity yet</p>
-        <p className="text-xs text-gray-400 mt-1">
-          Task activity and updates will appear here
-        </p>
+        <p className="text-xs text-gray-400 mt-1">Task activity and updates will appear here</p>
       </div>
     );
   }
@@ -221,9 +217,7 @@ export function TaskActivityTimeline({ taskId, projectId }: TaskActivityTimeline
                       src={activity.user?.avatar_url}
                       size="xs"
                     />
-                    <p className="text-sm text-gray-900 truncate">
-                      {getActivityMessage(activity)}
-                    </p>
+                    <p className="text-sm text-gray-900 truncate">{getActivityMessage(activity)}</p>
                   </div>
                   <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
                     {formatTimeAgo(activity.created_at)}

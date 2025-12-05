@@ -61,7 +61,7 @@ export function WeeklyLoopManager({ teamId, teamName, onComplete }: WeeklyLoopMa
 
   const handleStepComplete = (stepId: WeeklyLoopStep['id']) => {
     setCompletedSteps((prev) => new Set([...prev, stepId]));
-    
+
     // Move to next step
     const currentIndex = steps.findIndex((s) => s.id === stepId);
     if (currentIndex < steps.length - 1) {
@@ -75,19 +75,9 @@ export function WeeklyLoopManager({ teamId, teamName, onComplete }: WeeklyLoopMa
   const renderCurrentStep = () => {
     switch (currentStep) {
       case 'update':
-        return (
-          <WeeklyUpdateStep
-            teamId={teamId}
-            onComplete={() => handleStepComplete('update')}
-          />
-        );
+        return <WeeklyUpdateStep teamId={teamId} onComplete={() => handleStepComplete('update')} />;
       case 'review':
-        return (
-          <WeeklyReviewStep
-            teamId={teamId}
-            onComplete={() => handleStepComplete('review')}
-          />
-        );
+        return <WeeklyReviewStep teamId={teamId} onComplete={() => handleStepComplete('review')} />;
       case 'retro':
         return (
           <WeeklyRetrospective
@@ -138,8 +128,8 @@ export function WeeklyLoopManager({ teamId, teamName, onComplete }: WeeklyLoopMa
                     step.completed
                       ? 'bg-green-500 text-white'
                       : currentStep === step.id
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-200 text-gray-600'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-200 text-gray-600'
                   }`}
                 >
                   {step.completed ? (
@@ -149,14 +139,14 @@ export function WeeklyLoopManager({ teamId, teamName, onComplete }: WeeklyLoopMa
                   )}
                 </div>
                 <div className="min-w-0">
-                  <p className={`text-sm font-medium ${currentStep === step.id ? 'text-blue-600' : 'text-gray-600'}`}>
+                  <p
+                    className={`text-sm font-medium ${currentStep === step.id ? 'text-blue-600' : 'text-gray-600'}`}
+                  >
                     {step.label}
                   </p>
                 </div>
               </div>
-              {index < steps.length - 1 && (
-                <ArrowRight className="text-gray-400 mx-2" size={16} />
-              )}
+              {index < steps.length - 1 && <ArrowRight className="text-gray-400 mx-2" size={16} />}
             </React.Fragment>
           ))}
         </div>
@@ -191,16 +181,22 @@ function WeeklyUpdateStep({ teamId, onComplete }: { teamId: string; onComplete: 
             <input
               type="number"
               value={updates.tasksCompleted}
-              onChange={(e) => setUpdates({ ...updates, tasksCompleted: parseInt(e.target.value) || 0 })}
+              onChange={(e) =>
+                setUpdates({ ...updates, tasksCompleted: parseInt(e.target.value) || 0 })
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div className="bg-gray-50 rounded-lg p-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Contributions Logged</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Contributions Logged
+            </label>
             <input
               type="number"
               value={updates.contributionsLogged}
-              onChange={(e) => setUpdates({ ...updates, contributionsLogged: parseInt(e.target.value) || 0 })}
+              onChange={(e) =>
+                setUpdates({ ...updates, contributionsLogged: parseInt(e.target.value) || 0 })
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -208,7 +204,9 @@ function WeeklyUpdateStep({ teamId, onComplete }: { teamId: string; onComplete: 
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Any blockers or challenges?</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Any blockers or challenges?
+        </label>
         <textarea
           value={updates.blockers}
           onChange={(e) => setUpdates({ ...updates, blockers: e.target.value })}

@@ -86,7 +86,9 @@ export const WorkspaceSwitcher: React.FC<WorkspaceSwitcherProps> = ({ isOpen, on
                           onError={(e) => {
                             // Fallback to Building2 icon if image fails to load
                             e.currentTarget.style.display = 'none';
-                            const fallback = e.currentTarget.parentElement?.querySelector('.workspace-icon-fallback');
+                            const fallback = e.currentTarget.parentElement?.querySelector(
+                              '.workspace-icon-fallback'
+                            );
                             if (fallback) (fallback as HTMLElement).style.display = 'flex';
                           }}
                         />
@@ -103,15 +105,15 @@ export const WorkspaceSwitcher: React.FC<WorkspaceSwitcherProps> = ({ isOpen, on
                       <div className="flex-1 min-w-0 text-left">
                         <p className="font-semibold text-gray-900 truncate">{workspace.name}</p>
                         {workspace.description && (
-                          <p className="text-sm text-gray-500 dark:text-gray-400">{workspace.description}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            {workspace.description}
+                          </p>
                         )}
                         <p className="text-xs text-gray-400 mt-0.5">
                           {wm.role === 'owner' ? 'Owner' : wm.role === 'admin' ? 'Admin' : 'Member'}
                         </p>
                       </div>
-                      {isActive && (
-                        <Check className="text-blue-600 flex-shrink-0" size={20} />
-                      )}
+                      {isActive && <Check className="text-blue-600 flex-shrink-0" size={20} />}
                     </motion.button>
                   );
                 })}

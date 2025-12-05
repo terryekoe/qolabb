@@ -139,7 +139,11 @@ interface ParticipationAlertsPanelProps {
   onAction?: (alertId: string, action: string) => void;
 }
 
-export function ParticipationAlertsPanel({ alerts, onDismiss, onAction }: ParticipationAlertsPanelProps) {
+export function ParticipationAlertsPanel({
+  alerts,
+  onDismiss,
+  onAction,
+}: ParticipationAlertsPanelProps) {
   if (alerts.length === 0) return null;
 
   const highPriorityAlerts = alerts.filter((a) => a.severity === 'high');

@@ -9,12 +9,12 @@ import { UserRole, WorkspaceMemberRole } from './database';
 // ENHANCED USER ROLES
 // =====================================================
 
-export type EnhancedUserRole = 
-  | 'student'           // Regular student user
-  | 'instructor'        // Course instructor/professor
+export type EnhancedUserRole =
+  | 'student' // Regular student user
+  | 'instructor' // Course instructor/professor
   | 'teaching_assistant' // TA with limited instructor privileges
-  | 'admin'             // Platform administrator
-  | 'both';             // Student who can also instruct
+  | 'admin' // Platform administrator
+  | 'both'; // Student who can also instruct
 
 // =====================================================
 // PERMISSION CATEGORIES
@@ -28,7 +28,7 @@ export interface Permissions {
     view_others: boolean;
     edit_others: boolean;
   };
-  
+
   // Workspace Management
   workspace: {
     create: boolean;
@@ -39,7 +39,7 @@ export interface Permissions {
     remove_members: boolean;
     view_analytics: boolean;
   };
-  
+
   // Team Management
   team: {
     create: boolean;
@@ -50,7 +50,7 @@ export interface Permissions {
     assign_members: boolean;
     view_team_analytics: boolean;
   };
-  
+
   // Project Management
   project: {
     create: boolean;
@@ -60,7 +60,7 @@ export interface Permissions {
     assign_tasks: boolean;
     view_project_analytics: boolean;
   };
-  
+
   // Task Management
   task: {
     create: boolean;
@@ -69,7 +69,7 @@ export interface Permissions {
     delete_any: boolean;
     assign_to_others: boolean;
   };
-  
+
   // Contributions & Logging
   contribution: {
     log_own: boolean;
@@ -78,7 +78,7 @@ export interface Permissions {
     delete_any: boolean;
     approve_submissions: boolean;
   };
-  
+
   // Analytics & Reporting
   analytics: {
     view_own_stats: boolean;
@@ -87,7 +87,7 @@ export interface Permissions {
     export_data: boolean;
     generate_reports: boolean;
   };
-  
+
   // Administrative
   admin: {
     manage_users: boolean;
@@ -446,20 +446,20 @@ export function canAccessWorkspace(
   workspaceMemberRole: WorkspaceMemberRole
 ): boolean {
   const permissions = getPermissions(userRole);
-  
+
   // Admin can access everything
   if (userRole === 'admin') return true;
-  
+
   // Workspace owners and admins have elevated access
   if (workspaceMemberRole === 'owner' || workspaceMemberRole === 'admin') {
     return true;
   }
-  
+
   // Instructors can access their workspaces
   if (userRole === 'instructor' || userRole === 'both') {
     return permissions.workspace.view_all;
   }
-  
+
   return false;
 }
 
@@ -472,34 +472,34 @@ export function getRoleInfo(role: EnhancedUserRole) {
       label: 'Student',
       description: 'Participate in teams and projects',
       color: 'blue',
-      icon: '🎓'
+      icon: '🎓',
     },
     instructor: {
       label: 'Instructor',
       description: 'Manage courses and monitor student progress',
       color: 'purple',
-      icon: '👨‍🏫'
+      icon: '👨‍🏫',
     },
     teaching_assistant: {
       label: 'Teaching Assistant',
       description: 'Assist with course management and student support',
       color: 'green',
-      icon: '👨‍🎓'
+      icon: '👨‍🎓',
     },
     admin: {
       label: 'Administrator',
       description: 'Full platform access and management',
       color: 'red',
-      icon: '⚙️'
+      icon: '⚙️',
     },
     both: {
       label: 'Student & Instructor',
       description: 'Dual role with context-based permissions',
       color: 'indigo',
-      icon: '🎭'
-    }
+      icon: '🎭',
+    },
   };
-  
+
   return roleInfo[role];
 }
 

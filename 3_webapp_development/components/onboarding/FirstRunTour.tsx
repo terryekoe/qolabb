@@ -2,7 +2,17 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Check, ArrowRight, Target, Users, FolderKanban, BarChart3, Settings, Sparkles } from 'lucide-react';
+import {
+  X,
+  Check,
+  ArrowRight,
+  Target,
+  Users,
+  FolderKanban,
+  BarChart3,
+  Settings,
+  Sparkles,
+} from 'lucide-react';
 import { Button } from '@/components/Button';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
@@ -117,7 +127,7 @@ export function FirstRunTour({ onComplete }: FirstRunTourProps) {
     if (action) {
       action();
     }
-    setCompletedItems(prev => new Set([...prev, itemId]));
+    setCompletedItems((prev) => new Set([...prev, itemId]));
   };
 
   const handleNext = () => {
@@ -133,7 +143,7 @@ export function FirstRunTour({ onComplete }: FirstRunTourProps) {
     if (typeof window !== 'undefined') {
       localStorage.setItem('first_tour_completed', 'true');
     }
-    
+
     if (user) {
       try {
         // Mark tour as completed in profile
@@ -154,7 +164,7 @@ export function FirstRunTour({ onComplete }: FirstRunTourProps) {
     if (typeof window !== 'undefined') {
       localStorage.setItem('first_tour_completed', 'true');
     }
-    
+
     // Also try to update profile if user exists
     if (user) {
       try {
@@ -165,7 +175,7 @@ export function FirstRunTour({ onComplete }: FirstRunTourProps) {
         console.error('Failed to save tour dismissal:', error);
       }
     }
-    
+
     setDismissed(true);
     setTimeout(() => onComplete(), 300);
   };
@@ -242,7 +252,9 @@ export function FirstRunTour({ onComplete }: FirstRunTourProps) {
                     >
                       {isCompleted && <Check size={14} />}
                     </div>
-                    <span className={`flex-1 text-left font-medium ${isCompleted ? 'text-gray-700' : 'text-gray-900'}`}>
+                    <span
+                      className={`flex-1 text-left font-medium ${isCompleted ? 'text-gray-700' : 'text-gray-900'}`}
+                    >
                       {item.label}
                     </span>
                     {isCompleted && (
@@ -268,8 +280,8 @@ export function FirstRunTour({ onComplete }: FirstRunTourProps) {
                     index === currentStep
                       ? 'w-8 bg-blue-500'
                       : index < currentStep
-                      ? 'w-2 bg-blue-300'
-                      : 'w-2 bg-gray-200'
+                        ? 'w-2 bg-blue-300'
+                        : 'w-2 bg-gray-200'
                   }`}
                 />
               ))}
@@ -284,11 +296,7 @@ export function FirstRunTour({ onComplete }: FirstRunTourProps) {
             >
               Skip Tour
             </button>
-            <Button
-              onClick={handleNext}
-              variant="primary"
-              className="flex items-center space-x-2"
-            >
+            <Button onClick={handleNext} variant="primary" className="flex items-center space-x-2">
               <span>{currentStep < tourSteps.length - 1 ? 'Next' : 'Get Started'}</span>
               <ArrowRight size={18} />
             </Button>

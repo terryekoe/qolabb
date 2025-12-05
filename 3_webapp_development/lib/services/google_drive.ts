@@ -2,7 +2,7 @@ import { google } from 'googleapis';
 
 /**
  * Google Drive Service
- * 
+ *
  * Handles interactions with the Google Drive API using a Service Account.
  * Requires GOOGLE_CLIENT_EMAIL and GOOGLE_PRIVATE_KEY environment variables.
  */
@@ -42,16 +42,19 @@ export class GoogleDriveService {
    * @param teamName The name of the team to include in the new file name.
    * @returns A promise that resolves to the new file ID and webViewLink.
    */
-  async createTeamCopy(templateId: string, teamName: string): Promise<{ fileId: string; webViewLink: string; name: string }> {
+  async createTeamCopy(
+    templateId: string,
+    teamName: string
+  ): Promise<{ fileId: string; webViewLink: string; name: string }> {
     if (!this.drive) {
       return this.mockCreateTeamCopy(templateId, teamName);
     }
 
     try {
       console.log(`[GoogleDrive] Copying template ${templateId} for team ${teamName}...`);
-      
+
       const newFileName = `${teamName} - Assignment Workspace`;
-      
+
       const response = await this.drive.files.copy({
         fileId: templateId,
         requestBody: {
@@ -64,7 +67,7 @@ export class GoogleDriveService {
       console.log(`[GoogleDrive] Created file: ${name} (${id})`);
 
       // Make it editable by anyone with the link (or restrict to domain if needed)
-      // For simplicity in this MVP, we'll make it "anyone with link can edit" 
+      // For simplicity in this MVP, we'll make it "anyone with link can edit"
       // or we could rely on the folder permissions if we put it in a folder.
       // Let's add "anyone with link" permission for now to ensure access.
       await this.drive.permissions.create({
@@ -78,7 +81,7 @@ export class GoogleDriveService {
       return {
         fileId: id,
         webViewLink,
-        name
+        name,
       };
     } catch (error: any) {
       console.error('[GoogleDrive] Error creating copy:', error);
@@ -89,10 +92,13 @@ export class GoogleDriveService {
   /**
    * Fallback mock implementation
    */
-  private async mockCreateTeamCopy(templateId: string, teamName: string): Promise<{ fileId: string; webViewLink: string; name: string }> {
+  private async mockCreateTeamCopy(
+    templateId: string,
+    teamName: string
+  ): Promise<{ fileId: string; webViewLink: string; name: string }> {
     console.log(`[Mock GoogleDrive] Copying template ${templateId} for team ${teamName}...`);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
     // Return the template itself as a fallback so links work
     const webViewLink = `https://docs.google.com/document/d/${templateId}/edit?usp=sharing`;
     const newFileName = `${teamName} - Assignment Workspace (Mock)`;
@@ -100,7 +106,7 @@ export class GoogleDriveService {
     return {
       fileId: templateId, // Use template ID to avoid 404s
       webViewLink,
-      name: newFileName
+      name: newFileName,
     };
   }
 
@@ -110,24 +116,28 @@ export class GoogleDriveService {
    * @param content The text content to insert into the document.
    * @param teamName The name of the team (for file naming).
    */
-  async createDocWithContent(title: string, content: string, teamName: string): Promise<{ fileId: string; webViewLink: string; name: string }> {
+  async createDocWithContent(
+    title: string,
+    content: string,
+    teamName: string
+  ): Promise<{ fileId: string; webViewLink: string; name: string }> {
     if (!this.drive) {
       return this.mockCreateDocWithContent(title, content, teamName);
     }
 
     try {
       console.log(`[GoogleDrive] Creating doc "${title}" for team ${teamName}...`);
-      
+
       const newFileName = `${teamName} - ${title}`;
-      
+
       // 1. Create a blank document
       let parentFolderId = process.env.GOOGLE_PARENT_FOLDER_ID;
-      
+
       // Sanitize folder ID (remove query params if user pasted full URL)
       if (parentFolderId && parentFolderId.includes('?')) {
         parentFolderId = parentFolderId.split('?')[0];
       }
-      
+
       const fileMetadata: any = {
         name: newFileName,
         mimeType: 'application/vnd.google-apps.document',
@@ -136,7 +146,7 @@ export class GoogleDriveService {
       if (parentFolderId) {
         fileMetadata.parents = [parentFolderId];
       }
-      
+
       const createResponse = await this.drive.files.create({
         requestBody: fileMetadata,
         fields: 'id, name, webViewLink',
@@ -177,7 +187,7 @@ export class GoogleDriveService {
                   },
                   fields: 'bold,fontSize',
                 },
-              }
+              },
             ],
           },
         });
@@ -195,7 +205,7 @@ export class GoogleDriveService {
       return {
         fileId: id,
         webViewLink,
-        name
+        name,
       };
     } catch (error: any) {
       console.error('[GoogleDrive] Error creating doc:', error);
@@ -203,20 +213,24 @@ export class GoogleDriveService {
     }
   }
 
-  private async mockCreateDocWithContent(title: string, content: string, teamName: string): Promise<{ fileId: string; webViewLink: string; name: string }> {
+  private async mockCreateDocWithContent(
+    title: string,
+    content: string,
+    teamName: string
+  ): Promise<{ fileId: string; webViewLink: string; name: string }> {
     console.log(`[Mock GoogleDrive] Creating doc "${title}" for team ${teamName}...`);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
     // For mock, we can't create a real doc with content.
     // We'll just return a link to a generic "Blank" Google Doc or the user's template if we had one (but we don't here).
     // Let's return a link to a new blank doc.
-    const webViewLink = `https://docs.google.com/document/create`; 
+    const webViewLink = `https://docs.google.com/document/create`;
     const newFileName = `${teamName} - ${title} (Mock)`;
 
     return {
       fileId: 'mock_auto_doc_' + Date.now(),
       webViewLink,
-      name: newFileName
+      name: newFileName,
     };
   }
 

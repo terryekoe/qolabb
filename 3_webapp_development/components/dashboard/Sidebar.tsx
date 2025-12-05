@@ -102,9 +102,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
 
   // Build base navigation items (always visible when feature enabled)
   const baseNavigationItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard', feature: 'DASHBOARD' as const },
+    {
+      icon: LayoutDashboard,
+      label: 'Dashboard',
+      href: '/dashboard',
+      feature: 'DASHBOARD' as const,
+    },
     { icon: FolderKanban, label: 'Assignments', href: '/projects', feature: 'PROJECTS' as const },
-    { icon: CheckSquare, label: isInstructor ? 'Contributions' : 'My Contributions', href: '/tasks', feature: 'TASKS' as const },
+    {
+      icon: CheckSquare,
+      label: isInstructor ? 'Contributions' : 'My Contributions',
+      href: '/tasks',
+      feature: 'TASKS' as const,
+    },
     { icon: Users, label: 'My Group', href: '/teams', feature: 'STUDY_GROUPS' as const },
     { icon: Settings, label: 'Settings', href: '/settings', feature: 'SETTINGS_PROFILE' as const },
   ].filter((item): item is typeof item & { feature: string } => isFeatureEnabled(item.feature));
@@ -112,11 +122,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
   // Analytics - only show if user has access
   // Analytics - only show for instructors
   if (isInstructor) {
-    baseNavigationItems.splice(1, 0, { 
-      icon: BarChart3, 
-      label: 'Analytics', 
-      href: '/analytics', 
-      feature: 'ANALYTICS' as any 
+    baseNavigationItems.splice(1, 0, {
+      icon: BarChart3,
+      label: 'Analytics',
+      href: '/analytics',
+      feature: 'ANALYTICS' as any,
     });
   }
 
@@ -138,7 +148,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
     if (!name) return 'U';
     return name
       .split(' ')
-      .map(n => n[0])
+      .map((n) => n[0])
       .join('')
       .toUpperCase()
       .slice(0, 2);
@@ -168,124 +178,128 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
         className="fixed left-0 top-0 w-64 bg-blue-600 dark:bg-blue-800 border-r border-blue-700 dark:border-blue-900 h-screen z-50 flex flex-col"
       >
-      {/* Logo & Workspace */}
-      <div className="p-6 border-b border-blue-500 dark:border-blue-700">
-        <div className="flex items-center justify-between mb-4">
-          <Link href="/dashboard">
-            <div className="text-2xl font-bold">
-              <span className="text-white">Qol</span>
-              <span className="text-white">abb</span>
-            </div>
-          </Link>
-          
-          {/* Mobile Close Button */}
+        {/* Logo & Workspace */}
+        <div className="p-6 border-b border-blue-500 dark:border-blue-700">
+          <div className="flex items-center justify-between mb-4">
+            <Link href="/dashboard">
+              <div className="text-2xl font-bold">
+                <span className="text-white">Qol</span>
+                <span className="text-white">abb</span>
+              </div>
+            </Link>
+
+            {/* Mobile Close Button */}
+            <button
+              onClick={onClose}
+              className="md:hidden p-2 hover:bg-blue-700 dark:hover:bg-blue-700 rounded-lg transition-colors"
+            >
+              <X size={20} className="text-white" />
+            </button>
+          </div>
+
+          {/* Workspace Switcher */}
           <button
-            onClick={onClose}
-            className="md:hidden p-2 hover:bg-blue-700 dark:hover:bg-blue-700 rounded-lg transition-colors"
+            onClick={() => setShowWorkspaceSwitcher(true)}
+            className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-700 transition-colors group"
           >
-            <X size={20} className="text-white" />
+            <div className="flex items-center space-x-2 flex-1 min-w-0">
+              {currentWorkspace?.icon_url ? (
+                <img
+                  src={currentWorkspace.icon_url}
+                  alt={currentWorkspace.name}
+                  className="w-8 h-8 rounded-lg object-cover flex-shrink-0"
+                  onError={(e) => {
+                    // Fallback to Building2 icon if image fails to load
+                    e.currentTarget.style.display = 'none';
+                    const fallback = e.currentTarget.parentElement?.querySelector('.icon-fallback');
+                    if (fallback) (fallback as HTMLElement).style.display = 'flex';
+                  }}
+                />
+              ) : null}
+              <div
+                className={`bg-blue-500 dark:bg-blue-700 p-2 rounded-lg flex-shrink-0 ${currentWorkspace?.icon_url ? 'hidden icon-fallback' : ''}`}
+              >
+                <Building2 size={16} className="text-white" />
+              </div>
+              <span className="text-sm font-medium text-white truncate">
+                {currentWorkspace?.name || 'Select Class'}
+              </span>
+            </div>
+            <ChevronDown size={16} className="text-white flex-shrink-0" />
           </button>
         </div>
-        
-        {/* Workspace Switcher */}
-        <button 
-          onClick={() => setShowWorkspaceSwitcher(true)}
-          className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-700 transition-colors group"
-        >
-          <div className="flex items-center space-x-2 flex-1 min-w-0">
-            {currentWorkspace?.icon_url ? (
-              <img
-                src={currentWorkspace.icon_url}
-                alt={currentWorkspace.name}
-                className="w-8 h-8 rounded-lg object-cover flex-shrink-0"
-                onError={(e) => {
-                  // Fallback to Building2 icon if image fails to load
-                  e.currentTarget.style.display = 'none';
-                  const fallback = e.currentTarget.parentElement?.querySelector('.icon-fallback');
-                  if (fallback) (fallback as HTMLElement).style.display = 'flex';
-                }}
-              />
-            ) : null}
-            <div className={`bg-blue-500 dark:bg-blue-700 p-2 rounded-lg flex-shrink-0 ${currentWorkspace?.icon_url ? 'hidden icon-fallback' : ''}`}>
-              <Building2 size={16} className="text-white" />
+
+        {/* Navigation */}
+        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+          {navigationItems.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.href);
+            // Use badge from item if available, otherwise check for legacy tasks badge
+            const badgeCount =
+              'badge' in item
+                ? item.badge
+                : item.href === '/tasks' && pendingTasksCount > 0
+                  ? pendingTasksCount
+                  : 0;
+            const showBadge = badgeCount > 0;
+
+            return (
+              <Link key={item.href} href={item.href} prefetch={true} className="block">
+                <motion.div
+                  whileHover={{ x: 4 }}
+                  className={`flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${
+                    active
+                      ? 'bg-blue-700 dark:bg-blue-700 text-white'
+                      : 'text-white hover:bg-blue-700 dark:hover:bg-blue-700'
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <Icon size={20} className="text-white" />
+                    <span className="font-medium text-white">{item.label}</span>
+                  </div>
+                  {showBadge && (
+                    <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 bg-red-500 text-white text-xs font-semibold rounded-full">
+                      {badgeCount > 99 ? '99+' : badgeCount}
+                    </span>
+                  )}
+                </motion.div>
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* User Section */}
+        <div className="p-4 border-t border-blue-500 dark:border-blue-700">
+          <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-700 cursor-pointer mb-2">
+            <Avatar
+              userId={user?.id || 'current-user'}
+              name={profile?.full_name || 'User'}
+              src={profile?.avatar_url}
+              size="md"
+            />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-white truncate">
+                {profile?.full_name || 'User'}
+              </p>
+              <p className="text-xs text-white truncate opacity-90">{user?.email}</p>
             </div>
-            <span className="text-sm font-medium text-white truncate">
-              {currentWorkspace?.name || 'Select Class'}
-            </span>
           </div>
-          <ChevronDown size={16} className="text-white flex-shrink-0" />
-        </button>
-      </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-        {navigationItems.map((item) => {
-          const Icon = item.icon;
-          const active = isActive(item.href);
-          // Use badge from item if available, otherwise check for legacy tasks badge
-          const badgeCount = 'badge' in item ? item.badge : (item.href === '/tasks' && pendingTasksCount > 0 ? pendingTasksCount : 0);
-          const showBadge = badgeCount > 0;
-          
-          return (
-            <Link 
-              key={item.href} 
-              href={item.href}
-              prefetch={true}
-              className="block"
-            >
-              <motion.div
-                whileHover={{ x: 4 }}
-                className={`flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${
-                  active
-                    ? 'bg-blue-700 dark:bg-blue-700 text-white'
-                    : 'text-white hover:bg-blue-700 dark:hover:bg-blue-700'
-                }`}
-              >
-                <div className="flex items-center space-x-3">
-                  <Icon size={20} className="text-white" />
-                  <span className="font-medium text-white">{item.label}</span>
-                </div>
-                {showBadge && (
-                  <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 bg-red-500 text-white text-xs font-semibold rounded-full">
-                    {badgeCount > 99 ? '99+' : badgeCount}
-                  </span>
-                )}
-              </motion.div>
-            </Link>
-          );
-        })}
-      </nav>
-
-      {/* User Section */}
-      <div className="p-4 border-t border-blue-500 dark:border-blue-700">
-        <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-700 cursor-pointer mb-2">
-          <Avatar
-            userId={user?.id || 'current-user'}
-            name={profile?.full_name || 'User'}
-            src={profile?.avatar_url}
-            size="md"
-          />
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-white truncate">{profile?.full_name || 'User'}</p>
-            <p className="text-xs text-white truncate opacity-90">{user?.email}</p>
-          </div>
+          <button
+            onClick={handleLogout}
+            className="flex items-center justify-center space-x-3 px-4 py-3 rounded-lg text-red-300 bg-transparent border border-transparent hover:border-red-400 hover:bg-red-500/10 hover:text-red-200 transition-all w-full group"
+          >
+            <LogOut size={20} className="transition-transform group-hover:scale-110" />
+            <span className="font-medium">Logout</span>
+          </button>
         </div>
-        
-        <button 
-          onClick={handleLogout}
-          className="flex items-center justify-center space-x-3 px-4 py-3 rounded-lg text-red-300 bg-transparent border border-transparent hover:border-red-400 hover:bg-red-500/10 hover:text-red-200 transition-all w-full group"
-        >
-          <LogOut size={20} className="transition-transform group-hover:scale-110" />
-          <span className="font-medium">Logout</span>
-        </button>
-      </div>
-    </motion.div>
+      </motion.div>
 
-    {/* Workspace Switcher Modal */}
-    <WorkspaceSwitcher
-      isOpen={showWorkspaceSwitcher}
-      onClose={() => setShowWorkspaceSwitcher(false)}
-    />
-  </>
+      {/* Workspace Switcher Modal */}
+      <WorkspaceSwitcher
+        isOpen={showWorkspaceSwitcher}
+        onClose={() => setShowWorkspaceSwitcher(false)}
+      />
+    </>
   );
 };

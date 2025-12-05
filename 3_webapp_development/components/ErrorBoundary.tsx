@@ -10,7 +10,10 @@ interface ErrorBoundaryState {
 }
 
 export class ErrorBoundary extends React.Component<
-  { children: React.ReactNode; fallback?: React.ComponentType<{ error: Error; reset: () => void }> },
+  {
+    children: React.ReactNode;
+    fallback?: React.ComponentType<{ error: Error; reset: () => void }>;
+  },
   ErrorBoundaryState
 > {
   constructor(props: any) {
@@ -30,9 +33,9 @@ export class ErrorBoundary extends React.Component<
     if (this.state.hasError) {
       const FallbackComponent = this.props.fallback || DefaultErrorFallback;
       return (
-        <FallbackComponent 
-          error={this.state.error!} 
-          reset={() => this.setState({ hasError: false, error: undefined })} 
+        <FallbackComponent
+          error={this.state.error!}
+          reset={() => this.setState({ hasError: false, error: undefined })}
         />
       );
     }
@@ -57,11 +60,7 @@ function DefaultErrorFallback({ error, reset }: { error: Error; reset: () => voi
             <RefreshCw className="w-4 h-4 mr-2" />
             Try Again
           </Button>
-          <Button 
-            variant="outline" 
-            onClick={() => window.location.reload()} 
-            className="w-full"
-          >
+          <Button variant="outline" onClick={() => window.location.reload()} className="w-full">
             Refresh Page
           </Button>
         </div>

@@ -64,9 +64,7 @@ export function MotivationalMessageCard({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
       className={`rounded-lg p-4 shadow-sm hover:shadow-md transition-all ${
-        message.is_read
-          ? 'bg-gray-50 dark:bg-gray-800/50 opacity-75'
-          : getPriorityColor()
+        message.is_read ? 'bg-gray-50 dark:bg-gray-800/50 opacity-75' : getPriorityColor()
       } border border-gray-200 dark:border-gray-700`}
       onClick={handleRead}
     >

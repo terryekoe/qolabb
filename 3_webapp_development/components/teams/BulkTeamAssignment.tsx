@@ -1,11 +1,11 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Users, 
-  UserPlus, 
-  Search, 
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Users,
+  UserPlus,
+  Search,
   Filter,
   Check,
   X,
@@ -15,290 +15,304 @@ import {
   Download,
   AlertCircle,
   ChevronDown,
-  ChevronRight
-} from 'lucide-react'
-import { Button } from '@/components/Button'
-import Avatar from '@/components/ui/Avatar'
-import { useAuth } from '@/lib/auth/AuthContext'
-import { useWorkspace } from '@/lib/workspace/WorkspaceContext'
-import { 
+  ChevronRight,
+} from 'lucide-react';
+import { Button } from '@/components/Button';
+import Avatar from '@/components/ui/Avatar';
+import { useAuth } from '@/lib/auth/AuthContext';
+import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
+import {
   getWorkspaceMembers,
   getWorkspaceTeams,
   bulkInviteToTeam,
   bulkAddTeamMembers,
   addTeamMember,
   getTeamMembers,
-  getProfile
-} from '@/lib/db/queries'
-import { usePermissions } from '@/lib/hooks/usePermissions'
-import { Profile, Team, TeamMember } from '@/lib/types/database'
-import { toast } from 'react-hot-toast'
+  getProfile,
+} from '@/lib/db/queries';
+import { usePermissions } from '@/lib/hooks/usePermissions';
+import { Profile, Team, TeamMember } from '@/lib/types/database';
+import { toast } from 'react-hot-toast';
 
 interface BulkTeamAssignmentProps {
-  onAssignmentComplete?: () => void
+  onAssignmentComplete?: () => void;
 }
 
 interface WorkspaceMemberWithTeams extends Profile {
-  current_teams: string[]
-  team_roles: { [teamId: string]: 'leader' | 'member' }
+  current_teams: string[];
+  team_roles: { [teamId: string]: 'leader' | 'member' };
 }
 
 export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAssignmentProps) {
-  const { user } = useAuth()
-  const { currentWorkspace } = useWorkspace()
-  const { canAccess, isInstructor } = usePermissions()
-  const [members, setMembers] = useState<WorkspaceMemberWithTeams[]>([])
-  const [teams, setTeams] = useState<Team[]>([])
-  const [loading, setLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedMembers, setSelectedMembers] = useState<Set<string>>(new Set())
-  const [selectedTeam, setSelectedTeam] = useState<string>('')
-  const [assignmentRole, setAssignmentRole] = useState<'member' | 'leader'>('member')
-  const [processing, setProcessing] = useState(false)
-  const [showTeamFilter, setShowTeamFilter] = useState(false)
-  const [teamFilter, setTeamFilter] = useState<string>('all')
+  const { user } = useAuth();
+  const { currentWorkspace } = useWorkspace();
+  const { canAccess, isInstructor } = usePermissions();
+  const [members, setMembers] = useState<WorkspaceMemberWithTeams[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedMembers, setSelectedMembers] = useState<Set<string>>(new Set());
+  const [selectedTeam, setSelectedTeam] = useState<string>('');
+  const [assignmentRole, setAssignmentRole] = useState<'member' | 'leader'>('member');
+  const [processing, setProcessing] = useState(false);
+  const [showTeamFilter, setShowTeamFilter] = useState(false);
+  const [teamFilter, setTeamFilter] = useState<string>('all');
 
   useEffect(() => {
     if (currentWorkspace?.id) {
-      loadData()
+      loadData();
     }
-  }, [currentWorkspace?.id])
+  }, [currentWorkspace?.id]);
 
   const loadData = async () => {
-    if (!currentWorkspace?.id) return
-    
+    if (!currentWorkspace?.id) return;
+
     try {
-      setLoading(true)
+      setLoading(true);
       const [workspaceMembers, workspaceTeams] = await Promise.all([
         getWorkspaceMembers(currentWorkspace.id),
-        getWorkspaceTeams(currentWorkspace.id)
-      ])
+        getWorkspaceTeams(currentWorkspace.id),
+      ]);
 
       // Enhance members with their current team information
       // Transform workspace members to match expected format
       const enhancedMembersResults = await Promise.all(
-        (workspaceMembers || []).map(async (member: any): Promise<WorkspaceMemberWithTeams | null> => {
-          // Extract profile data - handle both nested user and direct profile
-          // Handle case where user might be an array (Supabase sometimes returns arrays)
-          let profile = member.user;
-          
-          // Normalize user data - handle array responses from Supabase joins
-          if (Array.isArray(profile)) {
-            profile = profile[0] || null;
-          }
-          
-          // If profile is still null, try to fetch it directly
-          if (!profile && member.user_id) {
-            console.warn('Missing profile data for user:', member.user_id, '- attempting to fetch directly');
-            try {
-              const fetchedProfile = await getProfile(member.user_id);
-              if (fetchedProfile) {
-                profile = fetchedProfile;
-                console.log('✅ Successfully fetched profile for user:', member.user_id);
-              } else {
-                console.warn('⚠️ Profile not found for user:', member.user_id);
-              }
-            } catch (fetchError) {
-              console.error('❌ Error fetching profile for user:', member.user_id, fetchError);
+        (workspaceMembers || []).map(
+          async (member: any): Promise<WorkspaceMemberWithTeams | null> => {
+            // Extract profile data - handle both nested user and direct profile
+            // Handle case where user might be an array (Supabase sometimes returns arrays)
+            let profile = member.user;
+
+            // Normalize user data - handle array responses from Supabase joins
+            if (Array.isArray(profile)) {
+              profile = profile[0] || null;
             }
-          }
-          
-          const memberId = member.user_id || member.id || profile?.id;
-          
-          const memberTeams: string[] = []
-          const teamRoles: { [teamId: string]: 'leader' | 'member' } = {}
-          
-          // Get team memberships for each member
-          for (const team of workspaceTeams || []) {
-            try {
-              const teamMembers = await getTeamMembers(team.id)
-              const membership = teamMembers?.find(tm => tm.user_id === memberId)
-              if (membership) {
-                memberTeams.push(team.id)
-                teamRoles[team.id] = membership.role
+
+            // If profile is still null, try to fetch it directly
+            if (!profile && member.user_id) {
+              console.warn(
+                'Missing profile data for user:',
+                member.user_id,
+                '- attempting to fetch directly'
+              );
+              try {
+                const fetchedProfile = await getProfile(member.user_id);
+                if (fetchedProfile) {
+                  profile = fetchedProfile;
+                  console.log('✅ Successfully fetched profile for user:', member.user_id);
+                } else {
+                  console.warn('⚠️ Profile not found for user:', member.user_id);
+                }
+              } catch (fetchError) {
+                console.error('❌ Error fetching profile for user:', member.user_id, fetchError);
               }
-            } catch (error) {
-              console.error(`Error loading team members for team ${team.id}:`, error)
             }
+
+            const memberId = member.user_id || member.id || profile?.id;
+
+            const memberTeams: string[] = [];
+            const teamRoles: { [teamId: string]: 'leader' | 'member' } = {};
+
+            // Get team memberships for each member
+            for (const team of workspaceTeams || []) {
+              try {
+                const teamMembers = await getTeamMembers(team.id);
+                const membership = teamMembers?.find((tm) => tm.user_id === memberId);
+                if (membership) {
+                  memberTeams.push(team.id);
+                  teamRoles[team.id] = membership.role;
+                }
+              } catch (error) {
+                console.error(`Error loading team members for team ${team.id}:`, error);
+              }
+            }
+
+            // Ensure we have at least a valid ID
+            if (!memberId) {
+              console.warn('Skipping member with invalid ID:', member);
+              return null;
+            }
+
+            // If profile is missing, we still want to show the member but with limited info
+            // This can happen if profile hasn't been created yet
+            const fullName = profile?.full_name || profile?.fullName || null;
+            const email = profile?.email || member.email || null;
+
+            // Only skip if we have absolutely no way to identify the user
+            if (!fullName && !email && !memberId) {
+              console.warn('Skipping member with no identifying information:', member);
+              return null;
+            }
+
+            return {
+              id: memberId,
+              full_name: fullName || 'Unknown User',
+              avatar_url: profile?.avatar_url || profile?.avatarUrl || null,
+              email: email || 'No email',
+              institution: profile?.institution || '',
+              role: profile?.role || member.role || 'member',
+              current_teams: memberTeams,
+              team_roles: teamRoles,
+            } as WorkspaceMemberWithTeams;
           }
-          
-          // Ensure we have at least a valid ID
-          if (!memberId) {
-            console.warn('Skipping member with invalid ID:', member)
-            return null
-          }
-          
-          // If profile is missing, we still want to show the member but with limited info
-          // This can happen if profile hasn't been created yet
-          const fullName = profile?.full_name || profile?.fullName || null;
-          const email = profile?.email || member.email || null;
-          
-          // Only skip if we have absolutely no way to identify the user
-          if (!fullName && !email && !memberId) {
-            console.warn('Skipping member with no identifying information:', member)
-            return null
-          }
-          
-          return {
-            id: memberId,
-            full_name: fullName || 'Unknown User',
-            avatar_url: profile?.avatar_url || profile?.avatarUrl || null,
-            email: email || 'No email',
-            institution: profile?.institution || '',
-            role: profile?.role || member.role || 'member',
-            current_teams: memberTeams,
-            team_roles: teamRoles
-          } as WorkspaceMemberWithTeams
-        })
-      )
+        )
+      );
 
       // Filter out any null members that couldn't be processed
-      const validMembers: WorkspaceMemberWithTeams[] = enhancedMembersResults
-        .filter((m): m is WorkspaceMemberWithTeams => {
-          if (!m) return false
+      const validMembers: WorkspaceMemberWithTeams[] = enhancedMembersResults.filter(
+        (m): m is WorkspaceMemberWithTeams => {
+          if (!m) return false;
           // Ensure all required properties exist
           if (!m.id || !m.full_name) {
-            console.warn('Filtering out invalid member:', m)
-            return false
+            console.warn('Filtering out invalid member:', m);
+            return false;
           }
-          return true
-        })
+          return true;
+        }
+      );
 
-      setMembers(validMembers)
-      setTeams(workspaceTeams || [])
+      setMembers(validMembers);
+      setTeams(workspaceTeams || []);
     } catch (error: any) {
-      console.error('Error loading data:', error)
-      const errorMessage = error?.message || 'Failed to load workspace data'
-      toast.error(errorMessage)
+      console.error('Error loading data:', error);
+      const errorMessage = error?.message || 'Failed to load workspace data';
+      toast.error(errorMessage);
       // Set empty arrays on error to prevent rendering issues
-      setMembers([])
-      setTeams([])
+      setMembers([]);
+      setTeams([]);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleBulkAssignment = async () => {
     if (!selectedTeam || selectedMembers.size === 0 || !user?.id) {
-      toast.error('Please select a group and at least one member')
-      return
+      toast.error('Please select a group and at least one member');
+      return;
     }
 
     try {
-      setProcessing(true)
-      const memberIds = Array.from(selectedMembers)
-      
+      setProcessing(true);
+      const memberIds = Array.from(selectedMembers);
+
       // Check if user is instructor/admin - they can directly assign, others must invite
-      const canDirectlyAssign = canAccess.instructorFeatures() || isInstructor
-      
+      const canDirectlyAssign = canAccess.instructorFeatures() || isInstructor;
+
       // Check if any selected members are instructors - if so, use invitations for collaboration
-      const selectedMemberProfiles = members.filter(m => memberIds.includes(m.id))
-      const hasInstructors = selectedMemberProfiles.some(m => 
-        m.role?.toLowerCase() === 'instructor' || 
-        m.role?.toLowerCase() === 'both' ||
-        m.role?.toLowerCase() === 'teaching_assistant'
-      )
-      
-      let result
+      const selectedMemberProfiles = members.filter((m) => memberIds.includes(m.id));
+      const hasInstructors = selectedMemberProfiles.some(
+        (m) =>
+          m.role?.toLowerCase() === 'instructor' ||
+          m.role?.toLowerCase() === 'both' ||
+          m.role?.toLowerCase() === 'teaching_assistant'
+      );
+
+      let result;
       if (canDirectlyAssign && !hasInstructors) {
         // Direct assignment for instructors/admins when assigning students
-        result = await bulkAddTeamMembers(selectedTeam, memberIds, assignmentRole, user.id)
-        
+        result = await bulkAddTeamMembers(selectedTeam, memberIds, assignmentRole, user.id);
+
         // Handle validation results
         if (result.successful.length > 0) {
-          toast.success(`Successfully assigned ${result.successful.length} members to the group`)
+          toast.success(`Successfully assigned ${result.successful.length} members to the group`);
         }
-        
+
         if (result.skipped > 0) {
-          toast.error(`${result.skipped} members were skipped (already members)`, { duration: 6000 })
+          toast.error(`${result.skipped} members were skipped (already members)`, {
+            duration: 6000,
+          });
         }
       } else {
         // Invitation/join request for:
         // 1. Regular users
         // 2. Instructors assigning other instructors (for collaboration)
         // Note: Role will be set when the invitation is approved
-        const invitationMessage = `Join as ${assignmentRole === 'leader' ? 'group leader' : 'member'}`
-        result = await bulkInviteToTeam(selectedTeam, memberIds, user.id, invitationMessage)
-        
+        const invitationMessage = `Join as ${assignmentRole === 'leader' ? 'group leader' : 'member'}`;
+        result = await bulkInviteToTeam(selectedTeam, memberIds, user.id, invitationMessage);
+
         // Handle validation results
         if (result.successful.length > 0) {
-          const message = hasInstructors 
+          const message = hasInstructors
             ? `Successfully sent join requests to ${result.successful.length} members (including instructors)`
-            : `Successfully invited ${result.successful.length} members to the group`
-          toast.success(message)
+            : `Successfully invited ${result.successful.length} members to the group`;
+          toast.success(message);
         }
-        
+
         if (result.skipped > 0) {
-          toast.error(`${result.skipped} invitations were skipped (already members or pending requests)`, { duration: 6000 })
+          toast.error(
+            `${result.skipped} invitations were skipped (already members or pending requests)`,
+            { duration: 6000 }
+          );
         }
       }
-      
+
       if (result.successful.length === 0 && result.skipped > 0) {
-        toast.error('No valid assignments/invitations could be sent')
+        toast.error('No valid assignments/invitations could be sent');
       }
-      
+
       // Clear selections and reload data
-      setSelectedMembers(new Set())
-      setSelectedTeam('')
-      await loadData()
-      
+      setSelectedMembers(new Set());
+      setSelectedTeam('');
+      await loadData();
+
       if (onAssignmentComplete) {
-        onAssignmentComplete()
+        onAssignmentComplete();
       }
     } catch (error: any) {
-      console.error('Error in bulk assignment:', error)
-      toast.error(error?.message || 'Failed to assign members to group')
+      console.error('Error in bulk assignment:', error);
+      toast.error(error?.message || 'Failed to assign members to group');
     } finally {
-      setProcessing(false)
+      setProcessing(false);
     }
-  }
+  };
 
   const toggleMemberSelection = (memberId: string) => {
-    const newSelection = new Set(selectedMembers)
+    const newSelection = new Set(selectedMembers);
     if (newSelection.has(memberId)) {
-      newSelection.delete(memberId)
+      newSelection.delete(memberId);
     } else {
-      newSelection.add(memberId)
+      newSelection.add(memberId);
     }
-    setSelectedMembers(newSelection)
-  }
+    setSelectedMembers(newSelection);
+  };
 
   const selectAllVisible = () => {
-    const visibleMemberIds = filteredMembers.map(m => m.id)
-    setSelectedMembers(new Set(visibleMemberIds))
-  }
+    const visibleMemberIds = filteredMembers.map((m) => m.id);
+    setSelectedMembers(new Set(visibleMemberIds));
+  };
 
   const clearSelection = () => {
-    setSelectedMembers(new Set())
-  }
+    setSelectedMembers(new Set());
+  };
 
   // Filter members based on search and team filter
-  const filteredMembers = members.filter(member => {
+  const filteredMembers = members.filter((member) => {
     // Safety check: filter out any invalid members
     if (!member || !member.id || !member.full_name) {
-      return false
+      return false;
     }
 
     // Exclude instructors from the assignment list
     if (member.role === 'instructor') {
-      return false
+      return false;
     }
-    
-    const matchesSearch = (member.full_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         (member.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         (member.institution || '').toLowerCase().includes(searchQuery.toLowerCase())
-    
-    if (!matchesSearch) return false
-    
-    if (teamFilter === 'all') return true
-    const currentTeams = member?.current_teams ?? []
-    
-    if (teamFilter === 'unassigned') return currentTeams.length === 0
-    if (teamFilter === 'assigned') return currentTeams.length > 0
-    
+
+    const matchesSearch =
+      (member.full_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (member.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (member.institution || '').toLowerCase().includes(searchQuery.toLowerCase());
+
+    if (!matchesSearch) return false;
+
+    if (teamFilter === 'all') return true;
+    const currentTeams = member?.current_teams ?? [];
+
+    if (teamFilter === 'unassigned') return currentTeams.length === 0;
+    if (teamFilter === 'assigned') return currentTeams.length > 0;
+
     // Specific team filter
-    return currentTeams.includes(teamFilter)
-  })
+    return currentTeams.includes(teamFilter);
+  });
 
   if (!currentWorkspace) {
     return (
@@ -306,10 +320,12 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
         <div className="text-center">
           <Users size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">No Class Selected</h2>
-          <p className="text-gray-600 dark:text-gray-400">Select a workspace to manage group assignments</p>
+          <p className="text-gray-600 dark:text-gray-400">
+            Select a workspace to manage group assignments
+          </p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -317,7 +333,9 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Bulk Group Assignment</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            Bulk Group Assignment
+          </h2>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
             Efficiently assign multiple members to groups in {currentWorkspace.name}
           </p>
@@ -332,8 +350,10 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
 
       {/* Assignment Controls */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 p-6 space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Assignment Settings</h3>
-        
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+          Assignment Settings
+        </h3>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Team Selection */}
           <div>
@@ -346,7 +366,7 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="">Select a group...</option>
-              {teams.map(team => (
+              {teams.map((team) => (
                 <option key={team.id} value={team.id}>
                   {team.name}
                 </option>
@@ -394,7 +414,10 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
           {/* Search */}
           <div className="flex-1">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                size={20}
+              />
               <input
                 type="text"
                 placeholder="Search members by name, email, or institution..."
@@ -415,41 +438,61 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
               <span>Filter by Group</span>
               {showTeamFilter ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
             </button>
-            
+
             {showTeamFilter && (
               <div className="absolute top-full mt-1 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-10 min-w-[200px]">
                 <div className="p-2 space-y-1">
                   <button
-                    onClick={() => { setTeamFilter('all'); setShowTeamFilter(false) }}
+                    onClick={() => {
+                      setTeamFilter('all');
+                      setShowTeamFilter(false);
+                    }}
                     className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
-                      teamFilter === 'all' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                      teamFilter === 'all'
+                        ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                     }`}
                   >
                     All Members
                   </button>
                   <button
-                    onClick={() => { setTeamFilter('unassigned'); setShowTeamFilter(false) }}
+                    onClick={() => {
+                      setTeamFilter('unassigned');
+                      setShowTeamFilter(false);
+                    }}
                     className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
-                      teamFilter === 'unassigned' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                      teamFilter === 'unassigned'
+                        ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                     }`}
                   >
                     Unassigned Members
                   </button>
                   <button
-                    onClick={() => { setTeamFilter('assigned'); setShowTeamFilter(false) }}
+                    onClick={() => {
+                      setTeamFilter('assigned');
+                      setShowTeamFilter(false);
+                    }}
                     className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
-                      teamFilter === 'assigned' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                      teamFilter === 'assigned'
+                        ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                     }`}
                   >
                     Assigned Members
                   </button>
                   <hr className="my-1" />
-                  {teams.map(team => (
+                  {teams.map((team) => (
                     <button
                       key={team.id}
-                      onClick={() => { setTeamFilter(team.id); setShowTeamFilter(false) }}
+                      onClick={() => {
+                        setTeamFilter(team.id);
+                        setShowTeamFilter(false);
+                      }}
                       className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
-                        teamFilter === team.id ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                        teamFilter === team.id
+                          ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                       }`}
                     >
                       {team.name}
@@ -497,7 +540,10 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
       {loading ? (
         <div className="space-y-4">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 animate-pulse">
+            <div
+              key={i}
+              className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 animate-pulse"
+            >
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
                 <div className="flex-1">
@@ -516,28 +562,29 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
           className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border-2 border-dashed border-gray-300 dark:border-gray-600"
         >
           <Users size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">No Members Found</h3>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+            No Members Found
+          </h3>
           <p className="text-gray-600 dark:text-gray-400">
-            {searchQuery || teamFilter !== 'all' 
+            {searchQuery || teamFilter !== 'all'
               ? 'Try adjusting your search or filter criteria'
-              : 'No members available in this workspace'
-            }
+              : 'No members available in this workspace'}
           </p>
         </motion.div>
       ) : (
         <div className="space-y-3">
           {filteredMembers
             .filter((member): member is WorkspaceMemberWithTeams => {
-              if (!member) return false
-              if (typeof member !== 'object') return false
-              if (!('id' in member) || !member.id) return false
-              if (!('full_name' in member) || !member.full_name) return false
-              return true
+              if (!member) return false;
+              if (typeof member !== 'object') return false;
+              if (!('id' in member) || !member.id) return false;
+              if (!('full_name' in member) || !member.full_name) return false;
+              return true;
             })
             .map((member, index) => {
               // Double-check before rendering
               if (!member || !member.id || !member.full_name) {
-                return null
+                return null;
               }
               try {
                 return (
@@ -549,50 +596,51 @@ export default function BulkTeamAssignment({ onAssignmentComplete }: BulkTeamAss
                     onToggleSelection={() => toggleMemberSelection(member.id)}
                     index={index}
                   />
-                )
+                );
               } catch (error) {
-                console.error('Error rendering MemberCard:', error, member)
-                return null
+                console.error('Error rendering MemberCard:', error, member);
+                return null;
               }
             })
             .filter(Boolean)}
         </div>
       )}
     </div>
-  )
+  );
 }
 
 interface MemberCardProps {
-  member: WorkspaceMemberWithTeams
-  teams: Team[]
-  isSelected: boolean
-  onToggleSelection: () => void
-  index: number
+  member: WorkspaceMemberWithTeams;
+  teams: Team[];
+  isSelected: boolean;
+  onToggleSelection: () => void;
+  index: number;
 }
 
 function MemberCard({ member, teams, isSelected, onToggleSelection, index }: MemberCardProps) {
   // Early return with comprehensive null checks
   if (!member || typeof member !== 'object') {
-    return null
+    return null;
   }
-  
+
   // Check for required properties
-  const memberId = member.id
+  const memberId = member.id;
   if (!memberId) {
-    return null
+    return null;
   }
 
   // Safely extract all values with explicit null checks
-  const fullName = (member && member.full_name) ? member.full_name : 'Unknown User'
-  const email = (member && member.email) ? member.email : 'No email'
+  const fullName = member && member.full_name ? member.full_name : 'Unknown User';
+  const email = member && member.email ? member.email : 'No email';
   // Role can be various string values, so we cast it as string for flexibility
-  const role = (member && member.role) ? String(member.role) : 'member'
-  const avatarUrl = (member && member.avatar_url) ? member.avatar_url : null
-  const institution = (member && member.institution) ? member.institution : null
-  const currentTeams = (member && Array.isArray(member.current_teams)) ? member.current_teams : []
-  const teamRoles = (member && member.team_roles && typeof member.team_roles === 'object') ? member.team_roles : {}
+  const role = member && member.role ? String(member.role) : 'member';
+  const avatarUrl = member && member.avatar_url ? member.avatar_url : null;
+  const institution = member && member.institution ? member.institution : null;
+  const currentTeams = member && Array.isArray(member.current_teams) ? member.current_teams : [];
+  const teamRoles =
+    member && member.team_roles && typeof member.team_roles === 'object' ? member.team_roles : {};
 
-  const memberTeams = teams.filter(team => currentTeams.includes(team.id))
+  const memberTeams = teams.filter((team) => currentTeams.includes(team.id));
 
   return (
     <motion.div
@@ -600,19 +648,21 @@ function MemberCard({ member, teams, isSelected, onToggleSelection, index }: Mem
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.02 }}
       className={`bg-white dark:bg-gray-800 rounded-xl border p-4 transition-all duration-200 cursor-pointer hover:shadow-md ${
-        isSelected 
-          ? 'border-blue-300 dark:border-blue-600 bg-blue-50 dark:bg-blue-900/20' 
+        isSelected
+          ? 'border-blue-300 dark:border-blue-600 bg-blue-50 dark:bg-blue-900/20'
           : 'border-gray-200 dark:border-gray-700 hover:border-blue-200 dark:hover:border-blue-700'
       }`}
       onClick={onToggleSelection}
     >
       <div className="flex items-center gap-4">
         {/* Selection Checkbox */}
-        <div className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
-          isSelected 
-            ? 'bg-blue-500 border-blue-500' 
-            : 'border-gray-300 dark:border-gray-600 hover:border-blue-400'
-        }`}>
+        <div
+          className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
+            isSelected
+              ? 'bg-blue-500 border-blue-500'
+              : 'border-gray-300 dark:border-gray-600 hover:border-blue-400'
+          }`}
+        >
           {isSelected && <Check size={16} className="text-white" />}
         </div>
 
@@ -629,10 +679,9 @@ function MemberCard({ member, teams, isSelected, onToggleSelection, index }: Mem
         {/* Member Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100 truncate">
-              {fullName}
-            </h3>
-            {(role.toLowerCase() === 'instructor' || role.toLowerCase() === 'teaching_assistant') && (
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100 truncate">{fullName}</h3>
+            {(role.toLowerCase() === 'instructor' ||
+              role.toLowerCase() === 'teaching_assistant') && (
               <div className="flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
                 <Crown size={10} />
                 {role.toLowerCase() === 'instructor' ? 'Instructor' : 'TA'}
@@ -649,16 +698,18 @@ function MemberCard({ member, teams, isSelected, onToggleSelection, index }: Mem
         <div className="flex flex-col items-end gap-1">
           {memberTeams.length > 0 ? (
             <div className="flex flex-wrap gap-1 justify-end max-w-[200px]">
-              {memberTeams.slice(0, 2).map(team => (
+              {memberTeams.slice(0, 2).map((team) => (
                 <div
                   key={team.id}
                   className="flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-xs text-gray-700 dark:text-gray-300"
                 >
-                  <div 
+                  <div
                     className="w-2 h-2 rounded-full"
                     style={{ backgroundColor: team.avatar_color }}
                   />
-                  <span className="truncate max-w-[80px] text-gray-700 dark:text-gray-300">{team.name}</span>
+                  <span className="truncate max-w-[80px] text-gray-700 dark:text-gray-300">
+                    {team.name}
+                  </span>
                   {teamRoles[team.id] === 'leader' && (
                     <Crown size={10} className="text-yellow-600" />
                   )}
@@ -678,5 +729,5 @@ function MemberCard({ member, teams, isSelected, onToggleSelection, index }: Mem
         </div>
       </div>
     </motion.div>
-  )
+  );
 }

@@ -42,7 +42,9 @@ export function InstructorAnalyticsView() {
   const [workspaceStats, setWorkspaceStats] = useState<any>(null);
   const [teamStats, setTeamStats] = useState<any[]>([]);
   const [studentPerformance, setStudentPerformance] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<'overview' | 'teams' | 'students' | 'equity'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'teams' | 'students' | 'equity'>(
+    'overview'
+  );
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   const [timeRange, setTimeRange] = useState<'week' | 'month' | 'semester'>('semester');
   const [exporting, setExporting] = useState(false);
@@ -53,26 +55,24 @@ export function InstructorAnalyticsView() {
 
     try {
       setLoading(true);
-      
+
       // Get workspace analytics
       const workspaceAnalytics = await getWorkspaceAnalytics(currentWorkspace.id);
       setWorkspaceStats(workspaceAnalytics);
 
       // Get all teams
       const teams = await getWorkspaceTeams(currentWorkspace.id);
-      
+
       // Get analytics for each team
-      const teamAnalyticsPromises = teams?.map((team: any) => 
-        getTeamAnalytics(team.id).catch(() => null)
-      ) || [];
-      
+      const teamAnalyticsPromises =
+        teams?.map((team: any) => getTeamAnalytics(team.id).catch(() => null)) || [];
+
       const teamAnalyticsResults = await Promise.all(teamAnalyticsPromises);
-      setTeamStats(teamAnalyticsResults.filter(t => t !== null));
+      setTeamStats(teamAnalyticsResults.filter((t) => t !== null));
 
       // Get student performance
       const performance = await getStudentPerformance(currentWorkspace.id);
       setStudentPerformance(performance);
-
     } catch (error) {
       console.error('Error loading instructor analytics:', error);
     } finally {
@@ -89,34 +89,40 @@ export function InstructorAnalyticsView() {
   // Export functions
   async function exportToCSV(data: any[], filename: string) {
     if (!data || data.length === 0) return;
-    
+
     setExporting(true);
     try {
       // Get headers from first object
       const headers = Object.keys(data[0]);
-      
+
       // Create CSV content
       const csvRows = [
         headers.join(','),
-        ...data.map(row => 
-          headers.map(header => {
-            const value = row[header];
-            // Handle values with commas or quotes
-            if (value === null || value === undefined) return '';
-            const stringValue = String(value);
-            if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
-              return `"${stringValue.replace(/"/g, '""')}"`;
-            }
-            return stringValue;
-          }).join(',')
-        )
+        ...data.map((row) =>
+          headers
+            .map((header) => {
+              const value = row[header];
+              // Handle values with commas or quotes
+              if (value === null || value === undefined) return '';
+              const stringValue = String(value);
+              if (
+                stringValue.includes(',') ||
+                stringValue.includes('"') ||
+                stringValue.includes('\n')
+              ) {
+                return `"${stringValue.replace(/"/g, '""')}"`;
+              }
+              return stringValue;
+            })
+            .join(',')
+        ),
       ];
-      
+
       const csvContent = csvRows.join('\n');
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       const url = URL.createObjectURL(blob);
-      
+
       link.setAttribute('href', url);
       link.setAttribute('download', `${filename}_${new Date().toISOString().split('T')[0]}.csv`);
       link.style.visibility = 'hidden';
@@ -133,7 +139,7 @@ export function InstructorAnalyticsView() {
 
   async function exportWorkspaceReport() {
     if (!workspaceStats) return;
-    
+
     setExporting(true);
     try {
       const reportData = {
@@ -148,7 +154,7 @@ export function InstructorAnalyticsView() {
           avgParticipation: workspaceStats.avgParticipation,
           completionRate: workspaceStats.completionRate,
         },
-        teams: teamStats.map(team => ({
+        teams: teamStats.map((team) => ({
           name: team.team.name,
           members: team.members.length,
           totalHours: team.totalHours,
@@ -156,7 +162,7 @@ export function InstructorAnalyticsView() {
           tasks: `${team.completedTasks}/${team.totalTasks}`,
           fairnessScore: team.fairnessScore,
         })),
-        students: studentPerformance.map(student => ({
+        students: studentPerformance.map((student) => ({
           name: student.name,
           institution: student.institution || 'N/A',
           totalHours: student.totalHours,
@@ -171,9 +177,12 @@ export function InstructorAnalyticsView() {
       const blob = new Blob([jsonContent], { type: 'application/json' });
       const link = document.createElement('a');
       const url = URL.createObjectURL(blob);
-      
+
       link.setAttribute('href', url);
-      link.setAttribute('download', `workspace_report_${currentWorkspace?.name || 'report'}_${new Date().toISOString().split('T')[0]}.json`);
+      link.setAttribute(
+        'download',
+        `workspace_report_${currentWorkspace?.name || 'report'}_${new Date().toISOString().split('T')[0]}.json`
+      );
       link.style.visibility = 'hidden';
       document.body.appendChild(link);
       link.click();
@@ -198,10 +207,10 @@ export function InstructorAnalyticsView() {
       };
     }
 
-    const hoursArray = studentPerformance.map(s => s.totalHours || 0);
+    const hoursArray = studentPerformance.map((s) => s.totalHours || 0);
     const totalHours = hoursArray.reduce((sum, h) => sum + h, 0);
     const n = hoursArray.length;
-    
+
     // Guard against division by zero
     if (n === 0 || totalHours === 0) {
       return {
@@ -212,7 +221,7 @@ export function InstructorAnalyticsView() {
         leastActive: null,
       };
     }
-    
+
     const avgHours = totalHours / n;
 
     // Calculate Gini coefficient (equality measure)
@@ -262,9 +271,10 @@ export function InstructorAnalyticsView() {
   }
 
   const equityMetrics = calculateEquityMetrics();
-  const filteredStudents = studentPerformance.filter(student =>
-    student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    student.institution?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredStudents = studentPerformance.filter(
+    (student) =>
+      student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      student.institution?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -274,7 +284,9 @@ export function InstructorAnalyticsView() {
         <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
           <div className="flex-1">
             <h1 className="text-2xl sm:text-3xl font-bold mb-2">Class Analytics</h1>
-            <p className="text-sm sm:text-base text-white/80">Comprehensive insights for equitable participation tracking</p>
+            <p className="text-sm sm:text-base text-white/80">
+              Comprehensive insights for equitable participation tracking
+            </p>
           </div>
           <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-x-4 sm:space-y-0">
             {/* Time Range Selector */}
@@ -284,12 +296,27 @@ export function InstructorAnalyticsView() {
                 onChange={(e) => setTimeRange(e.target.value as any)}
                 className="bg-transparent text-white border-none outline-none cursor-pointer text-sm sm:text-base"
               >
-                <option value="week" className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800">This Week</option>
-                <option value="month" className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800">This Month</option>
-                <option value="semester" className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800">This Semester</option>
+                <option
+                  value="week"
+                  className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800"
+                >
+                  This Week
+                </option>
+                <option
+                  value="month"
+                  className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800"
+                >
+                  This Month
+                </option>
+                <option
+                  value="semester"
+                  className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800"
+                >
+                  This Semester
+                </option>
               </select>
             </div>
-            
+
             {/* Export Buttons */}
             <div className="flex items-center space-x-2 flex-wrap gap-2">
               <Button
@@ -321,7 +348,10 @@ export function InstructorAnalyticsView() {
                 disabled={loading}
                 className="bg-white/10 text-white hover:bg-white/20 border-white/20 text-xs sm:text-sm flex-1 sm:flex-initial"
               >
-                <RefreshCw size={14} className={cn('sm:mr-2 sm:block hidden', loading && 'animate-spin')} />
+                <RefreshCw
+                  size={14}
+                  className={cn('sm:mr-2 sm:block hidden', loading && 'animate-spin')}
+                />
                 <span className="hidden sm:inline">Refresh</span>
               </Button>
             </div>
@@ -351,13 +381,18 @@ export function InstructorAnalyticsView() {
           title="Equity Score"
           value={`${equityMetrics.fairnessScore}%`}
           change={
-            equityMetrics.fairnessScore >= 70 ? 'Well balanced' :
-            equityMetrics.fairnessScore >= 50 ? 'Moderate balance' :
-            'Needs attention'
+            equityMetrics.fairnessScore >= 70
+              ? 'Well balanced'
+              : equityMetrics.fairnessScore >= 50
+                ? 'Moderate balance'
+                : 'Needs attention'
           }
           changeType={
-            equityMetrics.fairnessScore >= 70 ? 'positive' :
-            equityMetrics.fairnessScore >= 50 ? 'neutral' : 'negative'
+            equityMetrics.fairnessScore >= 70
+              ? 'positive'
+              : equityMetrics.fairnessScore >= 50
+                ? 'neutral'
+                : 'negative'
           }
           icon={Target}
           color="purple"
@@ -378,10 +413,13 @@ export function InstructorAnalyticsView() {
           <div className="flex items-start space-x-3">
             <AlertTriangle className="text-yellow-600 flex-shrink-0 mt-0.5" size={20} />
             <div className="flex-1">
-              <h3 className="font-semibold text-yellow-900 mb-1">Participation Imbalance Detected</h3>
+              <h3 className="font-semibold text-yellow-900 mb-1">
+                Participation Imbalance Detected
+              </h3>
               <p className="text-sm text-yellow-800">
-                The equity score of {equityMetrics.fairnessScore}% indicates uneven participation across groups.
-                Consider redistributing tasks or providing additional support to students with lower participation.
+                The equity score of {equityMetrics.fairnessScore}% indicates uneven participation
+                across groups. Consider redistributing tasks or providing additional support to
+                students with lower participation.
               </p>
             </div>
           </div>
@@ -446,19 +484,33 @@ export function InstructorAnalyticsView() {
 
             {/* Team Comparison */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Group Performance Comparison</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                Group Performance Comparison
+              </h3>
               <div className="space-y-3">
                 {teamStats.slice(0, 10).map((team: any) => (
-                  <div key={team.team.id} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 sm:p-4">
+                  <div
+                    key={team.team.id}
+                    className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 sm:p-4"
+                  >
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 space-y-1 sm:space-y-0">
-                      <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-sm sm:text-base">{team.team.name}</h4>
+                      <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-sm sm:text-base">
+                        {team.team.name}
+                      </h4>
                       <div className="flex items-center flex-wrap gap-2 sm:space-x-4 text-xs sm:text-sm">
-                        <span className="text-gray-600 dark:text-gray-400">{team.totalHours}h total</span>
-                        <span className={cn(
-                          'font-semibold',
-                          team.fairnessScore >= 70 ? 'text-green-600' : 
-                          team.fairnessScore >= 50 ? 'text-yellow-600' : 'text-red-600'
-                        )}>
+                        <span className="text-gray-600 dark:text-gray-400">
+                          {team.totalHours}h total
+                        </span>
+                        <span
+                          className={cn(
+                            'font-semibold',
+                            team.fairnessScore >= 70
+                              ? 'text-green-600'
+                              : team.fairnessScore >= 50
+                                ? 'text-yellow-600'
+                                : 'text-red-600'
+                          )}
+                        >
                           Fairness: {team.fairnessScore}%
                         </span>
                       </div>
@@ -467,15 +519,19 @@ export function InstructorAnalyticsView() {
                       <div
                         className="bg-blue-600 h-3 rounded-full transition-all"
                         style={{
-                          width: `${workspaceStats.totalHours > 0 
-                            ? (team.totalHours / workspaceStats.totalHours) * 100 
-                            : 0}%`
+                          width: `${
+                            workspaceStats.totalHours > 0
+                              ? (team.totalHours / workspaceStats.totalHours) * 100
+                              : 0
+                          }%`,
                         }}
                       />
                     </div>
                     <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
                       <span>{team.totalContributions} contributions</span>
-                      <span>{team.completedTasks}/{team.totalTasks} tasks completed</span>
+                      <span>
+                        {team.completedTasks}/{team.totalTasks} tasks completed
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -492,17 +548,25 @@ export function InstructorAnalyticsView() {
                 <div
                   key={team.team.id}
                   className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 sm:p-6 border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 transition-colors cursor-pointer"
-                  onClick={() => setSelectedTeam(selectedTeam === team.team.id ? null : team.team.id)}
+                  onClick={() =>
+                    setSelectedTeam(selectedTeam === team.team.id ? null : team.team.id)
+                  }
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 space-y-2 sm:space-y-0">
-                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">{team.team.name}</h3>
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">
+                      {team.team.name}
+                    </h3>
                     <div className="flex items-center space-x-2 sm:space-x-4">
-                      <div className={cn(
-                        'px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-semibold',
-                        team.fairnessScore >= 70 ? 'bg-green-100 text-green-700' : 
-                        team.fairnessScore >= 50 ? 'bg-yellow-100 text-yellow-700' : 
-                        'bg-red-100 text-red-700'
-                      )}>
+                      <div
+                        className={cn(
+                          'px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-semibold',
+                          team.fairnessScore >= 70
+                            ? 'bg-green-100 text-green-700'
+                            : team.fairnessScore >= 50
+                              ? 'bg-yellow-100 text-yellow-700'
+                              : 'bg-red-100 text-red-700'
+                        )}
+                      >
                         Fairness: {team.fairnessScore}%
                       </div>
                       <button
@@ -516,11 +580,13 @@ export function InstructorAnalyticsView() {
                       </button>
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-4">
                     <div>
                       <div className="text-sm text-gray-600">Members</div>
-                      <div className="text-xl font-bold text-gray-900 dark:text-gray-100">{team.members.length}</div>
+                      <div className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                        {team.members.length}
+                      </div>
                     </div>
                     <div>
                       <div className="text-sm text-gray-600">Total Hours</div>
@@ -528,7 +594,9 @@ export function InstructorAnalyticsView() {
                     </div>
                     <div>
                       <div className="text-sm text-gray-600">Contributions</div>
-                      <div className="text-xl font-bold text-gray-900">{team.totalContributions || 0}</div>
+                      <div className="text-xl font-bold text-gray-900">
+                        {team.totalContributions || 0}
+                      </div>
                     </div>
                     <div>
                       <div className="text-sm text-gray-600">Tasks</div>
@@ -544,19 +612,29 @@ export function InstructorAnalyticsView() {
                       animate={{ opacity: 1, height: 'auto' }}
                       className="border-t border-gray-200 pt-4 mt-4"
                     >
-                      <h4 className="text-sm font-semibold text-gray-700 mb-3">Member Participation</h4>
+                      <h4 className="text-sm font-semibold text-gray-700 mb-3">
+                        Member Participation
+                      </h4>
                       <div className="space-y-2">
                         {team.members.map((member: any) => {
-                          const memberPercentage = team.totalHours > 0 && !isNaN(team.totalHours)
-                            ? Math.round((member.hours || 0) / team.totalHours * 100)
-                            : 0;
-                          
+                          const memberPercentage =
+                            team.totalHours > 0 && !isNaN(team.totalHours)
+                              ? Math.round(((member.hours || 0) / team.totalHours) * 100)
+                              : 0;
+
                           return (
-                            <div key={member.userId} className="bg-white dark:bg-gray-700 rounded-lg p-3">
+                            <div
+                              key={member.userId}
+                              className="bg-white dark:bg-gray-700 rounded-lg p-3"
+                            >
                               <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{member.name}</span>
+                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                  {member.name}
+                                </span>
                                 <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                                  {member.hours}h ({memberPercentage}%) • {member.contributions} contributions • {member.tasksCompleted}/{member.tasksAssigned} tasks
+                                  {member.hours}h ({memberPercentage}%) • {member.contributions}{' '}
+                                  contributions • {member.tasksCompleted}/{member.tasksAssigned}{' '}
+                                  tasks
                                 </span>
                               </div>
                               <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
@@ -588,7 +666,10 @@ export function InstructorAnalyticsView() {
             {/* Search and Filter */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 mb-4">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <Search
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  size={18}
+                />
                 <input
                   type="text"
                   placeholder="Search students..."
@@ -616,23 +697,39 @@ export function InstructorAnalyticsView() {
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50 dark:bg-gray-700/50">
                         <tr>
-                          <th className="text-left py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">Student</th>
-                          <th className="text-right py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">Hours</th>
-                          <th className="text-right py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 hidden sm:table-cell">Contributions</th>
-                          <th className="text-right py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 hidden md:table-cell">Tasks</th>
-                          <th className="text-right py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">Score</th>
-                          <th className="text-right py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 hidden lg:table-cell">Status</th>
+                          <th className="text-left py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">
+                            Student
+                          </th>
+                          <th className="text-right py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">
+                            Hours
+                          </th>
+                          <th className="text-right py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 hidden sm:table-cell">
+                            Contributions
+                          </th>
+                          <th className="text-right py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 hidden md:table-cell">
+                            Tasks
+                          </th>
+                          <th className="text-right py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">
+                            Score
+                          </th>
+                          <th className="text-right py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 hidden lg:table-cell">
+                            Status
+                          </th>
                         </tr>
                       </thead>
                       <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                         {filteredStudents.map((student) => {
                           const isAtRisk = student.participationScore < 50;
-                          const completionRate = student.tasksAssigned > 0
-                            ? Math.round((student.tasksCompleted / student.tasksAssigned) * 100)
-                            : 0;
-                          
+                          const completionRate =
+                            student.tasksAssigned > 0
+                              ? Math.round((student.tasksCompleted / student.tasksAssigned) * 100)
+                              : 0;
+
                           return (
-                            <tr key={student.userId} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                            <tr
+                              key={student.userId}
+                              className="hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                            >
                               <td className="py-3 px-3 sm:px-4">
                                 <div className="flex items-center space-x-2 sm:space-x-3">
                                   <Avatar
@@ -642,9 +739,13 @@ export function InstructorAnalyticsView() {
                                     size="sm"
                                   />
                                   <div className="min-w-0">
-                                    <div className="font-medium text-gray-900 text-sm sm:text-base truncate">{student.name}</div>
+                                    <div className="font-medium text-gray-900 text-sm sm:text-base truncate">
+                                      {student.name}
+                                    </div>
                                     {student.institution && (
-                                      <div className="text-xs text-gray-500 truncate hidden sm:block">{student.institution}</div>
+                                      <div className="text-xs text-gray-500 truncate hidden sm:block">
+                                        {student.institution}
+                                      </div>
                                     )}
                                   </div>
                                 </div>
@@ -659,12 +760,16 @@ export function InstructorAnalyticsView() {
                                 {student.tasksCompleted}/{student.tasksAssigned} ({completionRate}%)
                               </td>
                               <td className="text-right py-3 px-3 sm:px-4">
-                                <span className={cn(
-                                  'inline-flex px-2 py-1 rounded-full text-xs font-semibold',
-                                  student.participationScore >= 70 ? 'bg-green-100 text-green-700' : 
-                                  student.participationScore >= 50 ? 'bg-yellow-100 text-yellow-700' : 
-                                  'bg-red-100 text-red-700'
-                                )}>
+                                <span
+                                  className={cn(
+                                    'inline-flex px-2 py-1 rounded-full text-xs font-semibold',
+                                    student.participationScore >= 70
+                                      ? 'bg-green-100 text-green-700'
+                                      : student.participationScore >= 50
+                                        ? 'bg-yellow-100 text-yellow-700'
+                                        : 'bg-red-100 text-red-700'
+                                  )}
+                                >
                                   {student.participationScore}
                                 </span>
                               </td>
@@ -713,9 +818,11 @@ export function InstructorAnalyticsView() {
                   {equityMetrics.fairnessScore}%
                 </div>
                 <p className="text-sm text-gray-600">
-                  {equityMetrics.fairnessScore >= 70 ? 'Well balanced participation' :
-                   equityMetrics.fairnessScore >= 50 ? 'Moderate balance needed' :
-                   'Significant imbalance detected'}
+                  {equityMetrics.fairnessScore >= 70
+                    ? 'Well balanced participation'
+                    : equityMetrics.fairnessScore >= 50
+                      ? 'Moderate balance needed'
+                      : 'Significant imbalance detected'}
                 </p>
               </div>
 
@@ -728,9 +835,11 @@ export function InstructorAnalyticsView() {
                   {equityMetrics.giniCoefficient}
                 </div>
                 <p className="text-sm text-gray-600">
-                  {equityMetrics.giniCoefficient < 0.3 ? 'Low inequality' :
-                   equityMetrics.giniCoefficient < 0.5 ? 'Moderate inequality' :
-                   'High inequality'}
+                  {equityMetrics.giniCoefficient < 0.3
+                    ? 'Low inequality'
+                    : equityMetrics.giniCoefficient < 0.5
+                      ? 'Moderate inequality'
+                      : 'High inequality'}
                 </p>
               </div>
 
@@ -748,19 +857,28 @@ export function InstructorAnalyticsView() {
 
             {/* Participation Distribution */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Participation Distribution</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                Participation Distribution
+              </h3>
               <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6">
                 <div className="space-y-3">
-                    {studentPerformance.slice(0, 10).map((student, index) => {
-                    const maxHours = Math.max(...studentPerformance.map(s => s.totalHours || 0));
-                    const percentage = maxHours > 0 && !isNaN(maxHours) ? ((student.totalHours || 0) / maxHours) * 100 : 0;
-                    
+                  {studentPerformance.slice(0, 10).map((student, index) => {
+                    const maxHours = Math.max(...studentPerformance.map((s) => s.totalHours || 0));
+                    const percentage =
+                      maxHours > 0 && !isNaN(maxHours)
+                        ? ((student.totalHours || 0) / maxHours) * 100
+                        : 0;
+
                     return (
                       <div key={student.userId}>
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center space-x-3">
-                            <span className="text-sm font-medium text-gray-600 w-6">#{index + 1}</span>
-                            <span className="text-sm font-medium text-gray-900">{student.name}</span>
+                            <span className="text-sm font-medium text-gray-600 w-6">
+                              #{index + 1}
+                            </span>
+                            <span className="text-sm font-medium text-gray-900">
+                              {student.name}
+                            </span>
                           </div>
                           <span className="text-sm font-semibold text-gray-900">
                             {student.totalHours}h
@@ -791,7 +909,8 @@ export function InstructorAnalyticsView() {
                   <div className="space-y-2">
                     <div className="font-bold text-green-900">{equityMetrics.mostActive.name}</div>
                     <div className="text-sm text-green-700">
-                      {equityMetrics.mostActive.totalHours}h • {equityMetrics.mostActive.contributions} contributions
+                      {equityMetrics.mostActive.totalHours}h •{' '}
+                      {equityMetrics.mostActive.contributions} contributions
                     </div>
                   </div>
                 </div>
@@ -807,7 +926,8 @@ export function InstructorAnalyticsView() {
                   <div className="space-y-2">
                     <div className="font-bold text-red-900">{equityMetrics.leastActive.name}</div>
                     <div className="text-sm text-red-700">
-                      {equityMetrics.leastActive.totalHours}h • {equityMetrics.leastActive.contributions} contributions
+                      {equityMetrics.leastActive.totalHours}h •{' '}
+                      {equityMetrics.leastActive.contributions} contributions
                     </div>
                   </div>
                 </div>
@@ -821,15 +941,21 @@ export function InstructorAnalyticsView() {
                 <ul className="space-y-2 text-sm text-blue-800">
                   <li className="flex items-start">
                     <span className="mr-2">•</span>
-                    <span>Consider redistributing tasks to balance workload across team members</span>
+                    <span>
+                      Consider redistributing tasks to balance workload across team members
+                    </span>
                   </li>
                   <li className="flex items-start">
                     <span className="mr-2">•</span>
-                    <span>Provide additional support or resources to students with lower participation</span>
+                    <span>
+                      Provide additional support or resources to students with lower participation
+                    </span>
                   </li>
                   <li className="flex items-start">
                     <span className="mr-2">•</span>
-                    <span>Review team assignments to ensure fair distribution of responsibilities</span>
+                    <span>
+                      Review team assignments to ensure fair distribution of responsibilities
+                    </span>
                   </li>
                   <li className="flex items-start">
                     <span className="mr-2">•</span>

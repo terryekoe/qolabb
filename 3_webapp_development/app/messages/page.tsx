@@ -40,8 +40,8 @@ function MessagesPageContent() {
 
 export default function MessagesPage() {
   return (
-    <FeatureGuard 
-      feature="COMMUNICATION" 
+    <FeatureGuard
+      feature="COMMUNICATION"
       featureName="Messaging"
       description="In-app messaging is not available in the MVP. Students can use WhatsApp, Slack, or other communication tools they're already familiar with."
     >

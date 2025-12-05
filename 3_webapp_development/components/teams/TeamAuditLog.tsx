@@ -1,10 +1,10 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { 
-  History, 
-  Search, 
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import {
+  History,
+  Search,
   Filter,
   Calendar,
   User,
@@ -16,214 +16,222 @@ import {
   ChevronDown,
   ChevronRight,
   Download,
-  RefreshCw
-} from 'lucide-react'
-import { Button } from '@/components/Button'
-import Avatar from '@/components/ui/Avatar'
-import { useAuth } from '@/lib/auth/AuthContext'
-import { useWorkspace } from '@/lib/workspace/WorkspaceContext'
-import { getTeamAssignmentAudit, getWorkspaceAssignmentAudit } from '@/lib/db/queries'
-import { TeamAssignmentAudit, Profile, Team } from '@/lib/types/database'
-import { toast } from 'react-hot-toast'
+  RefreshCw,
+} from 'lucide-react';
+import { Button } from '@/components/Button';
+import Avatar from '@/components/ui/Avatar';
+import { useAuth } from '@/lib/auth/AuthContext';
+import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
+import { getTeamAssignmentAudit, getWorkspaceAssignmentAudit } from '@/lib/db/queries';
+import { TeamAssignmentAudit, Profile, Team } from '@/lib/types/database';
+import { toast } from 'react-hot-toast';
 
 interface TeamAuditLogProps {
-  teamId?: string // Optional: filter by specific team
+  teamId?: string; // Optional: filter by specific team
 }
 
 interface AuditEntryWithDetails extends TeamAssignmentAudit {
-  user?: Profile
-  performer?: Profile
-  team?: Team
+  user?: Profile;
+  performer?: Profile;
+  team?: Team;
 }
 
 export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
-  const { user } = useAuth()
-  const { currentWorkspace } = useWorkspace()
-  const [auditEntries, setAuditEntries] = useState<AuditEntryWithDetails[]>([])
-  const [loading, setLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [actionFilter, setActionFilter] = useState<string>('all')
-  const [dateFilter, setDateFilter] = useState<string>('all')
-  const [showFilters, setShowFilters] = useState(false)
-  const [page, setPage] = useState(1)
-  const [hasMore, setHasMore] = useState(true)
+  const { user } = useAuth();
+  const { currentWorkspace } = useWorkspace();
+  const [auditEntries, setAuditEntries] = useState<AuditEntryWithDetails[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [actionFilter, setActionFilter] = useState<string>('all');
+  const [dateFilter, setDateFilter] = useState<string>('all');
+  const [showFilters, setShowFilters] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
   useEffect(() => {
     if (currentWorkspace?.id) {
-      loadAuditEntries(true)
+      loadAuditEntries(true);
     }
-  }, [currentWorkspace?.id, teamId, actionFilter, dateFilter])
+  }, [currentWorkspace?.id, teamId, actionFilter, dateFilter]);
 
   const loadAuditEntries = async (reset = false) => {
-    if (!currentWorkspace?.id) return
-    
+    if (!currentWorkspace?.id) return;
+
     try {
-      setLoading(true)
-      
-      let entries: AuditEntryWithDetails[] = []
-      
+      setLoading(true);
+
+      let entries: AuditEntryWithDetails[] = [];
+
       if (teamId) {
         // If filtering by specific team, use getTeamAssignmentAudit
-        entries = await getTeamAssignmentAudit(teamId, 50)
+        entries = await getTeamAssignmentAudit(teamId, 50);
       } else {
         // If showing all workspace audit entries, use getWorkspaceAssignmentAudit
-        entries = await getWorkspaceAssignmentAudit(currentWorkspace.id, 100)
+        entries = await getWorkspaceAssignmentAudit(currentWorkspace.id, 100);
       }
-      
+
       // Apply additional filters if needed
       if (actionFilter !== 'all') {
-        entries = entries.filter(entry => entry.action === actionFilter)
+        entries = entries.filter((entry) => entry.action === actionFilter);
       }
-      
+
       if (dateFilter !== 'all') {
-        const now = new Date()
-        let startDate: Date
-        
+        const now = new Date();
+        let startDate: Date;
+
         switch (dateFilter) {
           case 'today':
-            startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-            break
+            startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            break;
           case 'week':
-            startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-            break
+            startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            break;
           case 'month':
-            startDate = new Date(now.getFullYear(), now.getMonth(), 1)
-            break
+            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+            break;
           default:
-            startDate = new Date(0)
+            startDate = new Date(0);
         }
-        
-        entries = entries.filter(entry => new Date(entry.created_at) >= startDate)
+
+        entries = entries.filter((entry) => new Date(entry.created_at) >= startDate);
       }
-      
+
       if (reset) {
-        setAuditEntries(entries || [])
-        setPage(2)
+        setAuditEntries(entries || []);
+        setPage(2);
       } else {
-        setAuditEntries(prev => [...prev, ...(entries || [])])
-        setPage(prev => prev + 1)
+        setAuditEntries((prev) => [...prev, ...(entries || [])]);
+        setPage((prev) => prev + 1);
       }
-      
-      setHasMore((entries || []).length === 50)
+
+      setHasMore((entries || []).length === 50);
     } catch (error) {
-      console.error('Error loading audit entries:', error)
-      toast.error('Failed to load audit log')
+      console.error('Error loading audit entries:', error);
+      toast.error('Failed to load audit log');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleRefresh = () => {
-    loadAuditEntries(true)
-  }
+    loadAuditEntries(true);
+  };
 
   const exportAuditLog = () => {
     // Create CSV content
-    const headers = ['Date', 'Actor', 'Action', 'Target User', 'Team', 'Role', 'Details']
+    const headers = ['Date', 'Actor', 'Action', 'Target User', 'Team', 'Role', 'Details'];
     const csvContent = [
       headers.join(','),
-      ...filteredEntries.map(entry => [
-        new Date(entry.created_at).toLocaleString(),
-        entry.performer?.full_name || 'Unknown',
-        entry.action.replace('_', ' ').toUpperCase(),
-        entry.user?.full_name || 'Unknown',
-        entry.team?.name || 'Unknown',
-        (entry.details && typeof entry.details === 'object' && 'role' in entry.details) ? String(entry.details.role) : '',
-        entry.details ? JSON.stringify(entry.details) : ''
-      ].map(field => `"${field}"`).join(','))
-    ].join('\n')
-    
+      ...filteredEntries.map((entry) =>
+        [
+          new Date(entry.created_at).toLocaleString(),
+          entry.performer?.full_name || 'Unknown',
+          entry.action.replace('_', ' ').toUpperCase(),
+          entry.user?.full_name || 'Unknown',
+          entry.team?.name || 'Unknown',
+          entry.details && typeof entry.details === 'object' && 'role' in entry.details
+            ? String(entry.details.role)
+            : '',
+          entry.details ? JSON.stringify(entry.details) : '',
+        ]
+          .map((field) => `"${field}"`)
+          .join(',')
+      ),
+    ].join('\n');
+
     // Download CSV
-    const blob = new Blob([csvContent], { type: 'text/csv' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `team-audit-log-${new Date().toISOString().split('T')[0]}.csv`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-    
-    toast.success('Audit log exported successfully')
-  }
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `team-audit-log-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    toast.success('Audit log exported successfully');
+  };
 
   // Filter entries based on search query
-  const filteredEntries = auditEntries.filter(entry => {
-    if (!searchQuery) return true
-    
-    const searchLower = searchQuery.toLowerCase()
+  const filteredEntries = auditEntries.filter((entry) => {
+    if (!searchQuery) return true;
+
+    const searchLower = searchQuery.toLowerCase();
     return (
       entry.performer?.full_name?.toLowerCase().includes(searchLower) ||
       entry.user?.full_name?.toLowerCase().includes(searchLower) ||
       entry.team?.name?.toLowerCase().includes(searchLower) ||
       entry.action.toLowerCase().includes(searchLower) ||
-      (entry.details && typeof entry.details === 'string' && entry.details.toLowerCase().includes(searchLower))
-    )
-  })
+      (entry.details &&
+        typeof entry.details === 'string' &&
+        entry.details.toLowerCase().includes(searchLower))
+    );
+  });
 
   const getActionColor = (action: string) => {
     switch (action) {
       case 'added_member':
       case 'bulk_invite':
-        return 'bg-green-50 text-green-700 border-green-200'
+        return 'bg-green-50 text-green-700 border-green-200';
       case 'removed_member':
-        return 'bg-red-50 text-red-700 border-red-200'
+        return 'bg-red-50 text-red-700 border-red-200';
       case 'promoted_to_leader':
-        return 'bg-yellow-50 text-yellow-700 border-yellow-200'
+        return 'bg-yellow-50 text-yellow-700 border-yellow-200';
       case 'demoted_from_leader':
-        return 'bg-blue-50 text-blue-700 border-blue-200'
+        return 'bg-blue-50 text-blue-700 border-blue-200';
       default:
-        return 'bg-gray-50 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 border-gray-200'
+        return 'bg-gray-50 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 border-gray-200';
     }
-  }
+  };
 
   const formatAction = (action: string) => {
-    return action.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-  }
+    return action.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+  };
 
   const getActionIcon = (action: string) => {
     switch (action) {
       case 'add_member':
       case 'bulk_invite':
-        return <UserPlus className="w-4 h-4 text-green-600" />
+        return <UserPlus className="w-4 h-4 text-green-600" />;
       case 'remove_member':
-        return <UserMinus className="w-4 h-4 text-red-600" />
+        return <UserMinus className="w-4 h-4 text-red-600" />;
       case 'promote_to_leader':
-        return <Crown className="w-4 h-4 text-yellow-600" />
+        return <Crown className="w-4 h-4 text-yellow-600" />;
       case 'demote_to_member':
-        return <User className="w-4 h-4 text-blue-600" />
+        return <User className="w-4 h-4 text-blue-600" />;
       default:
-        return <Users className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+        return <Users className="w-4 h-4 text-gray-600 dark:text-gray-400" />;
     }
-  }
+  };
 
   const getActionVerb = (action: string) => {
     switch (action) {
       case 'added_member':
-        return 'added'
+        return 'added';
       case 'removed_member':
-        return 'removed'
+        return 'removed';
       case 'promoted_to_leader':
-        return 'promoted'
+        return 'promoted';
       case 'demoted_from_leader':
-        return 'demoted'
+        return 'demoted';
       default:
-        return 'performed action on'
+        return 'performed action on';
     }
-  }
-
-
+  };
 
   if (!currentWorkspace) {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <History size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">No Class Selected</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+            No Class Selected
+          </h2>
           <p className="text-gray-600 dark:text-gray-400">Select a workspace to view audit logs</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -231,7 +239,9 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Group Assignment Audit Log</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            Group Assignment Audit Log
+          </h2>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
             Track all group assignment activities in {currentWorkspace.name}
           </p>
@@ -264,7 +274,10 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
           {/* Search */}
           <div className="flex-1">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                size={20}
+              />
               <input
                 type="text"
                 placeholder="Search by user, team, action, or details..."
@@ -337,7 +350,10 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
       {loading && auditEntries.length === 0 ? (
         <div className="space-y-4">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 animate-pulse">
+            <div
+              key={i}
+              className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 animate-pulse"
+            >
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
                 <div className="flex-1">
@@ -356,12 +372,13 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
           className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border-2 border-dashed border-gray-300 dark:border-gray-600"
         >
           <History size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">No Audit Entries Found</h3>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+            No Audit Entries Found
+          </h3>
           <p className="text-gray-600 dark:text-gray-400">
             {searchQuery || actionFilter !== 'all' || dateFilter !== 'all'
               ? 'Try adjusting your search or filter criteria'
-              : 'No group assignment activities have been recorded yet'
-            }
+              : 'No group assignment activities have been recorded yet'}
           </p>
         </motion.div>
       ) : (
@@ -376,9 +393,7 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
             >
               <div className="flex items-start gap-4">
                 {/* Action Icon */}
-                <div className="flex-shrink-0 mt-1">
-                  {getActionIcon(entry.action)}
-                </div>
+                <div className="flex-shrink-0 mt-1">{getActionIcon(entry.action)}</div>
 
                 {/* Main Content */}
                 <div className="flex-1 min-w-0">
@@ -403,7 +418,9 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
                         <span className="font-medium text-gray-900">
                           {entry.performer?.full_name || 'Unknown User'}
                         </span>
-                        <span className="text-gray-600 dark:text-gray-400">{getActionVerb(entry.action)}</span>
+                        <span className="text-gray-600 dark:text-gray-400">
+                          {getActionVerb(entry.action)}
+                        </span>
                         <Avatar
                           userId={entry.user_id}
                           name={entry.user?.full_name || 'Unknown'}
@@ -416,15 +433,19 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
                         {entry.action.includes('leader') && (
                           <span className="text-gray-600 dark:text-gray-400">as</span>
                         )}
-                        {entry.details && typeof entry.details === 'object' && 'role' in entry.details && (
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            entry.details.role === 'leader' 
-                              ? 'bg-yellow-100 text-yellow-700' 
-                              : 'bg-blue-100 text-blue-700'
-                          }`}>
-                            {String(entry.details.role)}
-                          </span>
-                        )}
+                        {entry.details &&
+                          typeof entry.details === 'object' &&
+                          'role' in entry.details && (
+                            <span
+                              className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                entry.details.role === 'leader'
+                                  ? 'bg-yellow-100 text-yellow-700'
+                                  : 'bg-blue-100 text-blue-700'
+                              }`}
+                            >
+                              {String(entry.details.role)}
+                            </span>
+                          )}
                         <span className="text-gray-600 dark:text-gray-400">in</span>
                         <span className="font-medium text-gray-900">
                           {entry.team?.name || 'Unknown Team'}
@@ -445,10 +466,12 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
                               return `Bulk invitation sent${details.request_id ? ` (Request: ${details.request_id.slice(0, 8)}...)` : ''}`;
                             }
                             // For other details, format key-value pairs nicely
-                            return Object.entries(details)
-                              .filter(([key]) => !['request_id', 'bulk_invite'].includes(key))
-                              .map(([key, value]) => `${key}: ${value}`)
-                              .join(', ') || 'No additional details';
+                            return (
+                              Object.entries(details)
+                                .filter(([key]) => !['request_id', 'bulk_invite'].includes(key))
+                                .map(([key, value]) => `${key}: ${value}`)
+                                .join(', ') || 'No additional details'
+                            );
                           })()}
                         </p>
                       )}
@@ -461,7 +484,9 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
                     </div>
 
                     {/* Action Badge */}
-                    <div className={`px-3 py-1 rounded-full text-xs font-medium border ${getActionColor(entry.action)}`}>
+                    <div
+                      className={`px-3 py-1 rounded-full text-xs font-medium border ${getActionColor(entry.action)}`}
+                    >
                       {formatAction(entry.action)}
                     </div>
                   </div>
@@ -494,5 +519,5 @@ export default function TeamAuditLog({ teamId }: TeamAuditLogProps) {
         </div>
       )}
     </div>
-  )
+  );
 }

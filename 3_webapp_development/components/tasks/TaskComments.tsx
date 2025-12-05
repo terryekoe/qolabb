@@ -2,13 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import {
-  MessageSquare,
-  Send,
-  User,
-  Clock,
-  X,
-} from 'lucide-react';
+import { MessageSquare, Send, User, Clock, X } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import { Button } from '@/components/Button';
 import { supabase } from '@/lib/supabase';
@@ -53,7 +47,7 @@ export function TaskComments({
 
   useEffect(() => {
     loadComments();
-    
+
     // Subscribe to new comments
     const subscription = supabase
       .channel(`task_comments_${taskId}`)
@@ -81,13 +75,15 @@ export function TaskComments({
       setLoading(true);
       const { data, error } = await supabase
         .from('activity_log')
-        .select(`
+        .select(
+          `
           id,
           user_id,
           created_at,
           metadata,
           user:profiles!user_id(id, full_name, avatar_url)
-        `)
+        `
+        )
         .eq('entity_type', 'task')
         .eq('entity_id', taskId)
         .eq('action_type', 'comment')
@@ -150,7 +146,7 @@ export function TaskComments({
     if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
     if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
     if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
-    
+
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -169,9 +165,7 @@ export function TaskComments({
 
       {/* Comments List */}
       {loading && comments.length === 0 ? (
-        <div className="text-center py-8 text-sm text-gray-500">
-          Loading comments...
-        </div>
+        <div className="text-center py-8 text-sm text-gray-500">Loading comments...</div>
       ) : comments.length === 0 ? (
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
           <MessageSquare size={24} className="mx-auto text-gray-300 mb-2" />
@@ -246,9 +240,7 @@ export function TaskComments({
               }}
             />
             <div className="flex items-center justify-between mt-2">
-              <p className="text-xs text-gray-500">
-                Press Cmd/Ctrl + Enter to post
-              </p>
+              <p className="text-xs text-gray-500">Press Cmd/Ctrl + Enter to post</p>
               <Button
                 variant="primary"
                 size="sm"

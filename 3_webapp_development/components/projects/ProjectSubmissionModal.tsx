@@ -1,6 +1,14 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Link as LinkIcon, FileText, Loader2, AlertCircle, Upload, CheckSquare } from 'lucide-react';
+import {
+  X,
+  Link as LinkIcon,
+  FileText,
+  Loader2,
+  AlertCircle,
+  Upload,
+  CheckSquare,
+} from 'lucide-react';
 import { submitProject, uploadProjectFile } from '@/lib/db/queries';
 import { ProjectSubmission, ProjectResource } from '@/lib/types/database';
 import { toast } from 'react-hot-toast';
@@ -18,7 +26,7 @@ export function ProjectSubmissionModal({
   onClose,
   projectId,
   userId,
-  onSubmissionComplete
+  onSubmissionComplete,
 }: ProjectSubmissionModalProps) {
   const [url, setUrl] = useState('');
   const [notes, setNotes] = useState('');
@@ -65,7 +73,7 @@ export function ProjectSubmissionModal({
             size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
             fileType: file.type,
             addedBy: userId,
-            addedAt: new Date().toISOString()
+            addedAt: new Date().toISOString(),
           });
         } catch (uploadErr) {
           console.error('File upload failed:', uploadErr);
@@ -81,17 +89,19 @@ export function ProjectSubmissionModal({
           name: 'Project Link',
           url: url.trim(),
           addedBy: userId,
-          addedAt: new Date().toISOString()
+          addedAt: new Date().toISOString(),
         });
       }
 
       // Content is primarily the notes, but we can include the URL for legacy support
-      const finalContent = notes.trim() 
+      const finalContent = notes.trim()
         ? notes.trim()
-        : (url.trim() ? `Submission Link: ${url.trim()}` : 'File Submission');
+        : url.trim()
+          ? `Submission Link: ${url.trim()}`
+          : 'File Submission';
 
       const submission = await submitProject(projectId, userId, finalContent, resources);
-      
+
       if (submission) {
         onSubmissionComplete(submission);
         toast.success('Project submitted successfully!');
@@ -143,7 +153,7 @@ export function ProjectSubmissionModal({
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Project Files (Optional)
                 </label>
-                <div 
+                <div
                   onClick={() => fileInputRef.current?.click()}
                   className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 dark:hover:border-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all"
                 >
@@ -157,7 +167,7 @@ export function ProjectSubmissionModal({
                     <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
                       <FileText size={24} />
                       <span className="font-medium truncate max-w-[200px]">{file.name}</span>
-                      <button 
+                      <button
                         onClick={(e) => {
                           e.stopPropagation();
                           setFile(null);
@@ -228,9 +238,12 @@ export function ProjectSubmissionModal({
                   />
                 </div>
                 <div className="text-sm">
-                  <span className="font-medium text-gray-900 dark:text-gray-100">Final Submission Confirmation</span>
+                  <span className="font-medium text-gray-900 dark:text-gray-100">
+                    Final Submission Confirmation
+                  </span>
                   <p className="text-gray-500 dark:text-gray-400 mt-1">
-                    I certify that this is the final submission on behalf of my team and all requirements have been met.
+                    I certify that this is the final submission on behalf of my team and all
+                    requirements have been met.
                   </p>
                 </div>
               </label>

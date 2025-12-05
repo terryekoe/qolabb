@@ -2,13 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Users, 
-  Plus, 
-  MoreVertical, 
-  UserPlus, 
-  Crown, 
-  X, 
+import {
+  Users,
+  Plus,
+  MoreVertical,
+  UserPlus,
+  Crown,
+  X,
   Trash2,
   Search,
   Filter,
@@ -49,7 +49,9 @@ export default function TeamsPage() {
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [showTeamDetailsModal, setShowTeamDetailsModal] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<'my-teams' | 'discover' | 'requests' | 'bulk-assign' | 'audit-log'>('my-teams');
+  const [activeTab, setActiveTab] = useState<
+    'my-teams' | 'discover' | 'requests' | 'bulk-assign' | 'audit-log'
+  >('my-teams');
 
   const colors = [
     { name: 'Navy', value: '#334e68' },
@@ -149,18 +151,21 @@ export default function TeamsPage() {
     setError('');
 
     try {
-      await createTeam({
-        workspace_id: currentWorkspace.id,
-        name: teamName,
-        description: teamDescription || null,
-        avatar_color: teamColor,
-        settings: {
-          allow_self_join: false,
-          require_approval: true,
-          max_members: null
+      await createTeam(
+        {
+          workspace_id: currentWorkspace.id,
+          name: teamName,
+          description: teamDescription || null,
+          avatar_color: teamColor,
+          settings: {
+            allow_self_join: false,
+            require_approval: true,
+            max_members: null,
+          },
+          is_public: false,
         },
-        is_public: false,
-      }, user.id);
+        user.id
+      );
 
       await loadTeams();
       setShowCreateModal(false);
@@ -203,9 +208,10 @@ export default function TeamsPage() {
   }
 
   // Filter teams based on search
-  const filteredTeams = teams.filter(team => 
-    team.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    team.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredTeams = teams.filter(
+    (team) =>
+      team.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      team.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -303,7 +309,10 @@ export default function TeamsPage() {
             {/* Search Bar */}
             <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <Search
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  size={20}
+                />
                 <input
                   type="text"
                   placeholder="Search groups..."
@@ -315,159 +324,161 @@ export default function TeamsPage() {
             </div>
 
             {/* Teams Grid */}
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 animate-pulse">
-                <div className="h-12 bg-gray-200 rounded mb-4"></div>
-                <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 animate-pulse"
+                  >
+                    <div className="h-12 bg-gray-200 rounded mb-4"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        ) : filteredTeams.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border-2 border-dashed border-gray-300 dark:border-gray-600"
-          >
-            <Users size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-              {searchQuery ? 'No groups found' : 'No groups yet'}
-            </h3>
-            <p className="text-gray-600 mb-6">
-              {searchQuery
-                ? 'Try adjusting your search query'
-                : 'Create your first group to start collaborating on assignments'}
-            </p>
-            {!searchQuery && (
-              <Button
-                variant="primary"
-                onClick={() => setShowCreateModal(true)}
-                className="flex items-center space-x-2 mx-auto"
-              >
-                <Plus size={20} />
-                <span>Create First Group</span>
-              </Button>
-            )}
-          </motion.div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredTeams.map((team, index) => (
+            ) : filteredTeams.length === 0 ? (
               <motion.div
-                key={team.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-                whileHover={{ y: -6, scale: 1.02 }}
-                className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 group"
+                className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border-2 border-dashed border-gray-300 dark:border-gray-600"
               >
-                {/* Team Header */}
-                <div
-                  className="h-28 flex items-center justify-center relative bg-gradient-to-br"
-                  style={{ 
-                    background: `linear-gradient(135deg, ${team.avatar_color}, ${team.avatar_color}dd)` 
-                  }}
-                >
-                  <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
-                    <Users size={28} className="text-white drop-shadow-sm" />
-                  </div>
-                  <button className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/30 rounded-full transition-all duration-200 opacity-0 group-hover:opacity-100 backdrop-blur-sm">
-                    <MoreVertical size={16} className="text-white" />
-                  </button>
-                </div>
-
-                {/* Team Info */}
-                <div className="p-6 space-y-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex-1">
-                      {team.name}
-                    </h3>
-                    {team.members?.some((m: any) => m.role === 'leader' && m.user_id === user?.id) && (
-                      <div className="flex items-center space-x-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2 py-1 rounded-full ml-2">
-                        <Crown size={12} />
-                        <span className="text-xs font-semibold">Group Leader</span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  {team.description && (
-                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2">{team.description}</p>
-                  )}
-
-                  {/* Members Count */}
-                  <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
-                    <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700/50 rounded-full px-3 py-1">
-                      <Users size={14} />
-                      <span className="text-sm font-medium">
-                        {team.members?.length || 0} member{team.members?.length !== 1 ? 's' : ''}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Members Avatars */}
-                  {team.members && team.members.length > 0 && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Group Members</span>
-                      <AvatarGroup
-                        users={team.members.map((member: any) => ({
-                          userId: member.user?.id || member.user_id || `member-${member.id}`,
-                          name: member.user?.full_name || 'User',
-                          src: member.user?.avatar_url
-                        }))}
-                        max={4}
-                        size="sm"
-                        className="hover:scale-105 transition-transform duration-200"
-                      />
-                    </div>
-                  )}
-
-                  {/* Actions */}
-                  <div className="flex space-x-2 pt-4 border-t border-gray-100">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="flex-1 flex items-center justify-center space-x-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 transition-all duration-200 font-medium shadow-sm"
-                      onClick={() => handleViewDetails(team)}
-                    >
-                      <Users size={16} />
-                      <span>View Details</span>
-                    </Button>
-                    {canAccess.instructorFeatures() && (
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        className="flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 border-0"
-                        onClick={() => handleAddMember(team)}
-                      >
-                        <UserPlus size={16} />
-                        <span>Add</span>
-                      </Button>
-                    )}
-                  </div>
-                </div>
+                <Users size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                  {searchQuery ? 'No groups found' : 'No groups yet'}
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  {searchQuery
+                    ? 'Try adjusting your search query'
+                    : 'Create your first group to start collaborating on assignments'}
+                </p>
+                {!searchQuery && (
+                  <Button
+                    variant="primary"
+                    onClick={() => setShowCreateModal(true)}
+                    className="flex items-center space-x-2 mx-auto"
+                  >
+                    <Plus size={20} />
+                    <span>Create First Group</span>
+                  </Button>
+                )}
               </motion.div>
-            ))}
-          </div>
-        )}
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredTeams.map((team, index) => (
+                  <motion.div
+                    key={team.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    whileHover={{ y: -6, scale: 1.02 }}
+                    className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 group"
+                  >
+                    {/* Team Header */}
+                    <div
+                      className="h-28 flex items-center justify-center relative bg-gradient-to-br"
+                      style={{
+                        background: `linear-gradient(135deg, ${team.avatar_color}, ${team.avatar_color}dd)`,
+                      }}
+                    >
+                      <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
+                        <Users size={28} className="text-white drop-shadow-sm" />
+                      </div>
+                      <button className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/30 rounded-full transition-all duration-200 opacity-0 group-hover:opacity-100 backdrop-blur-sm">
+                        <MoreVertical size={16} className="text-white" />
+                      </button>
+                    </div>
+
+                    {/* Team Info */}
+                    <div className="p-6 space-y-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex-1">
+                          {team.name}
+                        </h3>
+                        {team.members?.some(
+                          (m: any) => m.role === 'leader' && m.user_id === user?.id
+                        ) && (
+                          <div className="flex items-center space-x-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2 py-1 rounded-full ml-2">
+                            <Crown size={12} />
+                            <span className="text-xs font-semibold">Group Leader</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {team.description && (
+                        <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2">
+                          {team.description}
+                        </p>
+                      )}
+
+                      {/* Members Count */}
+                      <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
+                        <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700/50 rounded-full px-3 py-1">
+                          <Users size={14} />
+                          <span className="text-sm font-medium">
+                            {team.members?.length || 0} member
+                            {team.members?.length !== 1 ? 's' : ''}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Members Avatars */}
+                      {team.members && team.members.length > 0 && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Group Members
+                          </span>
+                          <AvatarGroup
+                            users={team.members.map((member: any) => ({
+                              userId: member.user?.id || member.user_id || `member-${member.id}`,
+                              name: member.user?.full_name || 'User',
+                              src: member.user?.avatar_url,
+                            }))}
+                            max={4}
+                            size="sm"
+                            className="hover:scale-105 transition-transform duration-200"
+                          />
+                        </div>
+                      )}
+
+                      {/* Actions */}
+                      <div className="flex space-x-2 pt-4 border-t border-gray-100">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 flex items-center justify-center space-x-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 transition-all duration-200 font-medium shadow-sm"
+                          onClick={() => handleViewDetails(team)}
+                        >
+                          <Users size={16} />
+                          <span>View Details</span>
+                        </Button>
+                        {canAccess.instructorFeatures() && (
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            className="flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 border-0"
+                            onClick={() => handleAddMember(team)}
+                          >
+                            <UserPlus size={16} />
+                            <span>Add</span>
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </>
         )}
 
-        {activeTab === 'discover' && (
-          <TeamDiscovery onTeamJoined={loadTeams} />
-        )}
+        {activeTab === 'discover' && <TeamDiscovery onTeamJoined={loadTeams} />}
 
-        {activeTab === 'requests' && (
-          <JoinRequestManager onRequestProcessed={loadTeams} />
-        )}
+        {activeTab === 'requests' && <JoinRequestManager onRequestProcessed={loadTeams} />}
 
-        {activeTab === 'bulk-assign' && (
-          <BulkTeamAssignment onAssignmentComplete={loadTeams} />
-        )}
+        {activeTab === 'bulk-assign' && <BulkTeamAssignment onAssignmentComplete={loadTeams} />}
 
-        {activeTab === 'audit-log' && (
-          <TeamAuditLog />
-        )}
+        {activeTab === 'audit-log' && <TeamAuditLog />}
       </div>
 
       {/* Create Team Modal */}
@@ -499,7 +510,9 @@ export default function TeamsPage() {
                   <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-lg mr-4">
                     <Users className="text-blue-700 dark:text-blue-400" size={24} />
                   </div>
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Create Group</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    Create Group
+                  </h2>
                 </div>
                 <button
                   onClick={() => {

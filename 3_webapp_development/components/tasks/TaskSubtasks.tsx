@@ -2,16 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  CheckSquare,
-  Square,
-  Plus,
-  Trash2,
-  Edit2,
-  Save,
-  X,
-  Loader2,
-} from 'lucide-react';
+import { CheckSquare, Square, Plus, Trash2, Edit2, Save, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/Button';
 import {
   getTaskSubtasks,
@@ -167,8 +158,8 @@ export function TaskSubtasks({ taskId, userId }: TaskSubtasksProps) {
                 completionPercentage === 100
                   ? 'bg-green-500'
                   : completionPercentage >= 50
-                  ? 'bg-blue-500'
-                  : 'bg-gray-400'
+                    ? 'bg-blue-500'
+                    : 'bg-gray-400'
               )}
               style={{ width: `${completionPercentage}%` }}
             />
@@ -253,9 +244,7 @@ export function TaskSubtasks({ taskId, userId }: TaskSubtasksProps) {
                         <p
                           className={cn(
                             'text-sm',
-                            subtask.completed
-                              ? 'line-through text-gray-500'
-                              : 'text-gray-900'
+                            subtask.completed ? 'line-through text-gray-500' : 'text-gray-900'
                           )}
                         >
                           {subtask.title}
@@ -323,9 +312,7 @@ export function TaskSubtasks({ taskId, userId }: TaskSubtasksProps) {
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
           <CheckSquare size={20} className="mx-auto text-gray-300 mb-2" />
           <p className="text-gray-500 text-sm">No subtasks yet</p>
-          <p className="text-gray-400 text-xs mt-1">
-            Break down the task into smaller steps
-          </p>
+          <p className="text-gray-400 text-xs mt-1">Break down the task into smaller steps</p>
         </div>
       )}
     </div>

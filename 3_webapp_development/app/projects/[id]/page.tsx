@@ -25,19 +25,35 @@ import {
   BarChart3,
 } from 'lucide-react';
 
-
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/Button';
 import Avatar, { AvatarGroup } from '@/components/ui/Avatar';
 import { TaskModal } from '@/components/projects/TaskModal';
 import { TaskDetailModal } from '@/components/tasks/TaskDetailModal';
-import { getProjectTasks, updateTask, deleteTask, isTeamLeaderOrInstructor, submitProject, getProjectSubmission, getProject, getProjectDiscussions } from '@/lib/db/queries';
+import {
+  getProjectTasks,
+  updateTask,
+  deleteTask,
+  isTeamLeaderOrInstructor,
+  submitProject,
+  getProjectSubmission,
+  getProject,
+  getProjectDiscussions,
+} from '@/lib/db/queries';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
 import { usePermissions } from '@/lib/hooks/usePermissions';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'react-hot-toast';
-import { Project, Task, ProjectResource, ProjectSubmission, TaskStatus, Team, TeamWithMembers } from '@/lib/types/database';
+import {
+  Project,
+  Task,
+  ProjectResource,
+  ProjectSubmission,
+  TaskStatus,
+  Team,
+  TeamWithMembers,
+} from '@/lib/types/database';
 import { ProjectDiscussion } from '@/lib/db/queries'; // Import from queries as it's defined there
 import { ProjectDiscussions } from '@/components/communication/ProjectDiscussions';
 import { ProjectSubmissionModal } from '@/components/projects/ProjectSubmissionModal';
@@ -49,7 +65,7 @@ export default function ProjectDetailPage() {
   const { user } = useAuth();
   const { currentWorkspace, workspaces } = useWorkspace();
   const { canAccess } = usePermissions();
-  
+
   const [project, setProject] = useState<(Project & { team: TeamWithMembers }) | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
@@ -98,14 +114,18 @@ export default function ProjectDetailPage() {
         getProject(params.id as string, currentWorkspace.id), // Assuming getProject takes workspace_id
         getProjectTasks(params.id as string),
         getProjectDiscussions(params.id as string),
-        getProjectSubmission(params.id as string)
+        getProjectSubmission(params.id as string),
       ]);
 
       if (projectData) {
         setProject(projectData);
         // Check permissions
         if (user) {
-          const canManage = await isTeamLeaderOrInstructor(user.id, projectData.team_id, projectData.workspace_id);
+          const canManage = await isTeamLeaderOrInstructor(
+            user.id,
+            projectData.team_id,
+            projectData.workspace_id
+          );
           setCanManageTasks(canManage);
         }
       }
@@ -155,7 +175,7 @@ export default function ProjectDetailPage() {
 
   async function handleDeleteTask(taskId: string) {
     if (!confirm('Are you sure you want to delete this task?')) return;
-    
+
     try {
       await deleteTask(taskId);
       await loadTasks();
@@ -172,7 +192,10 @@ export default function ProjectDetailPage() {
     const diffInDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
 
     if (diffInDays < 0) {
-      return { text: `Overdue by ${Math.abs(diffInDays)} day${Math.abs(diffInDays) !== 1 ? 's' : ''}`, isOverdue: true };
+      return {
+        text: `Overdue by ${Math.abs(diffInDays)} day${Math.abs(diffInDays) !== 1 ? 's' : ''}`,
+        isOverdue: true,
+      };
     } else if (diffInDays === 0) {
       return { text: 'Due today', isOverdue: false, isUrgent: true };
     } else if (diffInDays === 1) {
@@ -187,16 +210,16 @@ export default function ProjectDetailPage() {
   };
 
   const tasksByStatus = {
-    todo: tasks.filter(t => t.status === 'todo'),
-    in_progress: tasks.filter(t => t.status === 'in_progress'),
-    completed: tasks.filter(t => t.status === 'completed'),
+    todo: tasks.filter((t) => t.status === 'todo'),
+    in_progress: tasks.filter((t) => t.status === 'in_progress'),
+    completed: tasks.filter((t) => t.status === 'completed'),
   };
 
-  const completionPercentage = tasks.length > 0 
-    ? Math.round((tasksByStatus.completed.length / tasks.length) * 100)
-    : 0;
+  const completionPercentage =
+    tasks.length > 0 ? Math.round((tasksByStatus.completed.length / tasks.length) * 100) : 0;
 
-  const isLocked = !!projectSubmission || (project?.due_date ? new Date(project.due_date) < new Date() : false);
+  const isLocked =
+    !!projectSubmission || (project?.due_date ? new Date(project.due_date) < new Date() : false);
 
   if (loading || !project) {
     return (
@@ -218,11 +241,7 @@ export default function ProjectDetailPage() {
         <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                onClick={() => router.push('/projects')}
-                className="p-2"
-              >
+              <Button variant="ghost" onClick={() => router.push('/projects')} className="p-2">
                 <ArrowLeft size={20} />
               </Button>
               <div>
@@ -245,7 +264,9 @@ export default function ProjectDetailPage() {
                     {project?.team?.name}
                   </span>
                   {project?.due_date && (
-                    <span className={`flex items-center ${new Date(project.due_date) < new Date() ? 'text-red-600 dark:text-red-400' : ''}`}>
+                    <span
+                      className={`flex items-center ${new Date(project.due_date) < new Date() ? 'text-red-600 dark:text-red-400' : ''}`}
+                    >
                       <Calendar size={14} className="mr-1" />
                       Due {new Date(project.due_date).toLocaleDateString()}
                     </span>
@@ -266,14 +287,16 @@ export default function ProjectDetailPage() {
                   Instructor View
                 </Button>
               )}
-              
+
               <div className="flex -space-x-2 mr-4">
                 <AvatarGroup
-                  users={project?.team?.members?.map((m: any) => ({
-                    userId: m.user.id,
-                    name: m.user.full_name,
-                    src: m.user.avatar_url
-                  })) || []}
+                  users={
+                    project?.team?.members?.map((m: any) => ({
+                      userId: m.user.id,
+                      name: m.user.full_name,
+                      src: m.user.avatar_url,
+                    })) || []
+                  }
                   max={4}
                   size="sm"
                 />
@@ -283,129 +306,133 @@ export default function ProjectDetailPage() {
               </Button>
             </div>
           </div>
-            
-            {/* Action Buttons Section - Improved Hierarchy */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-              {/* View Toggle - More Subtle */}
-              <div className="hidden lg:flex bg-gray-100 dark:bg-gray-700 p-1 rounded-lg order-1">
-                <button
-                  onClick={() => setViewMode('focus')}
-                  className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                    viewMode === 'focus'
-                      ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
-                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-                  }`}
-                >
-                  <ListChecks size={16} className="mr-2" />
-                  My Focus
-                </button>
 
-                <button
-                  onClick={() => setViewMode('team')}
-                  className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                    viewMode === 'team'
-                      ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
-                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-                  }`}
-                >
-                  <LayoutTemplate size={16} className="mr-2" />
-                  Team Board
-                </button>
-                <button
-                  onClick={() => setViewMode('workspace')}
-                  className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                    viewMode === 'workspace'
-                      ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
-                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-                  }`}
-                >
-                  <FileText size={16} className="mr-2" />
-                  Workspace
-                </button>
-              </div>
-              
-              {/* Primary Action Buttons - Only for managers */}
-              {canManageTasks && (
-                <div className="flex gap-2 order-2">
-                  {/* Submit Project - Make it prominent when not submitted */}
-                  {!projectSubmission ? (
-                    <button
-                      onClick={() => setShowSubmissionModal(true)}
-                      className="flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white rounded-lg transition-all text-sm font-semibold shadow-md hover:shadow-lg transform hover:scale-[1.02]"
-                    >
-                      <CheckCircle2 size={18} className="mr-2" />
-                      Submit Project
-                    </button>
-                  ) : (
-                    <div className="flex items-center px-4 py-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-lg text-sm font-medium border border-green-200 dark:border-green-800">
-                      <CheckCircle2 size={16} className="mr-2" />
-                      Submitted
-                    </div>
-                  )}
-                  
-                  {/* Create Task - Secondary Action */}
+          {/* Action Buttons Section - Improved Hierarchy */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            {/* View Toggle - More Subtle */}
+            <div className="hidden lg:flex bg-gray-100 dark:bg-gray-700 p-1 rounded-lg order-1">
+              <button
+                onClick={() => setViewMode('focus')}
+                className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                  viewMode === 'focus'
+                    ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                }`}
+              >
+                <ListChecks size={16} className="mr-2" />
+                My Focus
+              </button>
+
+              <button
+                onClick={() => setViewMode('team')}
+                className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                  viewMode === 'team'
+                    ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                }`}
+              >
+                <LayoutTemplate size={16} className="mr-2" />
+                Team Board
+              </button>
+              <button
+                onClick={() => setViewMode('workspace')}
+                className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                  viewMode === 'workspace'
+                    ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                }`}
+              >
+                <FileText size={16} className="mr-2" />
+                Workspace
+              </button>
+            </div>
+
+            {/* Primary Action Buttons - Only for managers */}
+            {canManageTasks && (
+              <div className="flex gap-2 order-2">
+                {/* Submit Project - Make it prominent when not submitted */}
+                {!projectSubmission ? (
                   <button
-                    onClick={() => {
-                      if (isLocked) {
-                        toast.error('Cannot create tasks - project is locked due to submission or deadline');
-                        return;
-                      }
-                      setShowTaskModal(true);
-                    }}
-                    disabled={isLocked}
-                    className={`flex items-center px-4 py-2 rounded-lg transition-colors text-sm font-medium shadow-sm ${
-                      isLocked
-                        ? 'bg-gray-400 dark:bg-gray-600 text-gray-200 dark:text-gray-400 cursor-not-allowed'
-                        : 'bg-blue-600 hover:bg-blue-700 text-white'
-                    }`}
+                    onClick={() => setShowSubmissionModal(true)}
+                    className="flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white rounded-lg transition-all text-sm font-semibold shadow-md hover:shadow-lg transform hover:scale-[1.02]"
                   >
-                    <Plus size={16} className="mr-2" />
-                    Create Task
+                    <CheckCircle2 size={18} className="mr-2" />
+                    Submit Project
                   </button>
-                </div>
-              )}
+                ) : (
+                  <div className="flex items-center px-4 py-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-lg text-sm font-medium border border-green-200 dark:border-green-800">
+                    <CheckCircle2 size={16} className="mr-2" />
+                    Submitted
+                  </div>
+                )}
+
+                {/* Create Task - Secondary Action */}
+                <button
+                  onClick={() => {
+                    if (isLocked) {
+                      toast.error(
+                        'Cannot create tasks - project is locked due to submission or deadline'
+                      );
+                      return;
+                    }
+                    setShowTaskModal(true);
+                  }}
+                  disabled={isLocked}
+                  className={`flex items-center px-4 py-2 rounded-lg transition-colors text-sm font-medium shadow-sm ${
+                    isLocked
+                      ? 'bg-gray-400 dark:bg-gray-600 text-gray-200 dark:text-gray-400 cursor-not-allowed'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  }`}
+                >
+                  <Plus size={16} className="mr-2" />
+                  Create Task
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Progress Bar - Horizontal Compact Banner */}
+        <div className="mt-6 bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-lg px-6 py-4">
+          <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+            {/* Left: Label with Icon */}
+            <div className="flex items-center gap-2 min-w-fit">
+              <BarChart3 size={18} className="text-blue-600 dark:text-blue-400" />
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Overall Progress:
+              </span>
+              <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
+                {completionPercentage}%
+              </span>
+            </div>
+
+            {/* Center: Progress Bar */}
+            <div className="flex-1 min-w-[200px]">
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                <div
+                  className="bg-gradient-to-r from-blue-600 to-blue-400 h-2 rounded-full transition-all duration-500"
+                  style={{ width: `${completionPercentage}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Right: Stats */}
+            <div className="flex items-center gap-4 text-xs text-gray-600 dark:text-gray-400">
+              <span className="flex items-center gap-1.5 whitespace-nowrap">
+                <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                {tasksByStatus.completed.length} completed
+              </span>
+              <span className="flex items-center gap-1.5 whitespace-nowrap">
+                <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                {tasksByStatus.in_progress.length} in progress
+              </span>
+              <span className="flex items-center gap-1.5 whitespace-nowrap">
+                <span className="w-2 h-2 rounded-full bg-gray-400"></span>
+                {tasksByStatus.todo.length} to do
+              </span>
             </div>
           </div>
-
-
-          {/* Progress Bar - Horizontal Compact Banner */}
-          <div className="mt-6 bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-lg px-6 py-4">
-            <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-              {/* Left: Label with Icon */}
-              <div className="flex items-center gap-2 min-w-fit">
-                <BarChart3 size={18} className="text-blue-600 dark:text-blue-400" />
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Overall Progress:</span>
-                <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{completionPercentage}%</span>
-              </div>
-              
-              {/* Center: Progress Bar */}
-              <div className="flex-1 min-w-[200px]">
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                  <div
-                    className="bg-gradient-to-r from-blue-600 to-blue-400 h-2 rounded-full transition-all duration-500"
-                    style={{ width: `${completionPercentage}%` }}
-                  />
-                </div>
-              </div>
-              
-              {/* Right: Stats */}
-              <div className="flex items-center gap-4 text-xs text-gray-600 dark:text-gray-400">
-                <span className="flex items-center gap-1.5 whitespace-nowrap">
-                  <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                  {tasksByStatus.completed.length} completed
-                </span>
-                <span className="flex items-center gap-1.5 whitespace-nowrap">
-                  <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                  {tasksByStatus.in_progress.length} in progress
-                </span>
-                <span className="flex items-center gap-1.5 whitespace-nowrap">
-                  <span className="w-2 h-2 rounded-full bg-gray-400"></span>
-                  {tasksByStatus.todo.length} to do
-                </span>
-              </div>
-            </div>
-          </div>
-
+        </div>
 
         {/* Content Area - Responsive 2-col on md, 3-col on lg */}
         {viewMode === 'focus' ? (
@@ -419,18 +446,26 @@ export default function ProjectDetailPage() {
                     <CheckCircle2 size={18} className="mr-2" />
                     Project Submitted
                   </h3>
-                  
+
                   <div className="space-y-3 text-sm">
                     <div>
-                      <span className="text-gray-500 dark:text-gray-400 block text-xs uppercase tracking-wider font-semibold">Submitted On</span>
+                      <span className="text-gray-500 dark:text-gray-400 block text-xs uppercase tracking-wider font-semibold">
+                        Submitted On
+                      </span>
                       <span className="text-gray-900 dark:text-gray-100 font-medium">
-                        {new Date(projectSubmission.submitted_at).toLocaleDateString()} at {new Date(projectSubmission.submitted_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {new Date(projectSubmission.submitted_at).toLocaleDateString()} at{' '}
+                        {new Date(projectSubmission.submitted_at).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
                       </span>
                     </div>
 
                     {projectSubmission.content && (
                       <div>
-                        <span className="text-gray-500 dark:text-gray-400 block text-xs uppercase tracking-wider font-semibold mb-1">Notes</span>
+                        <span className="text-gray-500 dark:text-gray-400 block text-xs uppercase tracking-wider font-semibold mb-1">
+                          Notes
+                        </span>
                         <div className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap bg-white dark:bg-gray-800 p-2 rounded border border-green-100 dark:border-green-800/50 text-xs max-h-32 overflow-y-auto">
                           {projectSubmission.content}
                         </div>
@@ -439,10 +474,12 @@ export default function ProjectDetailPage() {
 
                     {projectSubmission.resources && projectSubmission.resources.length > 0 && (
                       <div>
-                        <span className="text-gray-500 dark:text-gray-400 block text-xs uppercase tracking-wider font-semibold mb-1">Attachments</span>
+                        <span className="text-gray-500 dark:text-gray-400 block text-xs uppercase tracking-wider font-semibold mb-1">
+                          Attachments
+                        </span>
                         <div className="space-y-2">
                           {projectSubmission.resources.map((resource: ProjectResource) => (
-                            <a 
+                            <a
                               key={resource.id}
                               href={resource.url}
                               target="_blank"
@@ -452,7 +489,10 @@ export default function ProjectDetailPage() {
                               {resource.type === 'link' ? (
                                 <LinkIcon size={14} className="text-blue-500 mr-2 flex-shrink-0" />
                               ) : (
-                                <FileText size={14} className="text-orange-500 mr-2 flex-shrink-0" />
+                                <FileText
+                                  size={14}
+                                  className="text-orange-500 mr-2 flex-shrink-0"
+                                />
                               )}
                               <span className="truncate flex-1 text-gray-700 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400">
                                 {resource.name}
@@ -471,7 +511,7 @@ export default function ProjectDetailPage() {
                 Instructions
               </h3>
               <div className="prose dark:prose-invert text-sm text-gray-600 dark:text-gray-400 mb-8">
-                {project.description || "No instructions provided for this assignment."}
+                {project.description || 'No instructions provided for this assignment.'}
               </div>
 
               <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
@@ -492,8 +532,12 @@ export default function ProjectDetailPage() {
                         <LinkIcon size={16} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{resource.name}</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{resource.url}</div>
+                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          {resource.name}
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                          {resource.url}
+                        </div>
                       </div>
                     </a>
                   ))
@@ -516,110 +560,144 @@ export default function ProjectDetailPage() {
                 {loading ? (
                   <div className="space-y-4">
                     {[1, 2, 3].map((i) => (
-                      <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse"></div>
+                      <div
+                        key={i}
+                        className="h-16 bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse"
+                      ></div>
                     ))}
                   </div>
-                ) : tasks.filter((t: any) => t.assigned_to === user?.id || (t.assignees && t.assignees.some((a: any) => a.user_id === user?.id))).length === 0 ? (
+                ) : tasks.filter(
+                    (t: any) =>
+                      t.assigned_to === user?.id ||
+                      (t.assignees && t.assignees.some((a: any) => a.user_id === user?.id))
+                  ).length === 0 ? (
                   <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
-                    <CheckCircle2 size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-                    <p className="text-gray-600 dark:text-gray-400 mb-4">You have no tasks assigned yet.</p>
+                    <CheckCircle2
+                      size={48}
+                      className="mx-auto text-gray-300 dark:text-gray-600 mb-4"
+                    />
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">
+                      You have no tasks assigned yet.
+                    </p>
                     {canManageTasks && (
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        onClick={() => setShowTaskModal(true)}
-                      >
+                      <Button variant="primary" size="sm" onClick={() => setShowTaskModal(true)}>
                         Create Task
                       </Button>
                     )}
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {tasks.filter((t: any) => t.assigned_to === user?.id || (t.assignees && t.assignees.some((a: any) => a.user_id === user?.id))).map((task) => {
+                    {tasks
+                      .filter(
+                        (t: any) =>
+                          t.assigned_to === user?.id ||
+                          (t.assignees && t.assignees.some((a: any) => a.user_id === user?.id))
+                      )
+                      .map((task) => {
                         const timeInfo = task.due_date ? getTimeRemaining(task.due_date) : null;
                         const isOverdue = timeInfo?.isOverdue && task.status !== 'completed';
-                        
+
                         return (
-                        <div
-                          key={task.id}
-                          onClick={() => {
-                            setSelectedTask(task);
-                            setShowTaskDetailModal(true);
-                          }}
-                          className={`bg-white dark:bg-gray-800 p-4 rounded-xl border transition-all cursor-pointer hover:shadow-md ${ 
-                            task.status === 'completed' 
-                              ? 'border-gray-200 dark:border-gray-700 opacity-75' 
-                              : isOverdue
-                                ? 'border-red-300 dark:border-red-700 bg-red-50/50 dark:bg-red-900/10'
-                                : 'border-blue-200 dark:border-blue-800 shadow-sm'
-                          }`}
-                        >
-                          <div className="flex items-start gap-3">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (isLocked) {
-                                  toast.error('Project is locked due to submission or deadline');
-                                  return;
-                                }
-                                handleUpdateTaskStatus(task.id, task.status === 'completed' ? 'todo' : 'completed');
-                              }}
-                              disabled={isLocked}
-                              className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
-                                task.status === 'completed'
-                                  ? 'bg-green-500 border-green-500 text-white'
-                                  : 'border-gray-300 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-400'
-                              } ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            >
-                              {task.status === 'completed' && <CheckCircle2 size={12} />}
-                            </button>
-                            <div className="flex-1">
-                              <div className={`text-sm font-medium mb-1 ${
-                                task.status === 'completed' ? 'text-gray-500 dark:text-gray-600 line-through' : 'text-gray-900 dark:text-gray-100'
-                              }`}>
-                                {task.title}
-                              </div>
-                              {task.description && (
-                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 line-clamp-2">{task.description}</p>
-                              )}
-                              <div className="flex items-center justify-between flex-wrap gap-2">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  {task.due_date && (
-                                    <span className={`text-xs flex items-center px-2 py-0.5 rounded-full font-medium ${
-                                      isOverdue
-                                        ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
-                                        : timeInfo?.isUrgent
-                                          ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300'
-                                          : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
-                                    }`}>
-                                      <Clock size={12} className="mr-1" />
-                                      {timeInfo?.text}
-                                    </span>
-                                  )}
-                                  <span className={`text-xs px-2 py-0.5 rounded-full ${
-                                    task.priority === 'high' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' :
-                                    task.priority === 'medium' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' :
-                                    'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-                                  }`}>
-                                    {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
-                                  </span>
+                          <div
+                            key={task.id}
+                            onClick={() => {
+                              setSelectedTask(task);
+                              setShowTaskDetailModal(true);
+                            }}
+                            className={`bg-white dark:bg-gray-800 p-4 rounded-xl border transition-all cursor-pointer hover:shadow-md ${
+                              task.status === 'completed'
+                                ? 'border-gray-200 dark:border-gray-700 opacity-75'
+                                : isOverdue
+                                  ? 'border-red-300 dark:border-red-700 bg-red-50/50 dark:bg-red-900/10'
+                                  : 'border-blue-200 dark:border-blue-800 shadow-sm'
+                            }`}
+                          >
+                            <div className="flex items-start gap-3">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (isLocked) {
+                                    toast.error('Project is locked due to submission or deadline');
+                                    return;
+                                  }
+                                  handleUpdateTaskStatus(
+                                    task.id,
+                                    task.status === 'completed' ? 'todo' : 'completed'
+                                  );
+                                }}
+                                disabled={isLocked}
+                                className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                                  task.status === 'completed'
+                                    ? 'bg-green-500 border-green-500 text-white'
+                                    : 'border-gray-300 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-400'
+                                } ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+                              >
+                                {task.status === 'completed' && <CheckCircle2 size={12} />}
+                              </button>
+                              <div className="flex-1">
+                                <div
+                                  className={`text-sm font-medium mb-1 ${
+                                    task.status === 'completed'
+                                      ? 'text-gray-500 dark:text-gray-600 line-through'
+                                      : 'text-gray-900 dark:text-gray-100'
+                                  }`}
+                                >
+                                  {task.title}
                                 </div>
-                                {/* Assignee Avatar */}
-                                {(task as any).assignee && (
-                                  <div className="flex items-center" title={`Assigned to ${(task as any).assignee.full_name}`}>
-                                    <Avatar
-                                      userId={(task as any).assignee.id}
-                                      name={(task as any).assignee.full_name || 'User'}
-                                      src={(task as any).assignee.avatar_url}
-                                      size="xs"
-                                    />
-                                  </div>
+                                {task.description && (
+                                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 line-clamp-2">
+                                    {task.description}
+                                  </p>
                                 )}
+                                <div className="flex items-center justify-between flex-wrap gap-2">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    {task.due_date && (
+                                      <span
+                                        className={`text-xs flex items-center px-2 py-0.5 rounded-full font-medium ${
+                                          isOverdue
+                                            ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                                            : timeInfo?.isUrgent
+                                              ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300'
+                                              : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                                        }`}
+                                      >
+                                        <Clock size={12} className="mr-1" />
+                                        {timeInfo?.text}
+                                      </span>
+                                    )}
+                                    <span
+                                      className={`text-xs px-2 py-0.5 rounded-full ${
+                                        task.priority === 'high'
+                                          ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                                          : task.priority === 'medium'
+                                            ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
+                                            : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                                      }`}
+                                    >
+                                      {task.priority.charAt(0).toUpperCase() +
+                                        task.priority.slice(1)}
+                                    </span>
+                                  </div>
+                                  {/* Assignee Avatar */}
+                                  {(task as any).assignee && (
+                                    <div
+                                      className="flex items-center"
+                                      title={`Assigned to ${(task as any).assignee.full_name}`}
+                                    >
+                                      <Avatar
+                                        userId={(task as any).assignee.id}
+                                        name={(task as any).assignee.full_name || 'User'}
+                                        src={(task as any).assignee.avatar_url}
+                                        size="xs"
+                                      />
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      )})}
+                        );
+                      })}
                   </div>
                 )}
               </div>
@@ -628,10 +706,7 @@ export default function ProjectDetailPage() {
             {/* Column 3: Project Discussions - Full on mobile, full on tablet, 1/4 on desktop */}
             <div className="w-full md:w-full lg:w-1/4 bg-white dark:bg-gray-800 flex flex-col h-[500px] md:h-full border-t md:border-t-0 lg:border-t-0 border-gray-200 dark:border-gray-700">
               {user?.id ? (
-                <ProjectDiscussions 
-                  projectId={project.id} 
-                  userId={user.id}
-                />
+                <ProjectDiscussions projectId={project.id} userId={user.id} />
               ) : (
                 <div className="flex items-center justify-center h-full text-sm text-gray-500">
                   Log in to view discussions
@@ -646,12 +721,14 @@ export default function ProjectDetailPage() {
                 Group Workspace
               </h3>
               <div className="text-sm text-gray-500 dark:text-gray-400">
-                {project.last_edited_at ? `Last edited ${new Date(project.last_edited_at).toLocaleString()}` : 'Start writing...'}
+                {project.last_edited_at
+                  ? `Last edited ${new Date(project.last_edited_at).toLocaleString()}`
+                  : 'Start writing...'}
               </div>
             </div>
-            <GroupWorkspaceEditor 
-              projectId={project!.id} 
-              initialContent={project!.content} 
+            <GroupWorkspaceEditor
+              projectId={project!.id}
+              initialContent={project!.content}
               isReadOnly={isLocked}
             />
           </div>
@@ -667,7 +744,9 @@ export default function ProjectDetailPage() {
                   size="sm"
                   onClick={() => {
                     if (isLocked) {
-                      toast.error('Cannot create tasks - project is locked due to submission or deadline');
+                      toast.error(
+                        'Cannot create tasks - project is locked due to submission or deadline'
+                      );
                       return;
                     }
                     setShowTaskModal(true);
@@ -694,42 +773,60 @@ export default function ProjectDetailPage() {
               <div className="text-center py-12">
                 <CheckCircle2 size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
                 <p className="text-gray-600 dark:text-gray-400 mb-4">No tasks yet</p>
-                    {canManageTasks && (
-                      <Button
-                        variant="primary"
-                        onClick={() => {
-                          if (isLocked) {
-                            toast.error('Cannot create tasks - project is locked due to submission or deadline');
-                            return;
-                          }
-                          setShowTaskModal(true);
-                        }}
-                        disabled={isLocked}
-                        className="flex items-center mx-auto"
-                      >
-                        <Plus size={18} className="mr-2" />
-                        Create Task
-                      </Button>
-                    )}
+                {canManageTasks && (
+                  <Button
+                    variant="primary"
+                    onClick={() => {
+                      if (isLocked) {
+                        toast.error(
+                          'Cannot create tasks - project is locked due to submission or deadline'
+                        );
+                        return;
+                      }
+                      setShowTaskModal(true);
+                    }}
+                    disabled={isLocked}
+                    className="flex items-center mx-auto"
+                  >
+                    <Plus size={18} className="mr-2" />
+                    Create Task
+                  </Button>
+                )}
               </div>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {(['todo', 'in_progress', 'completed'] as const).map((status) => (
                   <div key={status}>
                     <div className="flex items-center mb-4">
-                      {status === 'todo' && <AlertCircle size={18} className="text-orange-600 dark:text-orange-400 mr-2" />}
-                      {status === 'in_progress' && <Clock size={18} className="text-blue-600 dark:text-blue-400 mr-2" />}
-                      {status === 'completed' && <CheckCircle2 size={18} className="text-green-600 dark:text-green-400 mr-2" />}
+                      {status === 'todo' && (
+                        <AlertCircle
+                          size={18}
+                          className="text-orange-600 dark:text-orange-400 mr-2"
+                        />
+                      )}
+                      {status === 'in_progress' && (
+                        <Clock size={18} className="text-blue-600 dark:text-blue-400 mr-2" />
+                      )}
+                      {status === 'completed' && (
+                        <CheckCircle2
+                          size={18}
+                          className="text-green-600 dark:text-green-400 mr-2"
+                        />
+                      )}
                       <h4 className="font-semibold text-gray-900 dark:text-gray-100">
                         {status === 'todo' && 'To Do'}
                         {status === 'in_progress' && 'In Progress'}
                         {status === 'completed' && 'Completed'}
                       </h4>
-                      <span className={`ml-auto px-2 py-0.5 rounded-full text-xs font-semibold ${
-                        status === 'todo' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' :
-                        status === 'in_progress' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' :
-                        'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                      }`}>
+                      <span
+                        className={`ml-auto px-2 py-0.5 rounded-full text-xs font-semibold ${
+                          status === 'todo'
+                            ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300'
+                            : status === 'in_progress'
+                              ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                              : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                        }`}
+                      >
                         {tasksByStatus[status].length}
                       </span>
                     </div>
@@ -826,7 +923,9 @@ const TaskCard: React.FC<TaskCardProps> = ({
       className={`bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-all group relative ${isLocked ? 'opacity-75' : ''}`}
     >
       <div className="flex items-start justify-between mb-2">
-        <h5 className="font-semibold text-gray-900 dark:text-gray-100 text-sm flex-1 pr-2">{task.title}</h5>
+        <h5 className="font-semibold text-gray-900 dark:text-gray-100 text-sm flex-1 pr-2">
+          {task.title}
+        </h5>
         {canManage && !isLocked && (
           <div className="relative">
             <button
@@ -835,7 +934,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
             >
               <MoreVertical size={16} className="text-gray-400" />
             </button>
-            
+
             {activeMenu === task.id && (
               <div className="absolute right-0 top-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1 z-10 min-w-[150px]">
                 <button
@@ -855,7 +954,9 @@ const TaskCard: React.FC<TaskCardProps> = ({
       </div>
 
       {task.description && (
-        <p className="text-xs text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">{task.description}</p>
+        <p className="text-xs text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+          {task.description}
+        </p>
       )}
 
       <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-3">
@@ -874,18 +975,26 @@ const TaskCard: React.FC<TaskCardProps> = ({
         {task.due_date && (
           <span className="flex items-center">
             <Calendar size={12} className="mr-1" />
-            {new Date(task.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            {new Date(task.due_date).toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+            })}
           </span>
         )}
       </div>
 
       <div className="flex items-center justify-between">
-        <Flag size={14} className={
-          task.priority === 'high' ? 'text-red-600' :
-          task.priority === 'medium' ? 'text-yellow-600' :
-          'text-gray-600'
-        } />
-        
+        <Flag
+          size={14}
+          className={
+            task.priority === 'high'
+              ? 'text-red-600'
+              : task.priority === 'medium'
+                ? 'text-yellow-600'
+                : 'text-gray-600'
+          }
+        />
+
         <select
           value={task.status}
           onChange={(e) => onUpdateStatus(task.id, e.target.value as TaskStatus)}

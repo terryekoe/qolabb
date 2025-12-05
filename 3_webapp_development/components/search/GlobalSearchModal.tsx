@@ -26,10 +26,7 @@ interface GlobalSearchModalProps {
   onClose: () => void;
 }
 
-export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
-  isOpen,
-  onClose,
-}) => {
+export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, onClose }) => {
   const { currentWorkspace } = useWorkspace();
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -98,11 +95,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
 
       setLoading(true);
       try {
-        const searchResults = await globalSearch(
-          currentWorkspace.id,
-          searchQuery,
-          5
-        );
+        const searchResults = await globalSearch(currentWorkspace.id, searchQuery, 5);
         setResults(searchResults);
       } catch (error) {
         console.error('Search error:', error);
@@ -253,7 +246,9 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                     ) : (
                       <>
                         {totalResults > 0 ? (
-                          <span>{totalResults} result{totalResults !== 1 ? 's' : ''} found</span>
+                          <span>
+                            {totalResults} result{totalResults !== 1 ? 's' : ''} found
+                          </span>
                         ) : searchQuery.length >= 2 ? (
                           <span>No results found</span>
                         ) : (
@@ -320,7 +315,10 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                                     </p>
                                   )}
                                 </div>
-                                <ArrowRight size={16} className="text-gray-400 flex-shrink-0 mt-1" />
+                                <ArrowRight
+                                  size={16}
+                                  className="text-gray-400 flex-shrink-0 mt-1"
+                                />
                               </button>
                             );
                           })}
@@ -348,7 +346,9 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                                   flatIndex === selectedIndex && 'bg-blue-50'
                                 )}
                               >
-                                <div className="flex-shrink-0 mt-0.5">{getResultIcon('project')}</div>
+                                <div className="flex-shrink-0 mt-0.5">
+                                  {getResultIcon('project')}
+                                </div>
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-2">
                                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
@@ -362,7 +362,10 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                                     </p>
                                   )}
                                 </div>
-                                <ArrowRight size={16} className="text-gray-400 flex-shrink-0 mt-1" />
+                                <ArrowRight
+                                  size={16}
+                                  className="text-gray-400 flex-shrink-0 mt-1"
+                                />
                               </button>
                             );
                           })}
@@ -401,7 +404,10 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                                     </p>
                                   )}
                                 </div>
-                                <ArrowRight size={16} className="text-gray-400 flex-shrink-0 mt-1" />
+                                <ArrowRight
+                                  size={16}
+                                  className="text-gray-400 flex-shrink-0 mt-1"
+                                />
                               </button>
                             );
                           })}
@@ -452,7 +458,10 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                                     </p>
                                   )}
                                 </div>
-                                <ArrowRight size={16} className="text-gray-400 flex-shrink-0 mt-1" />
+                                <ArrowRight
+                                  size={16}
+                                  className="text-gray-400 flex-shrink-0 mt-1"
+                                />
                               </button>
                             );
                           })}

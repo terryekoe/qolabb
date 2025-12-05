@@ -18,7 +18,7 @@ const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefin
 /**
  * WorkspaceProvider component that wraps the app and provides workspace state.
  * Manages current workspace, list of user workspaces, and workspace switching.
- * 
+ *
  * @param children - Child components to wrap
  */
 export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
@@ -33,16 +33,19 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true);
       console.log('🚀 Starting workspace loading for user:', user.id);
-      
+
       // Try RPC approach first (bypasses RLS), fallback to regular query
       const userWorkspaces = await getUserWorkspacesRPC(user.id);
       console.log('📋 Loaded workspaces:', userWorkspaces);
-      
+
       setWorkspaces(userWorkspaces || []);
 
       // Set current workspace from localStorage or first workspace
       const savedWorkspaceId = localStorage.getItem('currentWorkspaceId');
-      if (savedWorkspaceId && userWorkspaces?.some((w: any) => w.workspace.id === savedWorkspaceId)) {
+      if (
+        savedWorkspaceId &&
+        userWorkspaces?.some((w: any) => w.workspace.id === savedWorkspaceId)
+      ) {
         const workspace = await getWorkspace(savedWorkspaceId);
         setCurrentWorkspace(workspace);
       } else if (userWorkspaces && userWorkspaces.length > 0) {
@@ -55,7 +58,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       // Set empty state on error to prevent undefined issues
       setWorkspaces([]);
       setCurrentWorkspace(null);
-      
+
       // Clear any stale workspace ID from localStorage
       localStorage.removeItem('currentWorkspaceId');
     } finally {
@@ -87,9 +90,9 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         details: error?.details,
         hint: error?.hint,
         code: error?.code,
-        fullError: error
+        fullError: error,
       });
-      
+
       // Don't update state if there's an error
       // Keep the current workspace as is
     }

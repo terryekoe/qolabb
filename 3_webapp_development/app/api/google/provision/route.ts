@@ -3,8 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 import { googleDriveService } from '@/lib/services/google_drive';
 
 // Initialize Supabase Admin client to bypass RLS for admin tasks if needed
-// For now, we'll use the user's session from the request headers if possible, 
-// or just standard client if we trust the inputs. 
+// For now, we'll use the user's session from the request headers if possible,
+// or just standard client if we trust the inputs.
 // Ideally, we should verify the user is an instructor.
 
 export async function POST(req: NextRequest) {
@@ -22,12 +22,12 @@ export async function POST(req: NextRequest) {
     // Here we'll use the env vars directly for a service role or just a standard client
     // assuming we are in a trusted environment or just mocking.
     // For this mock, we'll just use the teamId as the name if we can't fetch.
-    
-    // Let's try to fetch the team name using the public URL and anon key for now, 
+
+    // Let's try to fetch the team name using the public URL and anon key for now,
     // but typically we'd want the user's context.
     // For simplicity in this mock phase, we'll assume the team name is passed or we fetch it.
     // Let's just use a placeholder name if we can't easily fetch without auth context setup.
-    const teamName = `Team ${teamId.substring(0, 4)}`; 
+    const teamName = `Team ${teamId.substring(0, 4)}`;
 
     let result;
 
@@ -62,14 +62,13 @@ export async function POST(req: NextRequest) {
         name: resourceName || result.name,
         url: result.webViewLink,
         addedAt: new Date().toISOString(),
-        // In a real app, we might save this to the DB here, 
+        // In a real app, we might save this to the DB here,
         // or let the frontend receive it and save it to the project resources.
         // The plan says "Update the project resource", but doing it in the API is safer.
         // However, to keep it simple and flexible with the existing frontend flow,
         // we'll return it and let the frontend add it to the list before creating the project.
-      }
+      },
     });
-
   } catch (error: any) {
     console.error('Provisioning error:', error);
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });

@@ -11,4 +11,4 @@ export const AVAILABLE_GOALS = [
   'Better teamwork',
 ] as const;
 
-export type Goal = typeof AVAILABLE_GOALS[number];
+export type Goal = (typeof AVAILABLE_GOALS)[number];

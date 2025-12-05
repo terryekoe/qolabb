@@ -35,8 +35,8 @@ export const Navigation: React.FC = () => {
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled 
-          ? 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-md shadow-md border-b border-gray-200 dark:border-gray-800' 
+        isScrolled
+          ? 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-md shadow-md border-b border-gray-200 dark:border-gray-800'
           : 'bg-transparent'
       }`}
     >
@@ -44,10 +44,7 @@ export const Navigation: React.FC = () => {
         <div className="flex justify-between items-center h-16 md:h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              className="text-2xl md:text-3xl font-bold"
-            >
+            <motion.div whileHover={{ scale: 1.05 }} className="text-2xl md:text-3xl font-bold">
               <span className="text-black dark:text-white">Qol</span>
               <span className="text-blue-600 dark:text-blue-500">abb</span>
             </motion.div>
@@ -98,7 +95,7 @@ export const Navigation: React.FC = () => {
             >
               {mounted && (theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />)}
             </button>
-            
+
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="p-2 text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white"

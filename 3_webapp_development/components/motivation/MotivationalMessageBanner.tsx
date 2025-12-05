@@ -3,7 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Sparkles } from 'lucide-react';
-import { getUnreadMotivationalMessageCount, getMotivationalMessages, markMotivationalMessageAsRead } from '@/lib/db/queries';
+import {
+  getUnreadMotivationalMessageCount,
+  getMotivationalMessages,
+  markMotivationalMessageAsRead,
+} from '@/lib/db/queries';
 import { MotivationalMessageCard } from './MotivationalMessageCard';
 import type { MotivationalMessage } from '@/lib/db/queries';
 
@@ -12,7 +16,10 @@ interface MotivationalMessageBannerProps {
   sidebarCollapsed?: boolean;
 }
 
-export function MotivationalMessageBanner({ userId, sidebarCollapsed = false }: MotivationalMessageBannerProps) {
+export function MotivationalMessageBanner({
+  userId,
+  sidebarCollapsed = false,
+}: MotivationalMessageBannerProps) {
   const [unreadCount, setUnreadCount] = useState(0);
   const [topMessage, setTopMessage] = useState<MotivationalMessage | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -20,7 +27,7 @@ export function MotivationalMessageBanner({ userId, sidebarCollapsed = false }: 
 
   useEffect(() => {
     loadMessages();
-    
+
     // Refresh every 30 seconds
     const interval = setInterval(loadMessages, 30000);
     return () => clearInterval(interval);
@@ -31,7 +38,7 @@ export function MotivationalMessageBanner({ userId, sidebarCollapsed = false }: 
       setLoading(false);
       return;
     }
-    
+
     try {
       const [count, messages] = await Promise.all([
         getUnreadMotivationalMessageCount(userId).catch(() => 0),
@@ -64,9 +71,9 @@ export function MotivationalMessageBanner({ userId, sidebarCollapsed = false }: 
   }
 
   return (
-    <div 
+    <div
       className="fixed top-16 right-0 z-40 px-4 sm:px-6 lg:px-8 pointer-events-none transition-all duration-300"
-      style={{ 
+      style={{
         left: sidebarCollapsed ? '0' : '16rem',
       }}
     >
@@ -85,18 +92,14 @@ export function MotivationalMessageBanner({ userId, sidebarCollapsed = false }: 
                     <Sparkles className="text-white mt-0.5 flex-shrink-0" size={20} />
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-semibold text-white">
-                          {topMessage.title}
-                        </h4>
+                        <h4 className="font-semibold text-white">{topMessage.title}</h4>
                         {unreadCount > 1 && (
                           <span className="px-2 py-0.5 bg-white/20 rounded-full text-xs text-white">
                             +{unreadCount - 1} more
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-white/90 leading-relaxed">
-                        {topMessage.message}
-                      </p>
+                      <p className="text-sm text-white/90 leading-relaxed">{topMessage.message}</p>
                     </div>
                   </div>
                   <button

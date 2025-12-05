@@ -25,15 +25,15 @@ import { Button } from '@/components/Button';
 import Avatar from '@/components/ui/Avatar';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
-import { 
-  updateTask, 
-  deleteTask, 
+import {
+  updateTask,
+  deleteTask,
   getProjectTasks,
   getTeamMembers,
   getProjectContributions,
   getTaskAssignees,
   addTaskAssignees,
-  removeTaskAssignee
+  removeTaskAssignee,
 } from '@/lib/db/queries';
 import { TaskComments } from './TaskComments';
 import { TaskActivityTimeline } from './TaskActivityTimeline';
@@ -100,7 +100,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
       setEditPriority(task.priority || 'medium');
       setEditAssignedTo(task.assigned_to || '');
       setEditDueDate(task.due_date ? task.due_date.split('T')[0] : '');
-      
+
       // Load team members, contributions, and assignees
       loadTeamMembers();
       loadContributions();
@@ -110,7 +110,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
 
   async function loadTeamMembers() {
     if (!task?.team_id) return;
-    
+
     try {
       const members = await getTeamMembers(task.team_id);
       setTeamMembers(members || []);
@@ -121,7 +121,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
 
   async function loadContributions() {
     if (!task?.project_id) return;
-    
+
     try {
       setLoadingContributions(true);
       const projectContributions = await getProjectContributions(task.project_id);
@@ -139,7 +139,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
 
   async function loadAssignees() {
     if (!task?.id) return;
-    
+
     try {
       const taskAssignees = await getTaskAssignees(task.id);
       setAssignees(taskAssignees || []);
@@ -159,25 +159,25 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
         return {
           color: 'text-orange-600 bg-orange-50 border-orange-200',
           icon: <AlertCircle size={16} />,
-          label: 'To Do'
+          label: 'To Do',
         };
       case 'in_progress':
         return {
           color: 'text-blue-600 bg-blue-50 border-blue-200',
           icon: <Clock size={16} />,
-          label: 'In Progress'
+          label: 'In Progress',
         };
       case 'completed':
         return {
           color: 'text-green-600 bg-green-50 border-green-200',
           icon: <CheckCircle2 size={16} />,
-          label: 'Completed'
+          label: 'Completed',
         };
       default:
         return {
           color: 'text-gray-600 bg-gray-50 border-gray-200',
           icon: <Clock size={16} />,
-          label: status
+          label: status,
         };
     }
   }
@@ -187,35 +187,35 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
       case 'high':
         return {
           color: 'text-red-600',
-          label: 'High Priority'
+          label: 'High Priority',
         };
       case 'medium':
         return {
           color: 'text-yellow-600',
-          label: 'Medium Priority'
+          label: 'Medium Priority',
         };
       case 'low':
         return {
           color: 'text-gray-600',
-          label: 'Low Priority'
+          label: 'Low Priority',
         };
       default:
         return {
           color: 'text-gray-600',
-          label: 'Priority'
+          label: 'Priority',
         };
     }
   }
 
   async function handleSave() {
     if (!task?.id || !user?.id) return;
-    
+
     setLoading(true);
     setError('');
-    
+
     try {
       const wasJustCompleted = task.status !== 'completed' && editStatus === 'completed';
-      
+
       // Update task basic fields
       await updateTask(task.id, {
         title: editTitle.trim(),
@@ -224,34 +224,34 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
         priority: editPriority,
         due_date: editDueDate || null,
       });
-      
+
       // Handle assignees separately
       const currentAssigneeIds = new Set(assignees.map((a: any) => a.user_id));
-      const newAssigneeIds = new Set(selectedAssignees.filter(id => id !== ''));
-      
+      const newAssigneeIds = new Set(selectedAssignees.filter((id) => id !== ''));
+
       // Find assignees to add
-      const toAdd = Array.from(newAssigneeIds).filter(id => !currentAssigneeIds.has(id));
+      const toAdd = Array.from(newAssigneeIds).filter((id) => !currentAssigneeIds.has(id));
       // Find assignees to remove
-      const toRemove = Array.from(currentAssigneeIds).filter(id => !newAssigneeIds.has(id));
-      
+      const toRemove = Array.from(currentAssigneeIds).filter((id) => !newAssigneeIds.has(id));
+
       // Add new assignees
       if (toAdd.length > 0) {
         await addTaskAssignees(task.id, toAdd, user.id);
       }
-      
+
       // Remove unassigned assignees
       if (toRemove.length > 0) {
         for (const userId of toRemove) {
           await removeTaskAssignee(task.id, userId, user.id);
         }
       }
-      
+
       // Reload assignees
       await loadAssignees();
-      
+
       setIsEditing(false);
       onTaskUpdated();
-      
+
       // Reload contributions if task was completed
       if (wasJustCompleted) {
         await loadContributions();
@@ -266,11 +266,11 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
 
   async function handleDelete() {
     if (!task?.id) return;
-    
+
     if (!confirm('Are you sure you want to delete this task? This cannot be undone.')) {
       return;
     }
-    
+
     try {
       await deleteTask(task.id);
       onTaskDeleted();
@@ -287,7 +287,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
       weekday: 'short',
       month: 'short',
       day: 'numeric',
-      year: 'numeric'
+      year: 'numeric',
     });
   }
 
@@ -340,23 +340,21 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                       {task.title}
                     </h2>
                   )}
-                  
 
-                  
                   {!simplified && (
                     <div className="flex items-center flex-wrap gap-3 text-sm text-gray-500">
                       <span className="flex items-center">
                         <Hash size={14} className="mr-1" />
                         {task.id?.slice(0, 8)}
                       </span>
-                      
+
                       {task.project_name && (
                         <span className="flex items-center">
                           <span className="w-2 h-2 rounded-full bg-gray-300 mr-2"></span>
                           {task.project_name}
                         </span>
                       )}
-                      
+
                       {task.created_at && (
                         <span className="flex items-center">
                           <span className="w-2 h-2 rounded-full bg-gray-300 mr-2"></span>
@@ -366,7 +364,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                     </div>
                   )}
                 </div>
-                
+
                 <div className="flex items-center space-x-2 ml-4">
                   {canManage && !simplified && (
                     <>
@@ -387,7 +385,9 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                             disabled={loading || !editTitle.trim()}
                             className="flex items-center"
                           >
-                            {loading ? 'Saving...' : (
+                            {loading ? (
+                              'Saving...'
+                            ) : (
                               <>
                                 <Save size={16} className="mr-1" />
                                 Save
@@ -408,7 +408,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                       )}
                     </>
                   )}
-                  
+
                   <button
                     onClick={onClose}
                     className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
@@ -431,12 +431,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                 {/* Left Column - Main Content */}
                 <div className="lg:col-span-2 space-y-6">
                   {/* Subtasks */}
-                  {user && (
-                    <TaskSubtasks
-                      taskId={task.id}
-                      userId={user.id}
-                    />
-                  )}
+                  {user && <TaskSubtasks taskId={task.id} userId={user.id} />}
 
                   {/* Description */}
                   <div>
@@ -444,7 +439,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                       <MessageSquare size={18} className="mr-2" />
                       Description
                     </h3>
-                    
+
                     {isEditing ? (
                       <textarea
                         value={editDescription}
@@ -456,7 +451,9 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                     ) : (
                       <div className="prose max-w-none">
                         {task.description ? (
-                          <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{task.description}</p>
+                          <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                            {task.description}
+                          </p>
                         ) : (
                           <p className="text-gray-400 italic">No description provided</p>
                         )}
@@ -472,11 +469,15 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                         projectId={task.project_id}
                         workspaceId={currentWorkspace.id}
                         userId={user.id}
-                        userProfile={profile ? {
-                          id: profile.id,
-                          full_name: profile.full_name || 'User',
-                          avatar_url: profile.avatar_url || undefined,
-                        } : undefined}
+                        userProfile={
+                          profile
+                            ? {
+                                id: profile.id,
+                                full_name: profile.full_name || 'User',
+                                avatar_url: profile.avatar_url || undefined,
+                              }
+                            : undefined
+                        }
                       />
                     </div>
                   )}
@@ -484,10 +485,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                   {/* Activity Timeline */}
                   {task?.project_id && !simplified && (
                     <div>
-                      <TaskActivityTimeline
-                        taskId={task.id}
-                        projectId={task.project_id}
-                      />
+                      <TaskActivityTimeline taskId={task.id} projectId={task.project_id} />
                     </div>
                   )}
                 </div>
@@ -495,28 +493,34 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                 {/* Right Column - Metadata */}
                 <div className="space-y-6">
                   {/* Time Tracker - Only show for assigned users */}
-                  {user && task?.project_id && (task?.assigned_to === user.id || assignees.some((a: any) => a.user_id === user.id)) && !simplified && (
-                    <TaskTimeTracker
-                      taskId={task.id}
-                      projectId={task.project_id}
-                      userId={user.id}
-                      taskTitle={task.title}
-                      estimatedHours={task.estimated_hours || undefined}
-                      onTimeLogged={async () => {
-                        await loadContributions();
-                      }}
-                    />
-                  )}
+                  {user &&
+                    task?.project_id &&
+                    (task?.assigned_to === user.id ||
+                      assignees.some((a: any) => a.user_id === user.id)) &&
+                    !simplified && (
+                      <TaskTimeTracker
+                        taskId={task.id}
+                        projectId={task.project_id}
+                        userId={user.id}
+                        taskTitle={task.title}
+                        estimatedHours={task.estimated_hours || undefined}
+                        onTimeLogged={async () => {
+                          await loadContributions();
+                        }}
+                      />
+                    )}
 
                   {/* Status */}
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</h4>
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Status
+                    </h4>
                     {simplified ? (
                       <Button
                         variant={task.status === 'completed' ? 'secondary' : 'primary'}
                         className={`w-full justify-center py-6 text-lg font-semibold ${
-                          task.status === 'completed' 
-                            ? 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400' 
+                          task.status === 'completed'
+                            ? 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
                             : ''
                         }`}
                         onClick={async () => {
@@ -564,7 +568,9 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                         <option value="completed">Completed</option>
                       </select>
                     ) : (
-                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold border ${statusConfig.color}`}>
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold border ${statusConfig.color}`}
+                      >
                         {statusConfig.icon}
                         {statusConfig.label}
                       </span>
@@ -574,7 +580,9 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                   {/* Priority */}
                   {!simplified && (
                     <div>
-                      <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Priority</h4>
+                      <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Priority
+                      </h4>
                       {isEditing ? (
                         <select
                           value={editPriority}
@@ -588,7 +596,9 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                       ) : (
                         <div className="flex items-center">
                           <Flag size={16} className={`mr-2 ${priorityConfig.color}`} />
-                          <span className="text-sm text-gray-700 dark:text-gray-300">{priorityConfig.label}</span>
+                          <span className="text-sm text-gray-700 dark:text-gray-300">
+                            {priorityConfig.label}
+                          </span>
                         </div>
                       )}
                     </div>
@@ -597,14 +607,19 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                   {/* Assignees */}
                   {!simplified && (
                     <div>
-                      <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Assignees</h4>
+                      <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Assignees
+                      </h4>
                       {isEditing ? (
                         <div className="space-y-2">
                           <select
                             multiple
                             value={selectedAssignees}
                             onChange={(e) => {
-                              const values = Array.from(e.target.selectedOptions, option => option.value);
+                              const values = Array.from(
+                                e.target.selectedOptions,
+                                (option) => option.value
+                              );
                               setSelectedAssignees(values);
                             }}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[100px]"
@@ -663,9 +678,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                             <p className="text-sm font-medium text-gray-900">
                               {task.assignee.full_name}
                             </p>
-                            {isMyTask && (
-                              <p className="text-xs text-blue-600">Assigned to you</p>
-                            )}
+                            {isMyTask && <p className="text-xs text-blue-600">Assigned to you</p>}
                           </div>
                         </div>
                       ) : (
@@ -676,7 +689,9 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
 
                   {/* Due Date */}
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Due Date</h4>
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Due Date
+                    </h4>
                     {isEditing ? (
                       <input
                         type="date"
@@ -686,8 +701,13 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                       />
                     ) : task.due_date ? (
                       <div className="flex items-center">
-                        <Calendar size={16} className={`mr-2 ${isTaskOverdue ? 'text-red-500' : 'text-gray-500'}`} />
-                        <span className={`text-sm ${isTaskOverdue ? 'text-red-600 dark:text-red-400 font-medium' : 'text-gray-700 dark:text-gray-300'}`}>
+                        <Calendar
+                          size={16}
+                          className={`mr-2 ${isTaskOverdue ? 'text-red-500' : 'text-gray-500'}`}
+                        />
+                        <span
+                          className={`text-sm ${isTaskOverdue ? 'text-red-600 dark:text-red-400 font-medium' : 'text-gray-700 dark:text-gray-300'}`}
+                        >
                           {formatDate(task.due_date)}
                           {isTaskOverdue && ' (Overdue)'}
                         </span>
@@ -753,9 +773,11 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
 
                   {/* Attachments */}
                   {user && (
-                    <div className={simplified ? "order-first" : ""}>
+                    <div className={simplified ? 'order-first' : ''}>
                       {simplified && (
-                        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Your Work</h4>
+                        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Your Work
+                        </h4>
                       )}
                       <TaskAttachments
                         taskId={task.id}

@@ -15,7 +15,10 @@ export function TeamOverviewGrid({ teams, loading, onGrade, onViewTasks }: TeamO
     return (
       <div className="space-y-4">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 animate-pulse h-24" />
+          <div
+            key={i}
+            className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 animate-pulse h-24"
+          />
         ))}
       </div>
     );
@@ -46,19 +49,24 @@ export function TeamOverviewGrid({ teams, loading, onGrade, onViewTasks }: TeamO
           {teams.map((item) => {
             const { team, submission } = item;
             const status = submission?.status || 'pending';
-            
+
             return (
-              <tr key={team.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+              <tr
+                key={team.id}
+                className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+              >
                 <td className="px-6 py-4">
                   <span className="font-medium text-gray-900 dark:text-gray-100">{team.name}</span>
                 </td>
                 <td className="px-6 py-4">
                   <AvatarGroup
-                    users={team.members?.map((m: any) => ({
-                      userId: m.user.id,
-                      name: m.user.full_name,
-                      src: m.user.avatar_url
-                    })) || []}
+                    users={
+                      team.members?.map((m: any) => ({
+                        userId: m.user.id,
+                        name: m.user.full_name,
+                        src: m.user.avatar_url,
+                      })) || []
+                    }
                     max={3}
                     size="sm"
                   />
@@ -81,13 +89,15 @@ export function TeamOverviewGrid({ teams, loading, onGrade, onViewTasks }: TeamO
                   )}
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
-                  {submission?.submitted_at 
-                    ? new Date(submission.submitted_at).toLocaleDateString() 
+                  {submission?.submitted_at
+                    ? new Date(submission.submitted_at).toLocaleDateString()
                     : '-'}
                 </td>
                 <td className="px-6 py-4">
                   {submission?.grade !== null && submission?.grade !== undefined ? (
-                    <span className="font-bold text-gray-900 dark:text-gray-100">{submission.grade}%</span>
+                    <span className="font-bold text-gray-900 dark:text-gray-100">
+                      {submission.grade}%
+                    </span>
                   ) : (
                     <span className="text-gray-400">-</span>
                   )}
@@ -108,7 +118,8 @@ export function TeamOverviewGrid({ teams, loading, onGrade, onViewTasks }: TeamO
                       onClick={() => onGrade(item)}
                       className="inline-flex items-center"
                     >
-                      {status === 'graded' ? 'Edit Grade' : 'Grade'} <ArrowRight size={14} className="ml-1" />
+                      {status === 'graded' ? 'Edit Grade' : 'Grade'}{' '}
+                      <ArrowRight size={14} className="ml-1" />
                     </Button>
                   </div>
                 </td>

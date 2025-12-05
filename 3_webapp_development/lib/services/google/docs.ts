@@ -32,14 +32,11 @@ export async function getDocumentMetadata(
   accessToken: string,
   documentId: string
 ): Promise<GoogleDocument> {
-  const response = await fetch(
-    `https://docs.googleapis.com/v1/documents/${documentId}`,
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    }
-  );
+  const response = await fetch(`https://docs.googleapis.com/v1/documents/${documentId}`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
 
   if (!response.ok) {
     const error = await response.text();

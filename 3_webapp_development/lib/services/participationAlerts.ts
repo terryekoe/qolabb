@@ -42,7 +42,10 @@ export async function analyzeTeamWorkload(
     .from('task_assignees')
     .select('user_id, tasks!inner(id, status)')
     .eq('tasks.status', 'in_progress')
-    .in('user_id', teamMembers.map((m) => m.user_id));
+    .in(
+      'user_id',
+      teamMembers.map((m) => m.user_id)
+    );
 
   // Get contribution counts
   const { data: contributions } = await supabase
@@ -56,7 +59,8 @@ export async function analyzeTeamWorkload(
   // Calculate workloads
   const workloads: TeamMemberWorkload[] = teamMembers.map((member) => {
     const taskCount = tasks?.filter((t) => t.user_id === member.user_id).length || 0;
-    const contributionCount = contributions?.filter((c) => c.user_id === member.user_id).length || 0;
+    const contributionCount =
+      contributions?.filter((c) => c.user_id === member.user_id).length || 0;
 
     return {
       userId: member.user_id,
@@ -68,7 +72,8 @@ export async function analyzeTeamWorkload(
   });
 
   const avgTasks = workloads.reduce((sum, w) => sum + w.taskCount, 0) / workloads.length;
-  const avgContributions = workloads.reduce((sum, w) => sum + w.contributionCount, 0) / workloads.length;
+  const avgContributions =
+    workloads.reduce((sum, w) => sum + w.contributionCount, 0) / workloads.length;
 
   const alerts: ParticipationAlertData[] = [];
 

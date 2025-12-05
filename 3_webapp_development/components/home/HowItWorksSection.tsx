@@ -10,7 +10,8 @@ export const HowItWorksSection: React.FC = () => {
       icon: UserPlus,
       number: '01',
       title: 'Create Your Team',
-      description: 'Sign up and create a team for your group project. Invite your teammates to join.',
+      description:
+        'Sign up and create a team for your group project. Invite your teammates to join.',
       color: 'from-blue-500 to-cyan-500',
     },
     {
@@ -24,7 +25,8 @@ export const HowItWorksSection: React.FC = () => {
       icon: BarChart2,
       number: '03',
       title: 'View Analytics',
-      description: 'Access real-time dashboards showing participation metrics and engagement levels.',
+      description:
+        'Access real-time dashboards showing participation metrics and engagement levels.',
       color: 'from-orange-500 to-red-500',
     },
     {
@@ -51,7 +53,8 @@ export const HowItWorksSection: React.FC = () => {
             How It <span className="text-blue-600">Works</span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Get started in minutes with our simple, intuitive process designed for students and educators.
+            Get started in minutes with our simple, intuitive process designed for students and
+            educators.
           </p>
         </motion.div>
 
@@ -72,7 +75,9 @@ export const HowItWorksSection: React.FC = () => {
               >
                 <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow border-2 border-gray-100">
                   {/* Step Number */}
-                  <div className={`bg-gradient-to-r ${step.color} w-16 h-16 rounded-full flex items-center justify-center mb-6 mx-auto lg:mx-0`}>
+                  <div
+                    className={`bg-gradient-to-r ${step.color} w-16 h-16 rounded-full flex items-center justify-center mb-6 mx-auto lg:mx-0`}
+                  >
                     <span className="text-white font-bold text-2xl">{step.number}</span>
                   </div>
 
@@ -115,13 +120,12 @@ export const HowItWorksSection: React.FC = () => {
           transition={{ duration: 0.8 }}
           className="mt-20 bg-gradient-to-br from-blue-600 to-blue-800 rounded-3xl p-12 text-white text-center"
         >
-          <h3 className="text-3xl md:text-4xl font-bold mb-6">
-            See Qolabb in Action
-          </h3>
+          <h3 className="text-3xl md:text-4xl font-bold mb-6">See Qolabb in Action</h3>
           <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90">
-            Watch a quick walkthrough of how teams use Qolabb to track contributions and promote fair collaboration.
+            Watch a quick walkthrough of how teams use Qolabb to track contributions and promote
+            fair collaboration.
           </p>
-          
+
           {/* Video Placeholder */}
           <div className="bg-black/30 rounded-2xl aspect-video max-w-4xl mx-auto flex items-center justify-center mb-8 backdrop-blur-sm border-2 border-white/20">
             <motion.div
@@ -134,9 +138,7 @@ export const HowItWorksSection: React.FC = () => {
             </motion.div>
           </div>
 
-          <p className="text-sm opacity-75">
-            Interactive demo coming soon • 2 minutes
-          </p>
+          <p className="text-sm opacity-75">Interactive demo coming soon • 2 minutes</p>
         </motion.div>
       </div>
     </section>

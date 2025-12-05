@@ -9,16 +9,13 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function POST(request: NextRequest) {
   try {
     const { projectId } = await request.json();
-    
+
     if (!projectId) {
-      return NextResponse.json(
-        { error: 'projectId is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'projectId is required' }, { status: 400 });
     }
 
     const result = await syncProjectDocuments(projectId);
-    
+
     return NextResponse.json({
       success: result.success,
       contributionsCreated: result.contributionsCreated,

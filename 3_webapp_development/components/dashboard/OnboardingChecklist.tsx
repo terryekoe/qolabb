@@ -94,7 +94,7 @@ export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
     },
   ];
 
-  const completedCount = steps.filter(step => step.completed).length;
+  const completedCount = steps.filter((step) => step.completed).length;
   const progress = (completedCount / steps.length) * 100;
 
   return (
@@ -120,12 +120,8 @@ export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
 
         {/* Header */}
         <div className="relative z-10 mb-6">
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">
-            👋 Welcome to Qolabb!
-          </h3>
-          <p className="text-gray-700">
-            Let's get you started in just a few steps
-          </p>
+          <h3 className="text-2xl font-bold text-gray-900 mb-2">👋 Welcome to Qolabb!</h3>
+          <p className="text-gray-700">Let's get you started in just a few steps</p>
         </div>
 
         {/* Progress bar */}
@@ -160,8 +156,8 @@ export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
                   step.completed
                     ? 'bg-white/80 border-2 border-green-200'
                     : step.disabled
-                    ? 'bg-white/40 border-2 border-gray-200 opacity-60'
-                    : 'bg-white border-2 border-blue-200 hover:border-blue-300 cursor-pointer hover:shadow-md'
+                      ? 'bg-white/40 border-2 border-gray-200 opacity-60'
+                      : 'bg-white border-2 border-blue-200 hover:border-blue-300 cursor-pointer hover:shadow-md'
                 }`}
                 onClick={() => !step.disabled && !step.completed && step.action()}
               >
@@ -171,8 +167,8 @@ export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
                       step.completed
                         ? 'bg-green-100'
                         : step.disabled
-                        ? 'bg-gray-100'
-                        : 'bg-blue-100'
+                          ? 'bg-gray-100'
+                          : 'bg-blue-100'
                     }`}
                   >
                     <Icon
@@ -181,8 +177,8 @@ export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
                         step.completed
                           ? 'text-green-600'
                           : step.disabled
-                          ? 'text-gray-400'
-                          : 'text-blue-600'
+                            ? 'text-gray-400'
+                            : 'text-blue-600'
                       }
                     />
                   </div>
@@ -195,7 +191,10 @@ export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
                   {step.completed ? (
                     <CheckCircle2 className="text-green-600" size={28} />
                   ) : (
-                    <Circle className={step.disabled ? 'text-gray-300' : 'text-blue-400'} size={28} />
+                    <Circle
+                      className={step.disabled ? 'text-gray-300' : 'text-blue-400'}
+                      size={28}
+                    />
                   )}
                 </div>
               </motion.div>
@@ -217,11 +216,7 @@ export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
                 placeholder="XXXX-XXXX-XXXX"
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
               />
-              <Button
-                variant="primary"
-                onClick={handleJoinClass}
-                disabled={!classCode.trim()}
-              >
+              <Button variant="primary" onClick={handleJoinClass} disabled={!classCode.trim()}>
                 Join
               </Button>
             </div>

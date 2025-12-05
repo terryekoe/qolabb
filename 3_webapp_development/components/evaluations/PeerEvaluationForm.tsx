@@ -110,9 +110,8 @@ export function PeerEvaluationForm({
   const StarRating = ({ category }: { category: keyof typeof scores }) => (
     <div className="space-y-2">
       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-        {RATING_LABELS[category]} {errors[category] && (
-          <span className="text-red-500 text-xs ml-1">*</span>
-        )}
+        {RATING_LABELS[category]}{' '}
+        {errors[category] && <span className="text-red-500 text-xs ml-1">*</span>}
       </label>
       <div className="flex items-center gap-2">
         {[1, 2, 3, 4, 5].map((value) => (
@@ -127,10 +126,7 @@ export function PeerEvaluationForm({
             }`}
             disabled={loading}
           >
-            <Star
-              size={32}
-              className={scores[category] >= value ? 'fill-current' : ''}
-            />
+            <Star size={32} className={scores[category] >= value ? 'fill-current' : ''} />
           </button>
         ))}
         {scores[category] > 0 && (
@@ -168,9 +164,7 @@ export function PeerEvaluationForm({
           {projectName && (
             <div className="flex items-center gap-1 mt-1">
               <FolderKanban size={14} className="text-gray-500 dark:text-gray-400" />
-              <p className="text-xs text-gray-600 dark:text-gray-400">
-                Project: {projectName}
-              </p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">Project: {projectName}</p>
             </div>
           )}
           {isAnonymous && (
@@ -192,7 +186,10 @@ export function PeerEvaluationForm({
       {/* Feedback Fields */}
       <div className="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700">
         <div>
-          <label htmlFor="strengths" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label
+            htmlFor="strengths"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          >
             Strengths
           </label>
           <textarea
@@ -207,7 +204,10 @@ export function PeerEvaluationForm({
         </div>
 
         <div>
-          <label htmlFor="improvements" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label
+            htmlFor="improvements"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          >
             Areas for Improvement
           </label>
           <textarea
@@ -222,7 +222,10 @@ export function PeerEvaluationForm({
         </div>
 
         <div>
-          <label htmlFor="comments" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label
+            htmlFor="comments"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          >
             Additional Comments
           </label>
           <textarea
@@ -239,12 +242,7 @@ export function PeerEvaluationForm({
 
       {/* Actions */}
       <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <Button
-          type="button"
-          variant="ghost"
-          onClick={onCancel}
-          disabled={loading}
-        >
+        <Button type="button" variant="ghost" onClick={onCancel} disabled={loading}>
           Cancel
         </Button>
         <Button

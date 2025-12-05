@@ -22,9 +22,9 @@ interface DashboardHeaderProps {
   sidebarCollapsed: boolean;
 }
 
-export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ 
+export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   onToggleSidebar,
-  sidebarCollapsed 
+  sidebarCollapsed,
 }) => {
   const { currentWorkspace } = useWorkspace();
   const { user } = useAuth();
@@ -39,12 +39,12 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   // Load notifications
   const loadNotifications = useCallback(async () => {
     if (!user?.id) return;
-    
+
     try {
       setLoading(true);
       const userNotifications = await getUserNotifications(user.id, { limit: 20 });
       setNotifications(userNotifications);
-      
+
       const count = await getUnreadNotificationCount(user.id);
       setUnreadCount(count);
     } catch (error) {
@@ -106,10 +106,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   // Handle click outside to close dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowNotifications(false);
       }
     };
@@ -125,13 +122,13 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
   const handleMarkAsRead = async (notificationId: string) => {
     if (!user?.id) return;
-    
+
     try {
       await markNotificationAsRead(notificationId, user.id);
-      setNotifications(prev =>
-        prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n))
       );
-      setUnreadCount(prev => Math.max(0, prev - 1));
+      setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (error) {
       console.error('Error marking notification as read:', error);
     }
@@ -139,10 +136,10 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
   const handleMarkAllAsRead = async () => {
     if (!user?.id) return;
-    
+
     try {
       await markAllNotificationsAsRead(user.id);
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
       setUnreadCount(0);
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
@@ -151,13 +148,13 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
   const handleDelete = async (notificationId: string) => {
     if (!user?.id) return;
-    
+
     try {
       await deleteNotification(notificationId, user.id);
-      const wasUnread = notifications.find(n => n.id === notificationId)?.read === false;
-      setNotifications(prev => prev.filter(n => n.id !== notificationId));
+      const wasUnread = notifications.find((n) => n.id === notificationId)?.read === false;
+      setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
       if (wasUnread) {
-        setUnreadCount(prev => Math.max(0, prev - 1));
+        setUnreadCount((prev) => Math.max(0, prev - 1));
       }
     } catch (error) {
       console.error('Error deleting notification:', error);
@@ -165,7 +162,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   };
 
   return (
-    <header 
+    <header
       className="fixed top-0 right-0 left-0 md:left-64 h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 z-30 transition-all duration-300"
       style={{ left: sidebarCollapsed ? '0' : '16rem' }}
     >

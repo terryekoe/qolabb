@@ -33,9 +33,9 @@ import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'react-hot-toast';
-import { 
-  getWorkspaceProjects, 
-  getWorkspaceTeams, 
+import {
+  getWorkspaceProjects,
+  getWorkspaceTeams,
   createProject,
   isTeamLeaderOrInstructor,
   getWorkspaceMembers,
@@ -64,7 +64,7 @@ function ProjectsPageContent() {
   const { canAccess } = usePermissions();
   const searchParams = useSearchParams();
   const router = useRouter();
-  
+
   const [projects, setProjects] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
   const [pendingEvaluations, setPendingEvaluations] = useState<any[]>([]);
@@ -74,7 +74,7 @@ function ProjectsPageContent() {
   const [activeTab, setActiveTab] = useState<TabType>('assignments');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isInstructor, setIsInstructor] = useState(false);
-  
+
   // Create project form state
   const [projectName, setProjectName] = useState('');
   const [projectDescription, setProjectDescription] = useState('');
@@ -177,7 +177,7 @@ function ProjectsPageContent() {
 
   async function loadProjects() {
     if (!currentWorkspace) return;
-    
+
     try {
       setLoading(true);
       const data = await getWorkspaceProjects(currentWorkspace.id);
@@ -191,7 +191,7 @@ function ProjectsPageContent() {
 
   async function loadTeams() {
     if (!currentWorkspace) return;
-    
+
     try {
       const data = await getWorkspaceTeams(currentWorkspace.id);
       setTeams(data || []);
@@ -202,7 +202,7 @@ function ProjectsPageContent() {
 
   async function loadPendingEvaluations() {
     if (!currentWorkspace || !user) return;
-    
+
     try {
       const data = await getPendingEvaluations(user.id, currentWorkspace.id);
       setPendingEvaluations(data || []);
@@ -242,14 +242,14 @@ function ProjectsPageContent() {
           // We need to create copies of resources for each project if they are not just links
           // For now, we just link the same resource metadata but associated with the project
           // In a real app, we might want to duplicate the actual resource if it's a file
-          
+
           // Actually, we don't have a separate resources table linked to projects yet in the schema shown
-          // The resources state seems to be local. 
+          // The resources state seems to be local.
           // Let's assume we store them in a 'resources' column or table.
           // Looking at the schema, there is no 'resources' table.
           // The 'projects' table might have a 'resources' jsonb column?
           // Let's check the insert above. It doesn't include resources.
-          
+
           // Wait, the previous code didn't save resources either!
           // Let's check the schema.
           // If there's no column, we can't save it.
@@ -257,14 +257,18 @@ function ProjectsPageContent() {
           // The provision API returns a resource object.
           // We should probably save this in the project description or a specific column if it exists.
           // For now, let's append it to the description as a markdown link if no other place.
-          
+
           // UPDATE: I'll append the resource link to the description for now so it's accessible.
           if (resources.length > 0) {
-             const resourceLinks = resources.map(r => `[${r.name}](${r.url})`).join('\n');
-             await supabase
-               .from('projects')
-               .update({ description: projectDescription ? `${projectDescription}\n\n**Resources:**\n${resourceLinks}` : `**Resources:**\n${resourceLinks}` })
-               .eq('id', project.id);
+            const resourceLinks = resources.map((r) => `[${r.name}](${r.url})`).join('\n');
+            await supabase
+              .from('projects')
+              .update({
+                description: projectDescription
+                  ? `${projectDescription}\n\n**Resources:**\n${resourceLinks}`
+                  : `**Resources:**\n${resourceLinks}`,
+              })
+              .eq('id', project.id);
           }
         }
       });
@@ -286,13 +290,11 @@ function ProjectsPageContent() {
   };
 
   const handleDeleteProject = async (projectId: string) => {
-    if (!confirm('Are you sure you want to delete this assignment? This action cannot be undone.')) return;
+    if (!confirm('Are you sure you want to delete this assignment? This action cannot be undone.'))
+      return;
 
     try {
-      const { error } = await supabase
-        .from('projects')
-        .delete()
-        .eq('id', projectId);
+      const { error } = await supabase.from('projects').delete().eq('id', projectId);
 
       if (error) throw error;
 
@@ -344,13 +346,14 @@ function ProjectsPageContent() {
   }
 
   function handleRemoveResource(resourceId: string) {
-    setResources(resources.filter(r => r.id !== resourceId));
+    setResources(resources.filter((r) => r.id !== resourceId));
   }
 
   // Filter and search projects
-  const filteredProjects = projects.filter(project => {
-    const matchesSearch = project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         project.description?.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredProjects = projects.filter((project) => {
+    const matchesSearch =
+      project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      project.description?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || project.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -361,41 +364,41 @@ function ProjectsPageContent() {
         return {
           color: 'text-blue-600 bg-blue-50 border-blue-200',
           icon: <Clock size={14} />,
-          label: 'Active'
+          label: 'Active',
         };
       case 'completed':
         return {
           color: 'text-green-600 bg-green-50 border-green-200',
           icon: <CheckCircle2 size={14} />,
-          label: 'Completed'
+          label: 'Completed',
         };
       case 'pending':
         return {
           color: 'text-orange-600 bg-orange-50 border-orange-200',
           icon: <AlertCircle size={14} />,
-          label: 'Pending'
+          label: 'Pending',
         };
       case 'archived':
         return {
           color: 'text-gray-600 bg-gray-50 border-gray-200',
           icon: <Archive size={14} />,
-          label: 'Archived'
+          label: 'Archived',
         };
       default:
         return {
           color: 'text-gray-600 bg-gray-50 border-gray-200',
           icon: <Clock size={14} />,
-          label: status
+          label: status,
         };
     }
   };
 
   const statusCounts = {
     all: projects.length,
-    active: projects.filter(p => p.status === 'active').length,
-    pending: projects.filter(p => p.status === 'pending').length,
-    completed: projects.filter(p => p.status === 'completed').length,
-    archived: projects.filter(p => p.status === 'archived').length,
+    active: projects.filter((p) => p.status === 'active').length,
+    pending: projects.filter((p) => p.status === 'pending').length,
+    completed: projects.filter((p) => p.status === 'completed').length,
+    archived: projects.filter((p) => p.status === 'archived').length,
   };
 
   if (!currentWorkspace) {
@@ -496,7 +499,10 @@ function ProjectsPageContent() {
               <div className="flex flex-col lg:flex-row gap-4">
                 {/* Search */}
                 <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                  <Search
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    size={20}
+                  />
                   <input
                     type="text"
                     placeholder="Search assignments..."
@@ -509,20 +515,22 @@ function ProjectsPageContent() {
                 {/* Status Filter */}
                 <div className="flex items-center space-x-2 overflow-x-auto">
                   <Filter size={20} className="text-gray-400 flex-shrink-0" />
-                  {(['all', 'active', 'pending', 'completed', 'archived'] as FilterType[]).map((status) => (
-                    <button
-                      key={status}
-                      onClick={() => setStatusFilter(status)}
-                      className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors ${
-                        statusFilter === status
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                      }`}
-                    >
-                      {status.charAt(0).toUpperCase() + status.slice(1)}
-                      <span className="ml-2 opacity-75">({statusCounts[status]})</span>
-                    </button>
-                  ))}
+                  {(['all', 'active', 'pending', 'completed', 'archived'] as FilterType[]).map(
+                    (status) => (
+                      <button
+                        key={status}
+                        onClick={() => setStatusFilter(status)}
+                        className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors ${
+                          statusFilter === status
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                        }`}
+                      >
+                        {status.charAt(0).toUpperCase() + status.slice(1)}
+                        <span className="ml-2 opacity-75">({statusCounts[status]})</span>
+                      </button>
+                    )
+                  )}
                 </div>
               </div>
             </div>
@@ -531,7 +539,10 @@ function ProjectsPageContent() {
             {loading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 animate-pulse">
+                  <div
+                    key={i}
+                    className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 animate-pulse"
+                  >
                     <div className="h-6 bg-gray-200 rounded mb-4"></div>
                     <div className="h-4 bg-gray-200 rounded mb-2"></div>
                     <div className="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -546,19 +557,21 @@ function ProjectsPageContent() {
               >
                 <FolderKanban size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                  {searchQuery || statusFilter !== 'all' ? 'No assignments found' : 'No assignments yet'}
+                  {searchQuery || statusFilter !== 'all'
+                    ? 'No assignments found'
+                    : 'No assignments yet'}
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400 mb-6">
                   {searchQuery || statusFilter !== 'all'
                     ? 'Try adjusting your filters or search query'
                     : teams.length === 0
-                    ? 'You need to create a team before you can add assignments'
-                    : 'Create your first assignment to start collaborating with your team'}
+                      ? 'You need to create a team before you can add assignments'
+                      : 'Create your first assignment to start collaborating with your team'}
                 </p>
                 {teams.length === 0 ? (
                   <Button
                     variant="secondary"
-                    onClick={() => window.location.href = '/teams'}
+                    onClick={() => (window.location.href = '/teams')}
                     className="flex items-center space-x-2 mx-auto"
                   >
                     <UsersIcon size={20} />
@@ -581,9 +594,12 @@ function ProjectsPageContent() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredProjects.map((project, index) => {
                   const statusConfig = getStatusConfig(project.status);
-                  const myTasks = project.tasks?.filter((t: any) => t.assigned_to === user?.id && t.status !== 'completed') || [];
+                  const myTasks =
+                    project.tasks?.filter(
+                      (t: any) => t.assigned_to === user?.id && t.status !== 'completed'
+                    ) || [];
                   const nextTask = myTasks[0];
-                  
+
                   return (
                     <motion.div
                       key={project.id}
@@ -611,7 +627,7 @@ function ProjectsPageContent() {
                           {/* Delete Button (Only for Instructors/Admins/Owners) */}
                           {isInstructor && (
                             <div className="relative group/menu">
-                              <button 
+                              <button
                                 className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-600"
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -643,7 +659,10 @@ function ProjectsPageContent() {
                               {nextTask.due_date && (
                                 <span className="text-xs text-blue-600 dark:text-blue-400 flex items-center">
                                   <Clock size={12} className="mr-1" />
-                                  {new Date(nextTask.due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                  {new Date(nextTask.due_date).toLocaleDateString(undefined, {
+                                    month: 'short',
+                                    day: 'numeric',
+                                  })}
                                 </span>
                               )}
                             </div>
@@ -671,38 +690,46 @@ function ProjectsPageContent() {
                                 <div className="flex justify-between text-xs text-gray-600 mb-2">
                                   <span>Team Progress</span>
                                   <span>
-                                    {project.tasks.filter((t: any) => t.status === 'completed').length}/{project.tasks.length}
+                                    {
+                                      project.tasks.filter((t: any) => t.status === 'completed')
+                                        .length
+                                    }
+                                    /{project.tasks.length}
                                   </span>
                                 </div>
                                 <div className="w-full bg-gray-200 rounded-full h-2">
                                   <div
                                     className="bg-blue-600 h-2 rounded-full transition-all"
                                     style={{
-                                      width: `${(project.tasks.filter((t: any) => t.status === 'completed').length / project.tasks.length) * 100}%`
+                                      width: `${(project.tasks.filter((t: any) => t.status === 'completed').length / project.tasks.length) * 100}%`,
                                     }}
                                   />
                                 </div>
                               </div>
                             ) : (
-                              <div className="text-xs text-gray-500 italic">No tasks created yet</div>
+                              <div className="text-xs text-gray-500 italic">
+                                No tasks created yet
+                              </div>
                             )}
                           </div>
                         )}
 
                         {/* Status Badge & Contributors Footer */}
                         <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
-                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${statusConfig.color}`}>
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${statusConfig.color}`}
+                          >
                             {statusConfig.icon}
                             {statusConfig.label}
                           </span>
-                          
+
                           {project.contributions && project.contributions.length > 0 && (
                             <div className="flex -space-x-2">
                               <AvatarGroup
                                 users={project.contributions.map((contrib: any) => ({
                                   userId: contrib.user?.id || contrib.id,
                                   name: contrib.user?.full_name || 'User',
-                                  src: contrib.user?.avatar_url
+                                  src: contrib.user?.avatar_url,
                                 }))}
                                 max={3}
                                 size="sm"
@@ -729,8 +756,9 @@ function ProjectsPageContent() {
                     Pending Peer Reviews
                   </h3>
                   <p className="text-sm text-blue-700 dark:text-blue-300">
-                    You have {pendingEvaluations.length} peer {pendingEvaluations.length === 1 ? 'review' : 'reviews'} to complete. 
-                    Review your teammates' contributions to help improve collaboration.
+                    You have {pendingEvaluations.length} peer{' '}
+                    {pendingEvaluations.length === 1 ? 'review' : 'reviews'} to complete. Review
+                    your teammates' contributions to help improve collaboration.
                   </p>
                 </div>
               </div>
@@ -773,7 +801,7 @@ function ProjectsPageContent() {
                   <Button
                     variant="primary"
                     size="sm"
-                    onClick={() => window.location.href = '/evaluations'}
+                    onClick={() => (window.location.href = '/evaluations')}
                     className="w-full"
                   >
                     Start Review
@@ -811,7 +839,9 @@ function ProjectsPageContent() {
                   <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-lg mr-4">
                     <FolderKanban className="text-blue-700 dark:text-blue-400" size={24} />
                   </div>
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Create Assignment</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    Create Assignment
+                  </h2>
                 </div>
                 <button
                   onClick={() => {
@@ -859,7 +889,7 @@ function ProjectsPageContent() {
                           if (selectedTeams.length === teams.length) {
                             setSelectedTeams([]);
                           } else {
-                            setSelectedTeams(teams.map(t => t.id));
+                            setSelectedTeams(teams.map((t) => t.id));
                           }
                         }}
                         className="text-xs text-blue-600 hover:text-blue-700 font-medium"
@@ -869,7 +899,9 @@ function ProjectsPageContent() {
                     </div>
                     <div className="max-h-48 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 p-2 space-y-1">
                       {teams.length === 0 ? (
-                        <div className="text-sm text-gray-500 p-2 text-center">No teams available</div>
+                        <div className="text-sm text-gray-500 p-2 text-center">
+                          No teams available
+                        </div>
                       ) : (
                         teams.map((team) => (
                           <label
@@ -887,7 +919,7 @@ function ProjectsPageContent() {
                                 if (e.target.checked) {
                                   setSelectedTeams([...selectedTeams, team.id]);
                                 } else {
-                                  setSelectedTeams(selectedTeams.filter(id => id !== team.id));
+                                  setSelectedTeams(selectedTeams.filter((id) => id !== team.id));
                                 }
                               }}
                               className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
@@ -965,63 +997,69 @@ function ProjectsPageContent() {
                         Google Workspace Integration
                       </label>
                       <div className="flex flex-col gap-3">
-                      <div className="flex flex-col gap-3">
-                        <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
-                          <div>
-                            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">Group Google Doc</span>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">Automatically create a blank doc with assignment instructions</p>
+                        <div className="flex flex-col gap-3">
+                          <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+                            <div>
+                              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                Group Google Doc
+                              </span>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                                Automatically create a blank doc with assignment instructions
+                              </p>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              size="sm"
+                              className="flex items-center gap-2 whitespace-nowrap"
+                              onClick={async () => {
+                                setProvisioning(true);
+                                try {
+                                  const response = await fetch('/api/google/provision', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                      projectId: 'temp_id', // API handles this
+                                      teamId: selectedTeams[0], // Use first selected team for template
+                                      resourceName: 'Team Project Doc',
+                                      autoCreate: true,
+                                      title: projectName,
+                                      content: projectDescription,
+                                    }),
+                                  });
+
+                                  const data = await response.json();
+                                  if (!response.ok) throw new Error(data.error);
+
+                                  setResources([...resources, data.resource]);
+                                  toast.success('Group Google Doc generated successfully');
+                                } catch (error: any) {
+                                  toast.error(error.message || 'Failed to generate Google Doc');
+                                } finally {
+                                  setProvisioning(false);
+                                }
+                              }}
+                              disabled={selectedTeams.length === 0 || provisioning || !projectName}
+                            >
+                              {provisioning ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                  Generating...
+                                </>
+                              ) : (
+                                <>
+                                  <FileText size={16} />
+                                  Generate Group Doc
+                                </>
+                              )}
+                            </Button>
                           </div>
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            size="sm"
-                            className="flex items-center gap-2 whitespace-nowrap"
-                            onClick={async () => {
-                              setProvisioning(true);
-                              try {
-                                const response = await fetch('/api/google/provision', {
-                                  method: 'POST',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({
-                                    projectId: 'temp_id', // API handles this
-                                    teamId: selectedTeams[0], // Use first selected team for template
-                                    resourceName: 'Team Project Doc',
-                                    autoCreate: true,
-                                    title: projectName,
-                                    content: projectDescription
-                                  })
-                                });
-
-                                const data = await response.json();
-                                if (!response.ok) throw new Error(data.error);
-
-                                setResources([...resources, data.resource]);
-                                toast.success('Group Google Doc generated successfully');
-                              } catch (error: any) {
-                                toast.error(error.message || 'Failed to generate Google Doc');
-                              } finally {
-                                setProvisioning(false);
-                              }
-                            }}
-                            disabled={selectedTeams.length === 0 || provisioning || !projectName}
-                          >
-                            {provisioning ? (
-                              <>
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                                Generating...
-                              </>
-                            ) : (
-                              <>
-                                <FileText size={16} />
-                                Generate Group Doc
-                              </>
-                            )}
-                          </Button>
+                          {selectedTeams.length === 0 && (
+                            <p className="text-xs text-orange-600">
+                              Select a team first to enable Google Doc provisioning.
+                            </p>
+                          )}
                         </div>
-                        {selectedTeams.length === 0 && (
-                          <p className="text-xs text-orange-600">Select a team first to enable Google Doc provisioning.</p>
-                        )}
-                      </div>
                       </div>
                     </div>
 
@@ -1090,18 +1128,20 @@ function ProjectsPageContent() {
 
 export default function ProjectsPage() {
   return (
-    <FeatureGuard 
-      feature="PROJECTS" 
+    <FeatureGuard
+      feature="PROJECTS"
       featureName="Project Management"
       description="Project management is not available in the MVP. Focus on tracking participation within your study groups instead."
     >
-      <Suspense fallback={
-        <DashboardLayout>
-          <div className="flex items-center justify-center h-96">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          </div>
-        </DashboardLayout>
-      }>
+      <Suspense
+        fallback={
+          <DashboardLayout>
+            <div className="flex items-center justify-center h-96">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          </DashboardLayout>
+        }
+      >
         <ProjectsPageContent />
       </Suspense>
     </FeatureGuard>

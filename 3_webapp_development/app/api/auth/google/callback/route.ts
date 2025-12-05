@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     const error = searchParams.get('error');
 
     const requestUrl = new URL(request.url);
-    
+
     // Handle OAuth errors
     if (error) {
       return NextResponse.redirect(
@@ -72,7 +72,9 @@ export async function GET(request: NextRequest) {
       }
     );
 
-    const { data: { user } } = await supabaseClient.auth.getUser();
+    const {
+      data: { user },
+    } = await supabaseClient.auth.getUser();
 
     if (!user) {
       return NextResponse.redirect(
@@ -116,7 +118,7 @@ export async function GET(request: NextRequest) {
     // Store integration in database (insert or update)
     let integration;
     let dbError;
-    
+
     if (existingIntegration) {
       // Update existing
       const { data, error } = await supabase
@@ -158,7 +160,10 @@ export async function GET(request: NextRequest) {
     console.error('Error in Google OAuth callback:', error);
     const requestUrl = new URL(request.url);
     return NextResponse.redirect(
-      new URL(`/settings?tab=integrations&error=${encodeURIComponent(error.message)}`, requestUrl.origin)
+      new URL(
+        `/settings?tab=integrations&error=${encodeURIComponent(error.message)}`,
+        requestUrl.origin
+      )
     );
   }
 }

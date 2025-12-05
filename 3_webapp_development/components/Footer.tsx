@@ -39,16 +39,14 @@ export const Footer: React.FC = () => {
           {/* Brand Section */}
           <div className="lg:col-span-2">
             <Link href="/" className="inline-block mb-4">
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                className="text-3xl font-bold"
-              >
+              <motion.div whileHover={{ scale: 1.05 }} className="text-3xl font-bold">
                 <span className="text-white">Qol</span>
                 <span className="text-qolabb-beige-400">abb</span>
               </motion.div>
             </Link>
             <p className="text-gray-400 mb-6 max-w-md">
-              Promoting equitable participation and collaboration in student group projects through data-driven insights.
+              Promoting equitable participation and collaboration in student group projects through
+              data-driven insights.
             </p>
             {/* Social Links */}
             <div className="flex space-x-4">
@@ -123,9 +121,7 @@ export const Footer: React.FC = () => {
         {/* Bottom Bar */}
         <div className="border-t border-gray-800 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <p className="text-gray-400 text-sm">
-              © {currentYear} Qolabb. All rights reserved.
-            </p>
+            <p className="text-gray-400 text-sm">© {currentYear} Qolabb. All rights reserved.</p>
             <p className="text-gray-400 text-sm flex items-center">
               Made with <Heart size={16} className="mx-1 text-red-500" /> by Terry Ekoe Aziaba
             </p>

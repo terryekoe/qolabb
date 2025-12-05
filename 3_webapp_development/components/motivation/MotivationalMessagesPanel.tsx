@@ -20,7 +20,9 @@ interface MotivationalMessagesPanelProps {
 export function MotivationalMessagesPanel({ userId, onClose }: MotivationalMessagesPanelProps) {
   const [messages, setMessages] = useState<MotivationalMessage[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'unread' | MotivationalMessage['message_type']>('all');
+  const [filter, setFilter] = useState<'all' | 'unread' | MotivationalMessage['message_type']>(
+    'all'
+  );
 
   useEffect(() => {
     loadMessages();
@@ -99,12 +101,7 @@ export function MotivationalMessagesPanel({ userId, onClose }: MotivationalMessa
           </div>
           <div className="flex items-center gap-2">
             {unreadCount > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleMarkAllAsRead}
-                className="text-sm"
-              >
+              <Button variant="ghost" size="sm" onClick={handleMarkAllAsRead} className="text-sm">
                 <CheckCircle2 size={16} className="mr-1" />
                 Mark all read
               </Button>

@@ -40,7 +40,7 @@ import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { FeatureGuard } from '@/components/features/FeatureGuard';
-import { 
+import {
   getWorkspaceProjects,
   getProjectTasks,
   updateTask,
@@ -107,14 +107,9 @@ function DraggableTaskCard({
   handleDeleteTask,
   onTaskClick,
 }: DraggableTaskCardProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: task.id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: task.id,
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -123,11 +118,13 @@ function DraggableTaskCard({
   };
 
   // Check if task is assigned to current user (either via old assigned_to or new assignees)
-  const isMyTask = task.assigned_to === user?.id || 
-    (task.assignees && task.assignees.some((a: any) => {
-      const assignee = a.user || a;
-      return assignee?.id === user?.id || a?.user_id === user?.id;
-    }));
+  const isMyTask =
+    task.assigned_to === user?.id ||
+    (task.assignees &&
+      task.assignees.some((a: any) => {
+        const assignee = a.user || a;
+        return assignee?.id === user?.id || a?.user_id === user?.id;
+      }));
   const statusConfig = getStatusConfig(task.status);
 
   // Use a ref to track if we're dragging to prevent onClick interference
@@ -158,7 +155,7 @@ function DraggableTaskCard({
         >
           <GripVertical size={16} className="text-gray-400 dark:text-gray-500" />
         </div>
-        
+
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between mb-2">
             <div className="flex-1 min-w-0 pr-2">
@@ -170,7 +167,7 @@ function DraggableTaskCard({
                 <span className="truncate">{task.project_name}</span>
               </div>
             </div>
-            
+
             <div className="relative">
               <button
                 onClick={() => setActiveTaskMenu(activeTaskMenu === task.id ? null : task.id)}
@@ -178,7 +175,7 @@ function DraggableTaskCard({
               >
                 <MoreVertical size={14} className="text-gray-400 dark:text-gray-500" />
               </button>
-              
+
               {activeTaskMenu === task.id && (
                 <div className="absolute right-0 top-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1 z-10 min-w-[140px]">
                   <button
@@ -204,13 +201,17 @@ function DraggableTaskCard({
           </div>
 
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 pt-2 border-t border-gray-100 dark:border-gray-700">
-            {(task.assignees && task.assignees.length > 0) ? (
+            {task.assignees && task.assignees.length > 0 ? (
               <div className="flex items-center">
                 {task.assignees.slice(0, 1).map((assigneeItem: any) => {
                   const assignee = assigneeItem.user || assigneeItem;
-                  const assigneeIsMe = assignee?.id === user?.id || assigneeItem?.user_id === user?.id;
+                  const assigneeIsMe =
+                    assignee?.id === user?.id || assigneeItem?.user_id === user?.id;
                   return (
-                    <div key={assigneeItem.id || assigneeItem.user_id} className="flex items-center">
+                    <div
+                      key={assigneeItem.id || assigneeItem.user_id}
+                      className="flex items-center"
+                    >
                       <div
                         className={`w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold mr-1 ${
                           assigneeIsMe
@@ -313,7 +314,7 @@ function KanbanColumn({
   });
 
   return (
-    <div 
+    <div
       ref={setNodeRef}
       className={`bg-gray-50 rounded-xl p-4 transition-colors ${
         isOver ? 'bg-gray-100 ring-2 ring-blue-400 ring-offset-2' : ''
@@ -369,7 +370,7 @@ function TasksPageContent() {
   const { user, profile } = useAuth();
   const { currentWorkspace } = useWorkspace();
   const router = useRouter();
-  
+
   const [tasks, setTasks] = useState<any[]>([]);
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -382,33 +383,35 @@ function TasksPageContent() {
   const [canManageTasks, setCanManageTasks] = useState(false);
   const [activeTaskMenu, setActiveTaskMenu] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'focus' | 'board' | 'all' | 'team' | 'evaluations'>(isInstructor ? 'all' : 'focus');
+  const [viewMode, setViewMode] = useState<'focus' | 'board' | 'all' | 'team' | 'evaluations'>(
+    isInstructor ? 'all' : 'focus'
+  );
   const [showAdvancedTools, setShowAdvancedTools] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  
+
   // Task detail modal
   const [selectedTask, setSelectedTask] = useState<any>(null);
   const [showTaskDetail, setShowTaskDetail] = useState(false);
-  
+
   // Contribution log modal
   const [showContributionModal, setShowContributionModal] = useState(false);
   const [taskForContribution, setTaskForContribution] = useState<any>(null);
-  
+
   // Advanced filtering
   const [priorityFilter, setPriorityFilter] = useState<'all' | TaskPriority>('all');
   const [assigneeFilter, setAssigneeFilter] = useState<'all' | 'me' | 'unassigned'>('all');
   const [showOverdueOnly, setShowOverdueOnly] = useState(false);
   const [sortBy, setSortBy] = useState<'created' | 'due_date' | 'priority' | 'title'>('created');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-  
+
   // Bulk actions
   const [selectedTasks, setSelectedTasks] = useState<Set<string>>(new Set());
   const [showBulkActions, setShowBulkActions] = useState(false);
-  
+
   // Quick edit
   const [editingTask, setEditingTask] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
-  
+
   // Keyboard shortcuts
   const [showShortcuts, setShowShortcuts] = useState(false);
 
@@ -416,7 +419,9 @@ function TasksPageContent() {
   const [pendingEvaluations, setPendingEvaluations] = useState<PendingEvaluationWithDetails[]>([]);
   const [evaluationResults, setEvaluationResults] = useState<any>(null);
   const [showEvaluationForm, setShowEvaluationForm] = useState(false);
-  const [selectedEvaluation, setSelectedEvaluation] = useState<PendingEvaluationWithDetails | null>(null);
+  const [selectedEvaluation, setSelectedEvaluation] = useState<PendingEvaluationWithDetails | null>(
+    null
+  );
   const [showCreatePeriodModal, setShowCreatePeriodModal] = useState(false);
   const [canCreatePeriod, setCanCreatePeriod] = useState(false);
   const [userTeams, setUserTeams] = useState<any[]>([]);
@@ -436,13 +441,13 @@ function TasksPageContent() {
 
   const loadData = useCallback(async () => {
     if (!currentWorkspace || !user) return;
-    
+
     try {
       setLoading(true);
       // Load all projects
       const projectsData = await getWorkspaceProjects(currentWorkspace.id, user.id);
       setProjects(projectsData || []);
-      
+
       // Load tasks from all projects
       const allTasks: any[] = [];
       for (const project of projectsData || []) {
@@ -454,7 +459,7 @@ function TasksPageContent() {
         }));
         allTasks.push(...tasksWithProject);
       }
-      
+
       setTasks(allTasks);
 
       // Load peer evaluations
@@ -462,15 +467,15 @@ function TasksPageContent() {
         getPendingEvaluations(user.id, currentWorkspace.id),
         getEvaluationResults(user.id, currentWorkspace.id),
         getUserTeams(user.id, currentWorkspace.id),
-        (isInstructor || isAdmin) 
+        isInstructor || isAdmin
           ? getTeamEvaluationsForInstructor(user.id, currentWorkspace.id)
-          : Promise.resolve([])
+          : Promise.resolve([]),
       ]);
-      
+
       setPendingEvaluations(pendingEvals || []);
       setEvaluationResults(evalResults);
       setInstructorEvaluations(instructorEvals || []);
-      
+
       // Check permission to create periods
       const teamsData = (teams || []).filter((tm: any) => tm?.team?.id);
       setUserTeams(teamsData);
@@ -546,7 +551,7 @@ function TasksPageContent() {
       supabase.removeChannel(projectsChannel);
     };
   }, [currentWorkspace?.id, loadData]);
-  
+
   // Keyboard shortcuts
   useEffect(() => {
     function handleKeyPress(e: KeyboardEvent) {
@@ -555,7 +560,7 @@ function TasksPageContent() {
         e.preventDefault();
         document.getElementById('task-search')?.focus();
       }
-      
+
       // CMD/CTRL + N = New task
       if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
         e.preventDefault();
@@ -563,7 +568,7 @@ function TasksPageContent() {
           handleCreateTask(projects[0]);
         }
       }
-      
+
       // ESC = Clear selection and close expandable panels
       if (e.key === 'Escape') {
         setSelectedTasks(new Set());
@@ -571,13 +576,14 @@ function TasksPageContent() {
         setActiveTaskMenu(null);
         setShowFilters(false);
       }
-      
+
       // CMD/CTRL + A = Select all
       if ((e.metaKey || e.ctrlKey) && e.key === 'a' && tasks.length > 0) {
         e.preventDefault();
-        const filtered = tasks.filter(task => {
-          const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                               task.description?.toLowerCase().includes(searchQuery.toLowerCase());
+        const filtered = tasks.filter((task) => {
+          const matchesSearch =
+            task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            task.description?.toLowerCase().includes(searchQuery.toLowerCase());
           let matchesFilter = true;
           if (statusFilter === 'my_tasks') {
             matchesFilter = task.assigned_to === user?.id;
@@ -587,35 +593,47 @@ function TasksPageContent() {
           const matchesProject = selectedProject === 'all' || task.project_id === selectedProject;
           return matchesSearch && matchesFilter && matchesProject;
         });
-        setSelectedTasks(new Set(filtered.map(t => t.id)));
+        setSelectedTasks(new Set(filtered.map((t) => t.id)));
       }
-      
+
       // ? = Show shortcuts
       if (e.key === '?' && !editingTask) {
         setShowShortcuts(!showShortcuts);
       }
     }
-    
+
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [showShortcuts, projects, tasks, searchQuery, statusFilter, selectedProject, user, editingTask]);
+  }, [
+    showShortcuts,
+    projects,
+    tasks,
+    searchQuery,
+    statusFilter,
+    selectedProject,
+    user,
+    editingTask,
+  ]);
 
   async function handleUpdateTaskStatus(taskId: string, newStatus: TaskStatus) {
     try {
       // Check if user is instructor - instructors cannot complete tasks
       const userRole = profile?.role?.toLowerCase() || '';
-      if ((userRole === 'instructor' || userRole === 'teaching_assistant') && newStatus === 'completed') {
+      if (
+        (userRole === 'instructor' || userRole === 'teaching_assistant') &&
+        newStatus === 'completed'
+      ) {
         alert('Instructors and TAs cannot complete tasks. Please assign tasks to students.');
         await loadData(); // Reload to revert any optimistic update
         return;
       }
-      
+
       // IMPORTANT: Capture task info BEFORE updating, so we can show modal after
-      const taskBeforeUpdate = tasks.find(t => t.id === taskId);
+      const taskBeforeUpdate = tasks.find((t) => t.id === taskId);
       const oldStatus = taskBeforeUpdate?.status;
       const wasJustCompleted = oldStatus !== 'completed' && newStatus === 'completed';
       const isMyTask = taskBeforeUpdate?.assigned_to === user?.id;
-      
+
       console.log('Task status update:', {
         taskId,
         oldStatus,
@@ -624,18 +642,16 @@ function TasksPageContent() {
         isMyTask,
         assignedTo: taskBeforeUpdate?.assigned_to,
         userId: user?.id,
-        task: taskBeforeUpdate
+        task: taskBeforeUpdate,
       });
-      
+
       // Optimistic update
-      setTasks(prevTasks => 
-        prevTasks.map(task => 
-          task.id === taskId ? { ...task, status: newStatus } : task
-        )
+      setTasks((prevTasks) =>
+        prevTasks.map((task) => (task.id === taskId ? { ...task, status: newStatus } : task))
       );
-      
+
       await updateTask(taskId, { status: newStatus });
-      
+
       // Show contribution modal BEFORE reloading data (so we have the task info)
       if (wasJustCompleted && isMyTask && taskBeforeUpdate) {
         console.log('Showing contribution modal for task:', taskBeforeUpdate.id);
@@ -650,17 +666,21 @@ function TasksPageContent() {
         console.log('Not showing modal:', {
           wasJustCompleted,
           isMyTask,
-          hasTask: !!taskBeforeUpdate
+          hasTask: !!taskBeforeUpdate,
         });
       }
-      
+
       // Reload data after showing modal (or if modal shouldn't show)
       await loadData();
     } catch (error: any) {
       // Better error handling
-      const errorMessage = error?.message || error?.error_description || JSON.stringify(error, null, 2) || 'Unknown error';
+      const errorMessage =
+        error?.message ||
+        error?.error_description ||
+        JSON.stringify(error, null, 2) ||
+        'Unknown error';
       const errorDetails = error?.details || error?.hint || '';
-      
+
       console.error('Error updating task:', {
         message: errorMessage,
         details: errorDetails,
@@ -669,14 +689,14 @@ function TasksPageContent() {
         newStatus,
         error,
       });
-      
+
       // Revert on error by reloading data
       try {
-      await loadData();
+        await loadData();
       } catch (reloadError) {
         console.error('Error reloading data after task update failure:', reloadError);
       }
-      
+
       // Show user-friendly error message
       alert(`Failed to update task status: ${errorMessage}`);
     }
@@ -688,39 +708,39 @@ function TasksPageContent() {
 
   async function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
-    
+
     setActiveId(null);
-    
+
     if (!over) return;
-    
+
     const taskId = active.id as string;
     const newStatus = over.id as TaskStatus;
-    
+
     // Validate that the new status is a valid TaskStatus
     const validStatuses: TaskStatus[] = ['todo', 'in_progress', 'completed'];
     if (!validStatuses.includes(newStatus)) {
       console.warn('Invalid task status:', newStatus);
       return;
     }
-    
+
     // Find the task to check if status actually changed
-    const task = tasks.find(t => t.id === taskId);
+    const task = tasks.find((t) => t.id === taskId);
     if (!task) {
       console.warn('Task not found:', taskId);
       return;
     }
-    
+
     if (task.status === newStatus) {
       // No change needed
       return;
     }
-    
+
     await handleUpdateTaskStatus(taskId, newStatus);
   }
 
   async function handleDeleteTask(taskId: string) {
     if (!confirm('Are you sure you want to delete this task?')) return;
-    
+
     try {
       await deleteTask(taskId);
       await loadData();
@@ -732,11 +752,11 @@ function TasksPageContent() {
 
   async function handleCreateTask(project: any) {
     if (!user || !currentWorkspace) return;
-    
+
     // Check if user can manage tasks
     const canManage = await isTeamLeaderOrInstructor(user.id, project.team_id, currentWorkspace.id);
     setCanManageTasks(canManage);
-    
+
     if (canManage) {
       setSelectedTaskProject(project);
       setShowTaskModal(true);
@@ -744,34 +764,34 @@ function TasksPageContent() {
       alert('Only group leaders and instructors can create tasks');
     }
   }
-  
+
   // Task detail modal
   async function openTaskDetail(task: any) {
     if (!task || !user || !currentWorkspace) return;
-    
+
     // Check if user can manage this task
     const canManage = await isTeamLeaderOrInstructor(user.id, task.team_id, currentWorkspace.id);
     setCanManageTasks(canManage);
-    
+
     setSelectedTask(task);
     setShowTaskDetail(true);
   }
-  
+
   function closeTaskDetail() {
     setShowTaskDetail(false);
     setSelectedTask(null);
   }
-  
+
   async function handleTaskUpdated() {
     await loadData();
     closeTaskDetail();
   }
-  
+
   async function handleTaskDeleted() {
     await loadData();
     closeTaskDetail();
   }
-  
+
   // Bulk actions
   function toggleTaskSelection(taskId: string) {
     const newSelection = new Set(selectedTasks);
@@ -782,11 +802,12 @@ function TasksPageContent() {
     }
     setSelectedTasks(newSelection);
   }
-  
+
   function selectAllTasks() {
-    const filtered = tasks.filter(task => {
-      const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           task.description?.toLowerCase().includes(searchQuery.toLowerCase());
+    const filtered = tasks.filter((task) => {
+      const matchesSearch =
+        task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        task.description?.toLowerCase().includes(searchQuery.toLowerCase());
       let matchesFilter = true;
       if (statusFilter === 'my_tasks') {
         matchesFilter = isTaskAssignedToUser(task);
@@ -796,16 +817,16 @@ function TasksPageContent() {
       const matchesProject = selectedProject === 'all' || task.project_id === selectedProject;
       return matchesSearch && matchesFilter && matchesProject;
     });
-    setSelectedTasks(new Set(filtered.map(t => t.id)));
+    setSelectedTasks(new Set(filtered.map((t) => t.id)));
   }
-  
+
   function clearSelection() {
     setSelectedTasks(new Set());
   }
-  
+
   async function bulkUpdateStatus(newStatus: TaskStatus) {
     try {
-      const updates = Array.from(selectedTasks).map(taskId =>
+      const updates = Array.from(selectedTasks).map((taskId) =>
         updateTask(taskId, { status: newStatus })
       );
       await Promise.all(updates);
@@ -815,12 +836,12 @@ function TasksPageContent() {
       console.error('Bulk update error:', error);
     }
   }
-  
+
   async function bulkDeleteTasks() {
     if (!confirm(`Delete ${selectedTasks.size} tasks? This cannot be undone.`)) return;
-    
+
     try {
-      const deletes = Array.from(selectedTasks).map(taskId => deleteTask(taskId));
+      const deletes = Array.from(selectedTasks).map((taskId) => deleteTask(taskId));
       await Promise.all(deletes);
       await loadData();
       clearSelection();
@@ -828,16 +849,16 @@ function TasksPageContent() {
       console.error('Bulk delete error:', error);
     }
   }
-  
+
   // Quick edit
   function startEditingTask(task: any) {
     setEditingTask(task.id);
     setEditTitle(task.title);
   }
-  
+
   async function saveTaskEdit(taskId: string) {
     if (!editTitle.trim()) return;
-    
+
     try {
       await updateTask(taskId, { title: editTitle.trim() });
       await loadData();
@@ -846,18 +867,19 @@ function TasksPageContent() {
       console.error('Edit task error:', error);
     }
   }
-  
+
   function cancelEdit() {
     setEditingTask(null);
     setEditTitle('');
   }
 
   // Advanced filter tasks
-  const filteredTasks = tasks.filter(task => {
+  const filteredTasks = tasks.filter((task) => {
     // Search filter
-    const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         task.description?.toLowerCase().includes(searchQuery.toLowerCase());
-    
+    const matchesSearch =
+      task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      task.description?.toLowerCase().includes(searchQuery.toLowerCase());
+
     // Status filter
     let matchesStatus = true;
     if (statusFilter === 'my_tasks') {
@@ -865,13 +887,13 @@ function TasksPageContent() {
     } else if (statusFilter !== 'all') {
       matchesStatus = task.status === statusFilter;
     }
-    
+
     // Project filter
     const matchesProject = selectedProject === 'all' || task.project_id === selectedProject;
-    
+
     // Priority filter
     const matchesPriority = priorityFilter === 'all' || task.priority === priorityFilter;
-    
+
     // Assignee filter
     let matchesAssignee = true;
     if (assigneeFilter === 'me') {
@@ -880,7 +902,7 @@ function TasksPageContent() {
       // Check both old assigned_to and new assignees array
       matchesAssignee = !task.assigned_to && (!task.assignees || task.assignees.length === 0);
     }
-    
+
     // Overdue filter
     let matchesOverdue = true;
     if (showOverdueOnly && task.due_date) {
@@ -891,14 +913,21 @@ function TasksPageContent() {
     } else if (showOverdueOnly) {
       matchesOverdue = false; // Tasks without due dates can't be overdue
     }
-    
-    return matchesSearch && matchesStatus && matchesProject && matchesPriority && matchesAssignee && matchesOverdue;
+
+    return (
+      matchesSearch &&
+      matchesStatus &&
+      matchesProject &&
+      matchesPriority &&
+      matchesAssignee &&
+      matchesOverdue
+    );
   });
-  
+
   // Sort tasks
   const sortedTasks = [...filteredTasks].sort((a, b) => {
     let comparison = 0;
-    
+
     switch (sortBy) {
       case 'title':
         comparison = a.title.localeCompare(b.title);
@@ -911,15 +940,16 @@ function TasksPageContent() {
         break;
       case 'priority':
         const priorityOrder = { high: 3, medium: 2, low: 1 };
-        comparison = (priorityOrder[b.priority as keyof typeof priorityOrder] || 0) - 
-                     (priorityOrder[a.priority as keyof typeof priorityOrder] || 0);
+        comparison =
+          (priorityOrder[b.priority as keyof typeof priorityOrder] || 0) -
+          (priorityOrder[a.priority as keyof typeof priorityOrder] || 0);
         break;
       case 'created':
       default:
         comparison = new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         break;
     }
-    
+
     return sortOrder === 'asc' ? comparison : -comparison;
   });
 
@@ -949,10 +979,14 @@ function TasksPageContent() {
 
   const getPriorityColor = (priority: TaskPriority) => {
     switch (priority) {
-      case 'high': return 'text-qolabb-orange-600';
-      case 'medium': return 'text-qolabb-yellow-600';
-      case 'low': return 'text-gray-600';
-      default: return 'text-gray-600';
+      case 'high':
+        return 'text-qolabb-orange-600';
+      case 'medium':
+        return 'text-qolabb-yellow-600';
+      case 'low':
+        return 'text-gray-600';
+      default:
+        return 'text-gray-600';
     }
   };
 
@@ -973,19 +1007,19 @@ function TasksPageContent() {
 
   // Group tasks by status for Kanban view
   const tasksByStatus = {
-    todo: sortedTasks.filter(t => t.status === 'todo'),
-    in_progress: sortedTasks.filter(t => t.status === 'in_progress'),
-    completed: sortedTasks.filter(t => t.status === 'completed'),
+    todo: sortedTasks.filter((t) => t.status === 'todo'),
+    in_progress: sortedTasks.filter((t) => t.status === 'in_progress'),
+    completed: sortedTasks.filter((t) => t.status === 'completed'),
   };
 
   const taskCounts = {
     all: tasks.length,
     my_tasks: tasks.filter(isTaskAssignedToUser).length,
-    todo: tasks.filter(t => t.status === 'todo').length,
-    in_progress: tasks.filter(t => t.status === 'in_progress').length,
-    completed: tasks.filter(t => t.status === 'completed').length,
+    todo: tasks.filter((t) => t.status === 'todo').length,
+    in_progress: tasks.filter((t) => t.status === 'in_progress').length,
+    completed: tasks.filter((t) => t.status === 'completed').length,
   };
-  
+
   // Count overdue tasks
   const overdueCount = tasks.filter((t) => {
     if (!t.due_date || t.status === 'completed') return false;
@@ -1028,7 +1062,10 @@ function TasksPageContent() {
     return ['instructor', 'teaching_assistant', 'admin'].includes(role);
   }, [profile?.role]);
 
-  const myTasksAll = React.useMemo(() => tasks.filter(isTaskAssignedToUser), [tasks, isTaskAssignedToUser]);
+  const myTasksAll = React.useMemo(
+    () => tasks.filter(isTaskAssignedToUser),
+    [tasks, isTaskAssignedToUser]
+  );
   const myActiveTasks = React.useMemo(
     () => myTasksAll.filter((task: any) => task.status !== 'completed'),
     [myTasksAll]
@@ -1090,12 +1127,27 @@ function TasksPageContent() {
   }, []);
 
   const viewTabs = [
-    { id: 'focus', label: 'My Contributions', description: 'Track your work history', icon: CheckSquare },
-    { id: 'evaluations', label: 'Peer Reviews', description: 'Give and receive feedback', icon: ClipboardCheck },
+    {
+      id: 'focus',
+      label: 'My Contributions',
+      description: 'Track your work history',
+      icon: CheckSquare,
+    },
+    {
+      id: 'evaluations',
+      label: 'Peer Reviews',
+      description: 'Give and receive feedback',
+      icon: ClipboardCheck,
+    },
     { id: 'board', label: 'Group Board', description: 'See work by stage', icon: FolderKanban },
-    { id: 'all', label: 'Contribution Library', description: 'Browse every contribution', icon: CheckSquare },
+    {
+      id: 'all',
+      label: 'Contribution Library',
+      description: 'Browse every contribution',
+      icon: CheckSquare,
+    },
     { id: 'team', label: 'Group Workload', description: 'Balance work fairly', icon: UsersIcon },
-  ].filter(tab => !isInstructor || tab.id !== 'focus') as any;
+  ].filter((tab) => !isInstructor || tab.id !== 'focus') as any;
 
   const renderFocusView = () => {
     const hasMyTasks = upcomingTasks.length > 0;
@@ -1111,9 +1163,10 @@ function TasksPageContent() {
               </span>
               <h1 className="text-2xl sm:text-3xl font-bold">Your Contribution History</h1>
               <p className="text-sm sm:text-base text-white/80">
-                Track your submitted work and see what's pending. You have completed <strong>{taskCounts.completed}</strong> contributions so far.
+                Track your submitted work and see what's pending. You have completed{' '}
+                <strong>{taskCounts.completed}</strong> contributions so far.
               </p>
-          </div>
+            </div>
             <div className="flex flex-col sm:flex-row gap-3">
               <Button
                 variant="secondary"
@@ -1130,22 +1183,25 @@ function TasksPageContent() {
               >
                 Show contribution options
               </Button>
-        </div>
+            </div>
           </div>
         </div>
 
         <section className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
+            <div>
               <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                 <Clock size={18} className="text-blue-500" />
                 Pending Submissions
               </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Active tasks that need to be completed and submitted.</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Active tasks that need to be completed and submitted.
+              </p>
             </div>
             {hasMyTasks && (
               <span className="text-xs text-gray-500">
-                Showing up to {Math.min(upcomingTasks.length, 5)} contribution{upcomingTasks.length === 1 ? '' : 's'} needing attention
+                Showing up to {Math.min(upcomingTasks.length, 5)} contribution
+                {upcomingTasks.length === 1 ? '' : 's'} needing attention
               </span>
             )}
           </div>
@@ -1157,15 +1213,18 @@ function TasksPageContent() {
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
                 const isOverdue = !!dueDate && dueDate < today;
-                const isDueSoon = !!dueDate && !isOverdue && dueDate.getTime() - today.getTime() <= 1000 * 60 * 60 * 48;
+                const isDueSoon =
+                  !!dueDate &&
+                  !isOverdue &&
+                  dueDate.getTime() - today.getTime() <= 1000 * 60 * 60 * 48;
                 const statusConfig = getStatusConfig(task.status);
 
                 const nextAction: { label: string; status: TaskStatus } | null =
                   task.status === 'todo'
                     ? { label: 'Start contribution', status: 'in_progress' }
                     : task.status === 'in_progress'
-                    ? { label: 'Mark done', status: 'completed' }
-                    : null;
+                      ? { label: 'Mark done', status: 'completed' }
+                      : null;
 
                 return (
                   <div
@@ -1175,19 +1234,21 @@ function TasksPageContent() {
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
-                        <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm sm:text-base line-clamp-2">{task.title}</p>
+                        <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm sm:text-base line-clamp-2">
+                          {task.title}
+                        </p>
                         <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
                           <FolderKanban size={12} />
                           <span className="truncate">{task.project_name}</span>
-            </p>
-          </div>
+                        </p>
+                      </div>
                       <span
                         className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
                           isOverdue
                             ? 'bg-qolabb-orange-100 text-qolabb-orange-700'
                             : isDueSoon
-                            ? 'bg-qolabb-yellow-100 text-qolabb-yellow-700'
-                            : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                              ? 'bg-qolabb-yellow-100 text-qolabb-yellow-700'
+                              : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                         }`}
                       >
                         <Calendar size={12} />
@@ -1196,11 +1257,15 @@ function TasksPageContent() {
                     </div>
 
                     {task.description && (
-                      <p className="mt-3 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{task.description}</p>
+                      <p className="mt-3 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                        {task.description}
+                      </p>
                     )}
 
                     <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-gray-600">
-                      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full border ${statusConfig.color}`}>
+                      <span
+                        className={`inline-flex items-center gap-1 px-2 py-1 rounded-full border ${statusConfig.color}`}
+                      >
                         {statusConfig.icon}
                         {statusConfig.label}
                       </span>
@@ -1222,7 +1287,7 @@ function TasksPageContent() {
                       {nextAction && (
                         <Button
                           size="sm"
-                  variant="primary"
+                          variant="primary"
                           onClick={(event) => {
                             event?.stopPropagation();
                             handleUpdateTaskStatus(task.id, nextAction.status);
@@ -1248,28 +1313,34 @@ function TasksPageContent() {
             </div>
           ) : (
             <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 text-center shadow-sm">
-              <p className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">You're all caught up!</p>
+              <p className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                You're all caught up!
+              </p>
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                 No contributions are assigned to you yet. Browse the board or create one together.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button variant="primary" onClick={() => setViewMode('board')} className="flex items-center gap-2">
+                <Button
+                  variant="primary"
+                  onClick={() => setViewMode('board')}
+                  className="flex items-center gap-2"
+                >
                   <FolderKanban size={18} />
                   Browse board
                 </Button>
                 {projects.length > 0 && !isInstructor && (
                   <Button
                     variant="secondary"
-                  onClick={() => {
-                    if (projects.length === 1) {
-                      handleCreateTask(projects[0]);
+                    onClick={() => {
+                      if (projects.length === 1) {
+                        handleCreateTask(projects[0]);
                       } else {
                         setShowAdvancedTools(true);
-                    }
-                  }}
-                >
+                      }
+                    }}
+                  >
                     Create a contribution with my group
-                </Button>
+                  </Button>
                 )}
               </div>
             </div>
@@ -1287,36 +1358,48 @@ function TasksPageContent() {
               {taskCounts.completed}
             </span>
           </div>
-          
+
           {myTasksAll.filter((t: any) => t.status === 'completed').length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {myTasksAll
                 .filter((t: any) => t.status === 'completed')
-                .sort((a: any, b: any) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())
+                .sort(
+                  (a: any, b: any) =>
+                    new Date(b.updated_at || b.created_at).getTime() -
+                    new Date(a.updated_at || a.created_at).getTime()
+                )
                 .map((task: any) => (
-                  <div 
+                  <div
                     key={task.id}
                     onClick={() => openTaskDetail(task)}
                     className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:shadow-md transition-all cursor-pointer group"
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-gray-900 dark:text-gray-100 line-clamp-1">{task.title}</h3>
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100 line-clamp-1">
+                          {task.title}
+                        </h3>
                         <div className="flex items-center text-xs text-gray-500 mt-1">
                           <FolderKanban size={12} className="mr-1" />
                           <span className="truncate">{task.project_name}</span>
                         </div>
                       </div>
                       <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full font-medium whitespace-nowrap ml-2">
-                        Submitted {new Date(task.updated_at || task.created_at).toLocaleDateString()}
+                        Submitted{' '}
+                        {new Date(task.updated_at || task.created_at).toLocaleDateString()}
                       </span>
                     </div>
                     {task.description && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-3">{task.description}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-3">
+                        {task.description}
+                      </p>
                     )}
                     <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-700">
                       <span className="text-xs text-gray-500">Click to view submission</span>
-                      <ArrowRight size={14} className="text-gray-400 group-hover:text-blue-500 transition-colors" />
+                      <ArrowRight
+                        size={14}
+                        className="text-gray-400 group-hover:text-blue-500 transition-colors"
+                      />
                     </div>
                   </div>
                 ))}
@@ -1335,22 +1418,30 @@ function TasksPageContent() {
               Needs attention soon
             </div>
             <p className="text-sm text-qolabb-orange-700">
-              These contributions are past their due date. Open the details to ask for help or reassign together.
+              These contributions are past their due date. Open the details to ask for help or
+              reassign together.
             </p>
             <div className="space-y-2">
               {overdueMyTasks.slice(0, 3).map((task: any) => (
-                      <button
+                <button
                   key={task.id}
                   onClick={() => openTaskDetail(task)}
                   className="w-full bg-white/80 dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-700 border border-red-100 dark:border-red-900/30 rounded-lg px-3 py-2 flex items-center justify-between text-left transition"
                 >
-                  <span className="text-sm font-medium text-qolabb-orange-800 truncate pr-3">{task.title}</span>
-                  <span className="text-xs text-qolabb-orange-700">{formatDueDate(task.due_date)}</span>
-                      </button>
-                    ))}
-                  </div>
+                  <span className="text-sm font-medium text-qolabb-orange-800 truncate pr-3">
+                    {task.title}
+                  </span>
+                  <span className="text-xs text-qolabb-orange-700">
+                    {formatDueDate(task.due_date)}
+                  </span>
+                </button>
+              ))}
+            </div>
             {overdueMyTasks.length > 3 && (
-              <p className="text-xs text-qolabb-orange-700">+{overdueMyTasks.length - 3} more overdue contribution{overdueMyTasks.length - 3 === 1 ? '' : 's'} on the board</p>
+              <p className="text-xs text-qolabb-orange-700">
+                +{overdueMyTasks.length - 3} more overdue contribution
+                {overdueMyTasks.length - 3 === 1 ? '' : 's'} on the board
+              </p>
             )}
           </section>
         )}
@@ -1362,9 +1453,15 @@ function TasksPageContent() {
               Contributions waiting for an owner
             </div>
             <p className="text-sm text-blue-800">
-              {unassignedTeamTasks.length} contribution{unassignedTeamTasks.length === 1 ? '' : 's'} need someone to take the lead. Assign a teammate or invite learners from the group board.
+              {unassignedTeamTasks.length} contribution{unassignedTeamTasks.length === 1 ? '' : 's'}{' '}
+              need someone to take the lead. Assign a teammate or invite learners from the group
+              board.
             </p>
-            <Button variant="secondary" onClick={() => setViewMode('board')} className="flex items-center gap-2 w-fit">
+            <Button
+              variant="secondary"
+              onClick={() => setViewMode('board')}
+              className="flex items-center gap-2 w-fit"
+            >
               <UsersIcon size={16} />
               Review together
             </Button>
@@ -1379,10 +1476,15 @@ function TasksPageContent() {
             </div>
             <div className="space-y-2">
               {recentWins.map((task: any) => (
-                <div key={task.id} className="flex items-center justify-between text-sm text-gray-700 dark:text-gray-300">
+                <div
+                  key={task.id}
+                  className="flex items-center justify-between text-sm text-gray-700 dark:text-gray-300"
+                >
                   <span className="truncate pr-3">{task.title}</span>
-                  <span className="text-xs text-gray-400">{formatDueDate(task.updated_at || task.completed_at || task.created_at)}</span>
-          </div>
+                  <span className="text-xs text-gray-400">
+                    {formatDueDate(task.updated_at || task.completed_at || task.created_at)}
+                  </span>
+                </div>
               ))}
             </div>
           </section>
@@ -1394,12 +1496,21 @@ function TasksPageContent() {
             <div className="space-y-2">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Quick tips</h3>
               <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                <li>• Start one contribution at a time. When you finish, log what you contributed so the class can celebrate it.</li>
-                <li>• If something feels unclear, open the contribution details and leave a comment asking for next steps.</li>
-                <li>• Need more controls? Tap "Show contribution options" above to reveal filters and advanced tools.</li>
+                <li>
+                  • Start one contribution at a time. When you finish, log what you contributed so
+                  the class can celebrate it.
+                </li>
+                <li>
+                  • If something feels unclear, open the contribution details and leave a comment
+                  asking for next steps.
+                </li>
+                <li>
+                  • Need more controls? Tap "Show contribution options" above to reveal filters and
+                  advanced tools.
+                </li>
               </ul>
+            </div>
           </div>
-        </div>
         </section>
       </div>
     );
@@ -1410,13 +1521,16 @@ function TasksPageContent() {
       return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {[1, 2, 3].map((column) => (
-            <div key={column} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 space-y-3">
+            <div
+              key={column}
+              className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 space-y-3"
+            >
               {[1, 2, 3].map((card) => (
                 <div key={card} className="h-24 bg-gray-100 rounded-lg animate-pulse" />
               ))}
-              </div>
-            ))}
-          </div>
+            </div>
+          ))}
+        </div>
       );
     }
 
@@ -1425,17 +1539,23 @@ function TasksPageContent() {
         <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border-2 border-dashed border-gray-300 dark:border-gray-600">
           <FolderKanban size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
           <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-            {isInstructor ? 'No student contributions match your filters' : 'No contributions match your filters'}
+            {isInstructor
+              ? 'No student contributions match your filters'
+              : 'No contributions match your filters'}
           </h3>
           <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-            {isInstructor 
+            {isInstructor
               ? 'Adjust filters to see student work. You can drag cards to update status if needed.'
               : 'Clear filters or widen the search to see cards. You can drag between columns to update status at any time.'}
           </p>
-          <Button variant="secondary" onClick={() => resetFilters()} className="flex items-center gap-2 mx-auto">
+          <Button
+            variant="secondary"
+            onClick={() => resetFilters()}
+            className="flex items-center gap-2 mx-auto"
+          >
             <Filter size={16} />
             Clear filters
-              </Button>
+          </Button>
         </div>
       );
     }
@@ -1445,66 +1565,74 @@ function TasksPageContent() {
         <div>
           <h2 className="text-xl font-semibold text-gray-900">Group board</h2>
           <p className="text-sm text-gray-600">
-            Drag cards between <strong>To Start</strong>, <strong>Doing</strong>, and <strong>Done</strong>. Everyone sees updates immediately.
+            Drag cards between <strong>To Start</strong>, <strong>Doing</strong>, and{' '}
+            <strong>Done</strong>. Everyone sees updates immediately.
           </p>
         </div>
-        <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <KanbanColumn
-                id="todo"
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCorners}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <KanbanColumn
+              id="todo"
               title="To Start"
               icon={<AlertCircle size={18} className="text-qolabb-orange-600" />}
-                count={tasksByStatus.todo.length}
-                color="orange"
-                tasks={tasksByStatus.todo}
-                user={user}
-                getStatusConfig={getStatusConfig}
-                getPriorityColor={getPriorityColor}
-                activeTaskMenu={activeTaskMenu}
-                setActiveTaskMenu={setActiveTaskMenu}
-                handleDeleteTask={handleDeleteTask}
-                onTaskClick={openTaskDetail}
-              />
-              <KanbanColumn
-                id="in_progress"
+              count={tasksByStatus.todo.length}
+              color="orange"
+              tasks={tasksByStatus.todo}
+              user={user}
+              getStatusConfig={getStatusConfig}
+              getPriorityColor={getPriorityColor}
+              activeTaskMenu={activeTaskMenu}
+              setActiveTaskMenu={setActiveTaskMenu}
+              handleDeleteTask={handleDeleteTask}
+              onTaskClick={openTaskDetail}
+            />
+            <KanbanColumn
+              id="in_progress"
               title="Doing"
-                icon={<Clock size={18} className="text-blue-600" />}
-                count={tasksByStatus.in_progress.length}
-                color="blue"
-                tasks={tasksByStatus.in_progress}
-                user={user}
-                getStatusConfig={getStatusConfig}
-                getPriorityColor={getPriorityColor}
-                activeTaskMenu={activeTaskMenu}
-                setActiveTaskMenu={setActiveTaskMenu}
-                handleDeleteTask={handleDeleteTask}
-                onTaskClick={openTaskDetail}
-              />
-              <KanbanColumn
-                id="completed"
+              icon={<Clock size={18} className="text-blue-600" />}
+              count={tasksByStatus.in_progress.length}
+              color="blue"
+              tasks={tasksByStatus.in_progress}
+              user={user}
+              getStatusConfig={getStatusConfig}
+              getPriorityColor={getPriorityColor}
+              activeTaskMenu={activeTaskMenu}
+              setActiveTaskMenu={setActiveTaskMenu}
+              handleDeleteTask={handleDeleteTask}
+              onTaskClick={openTaskDetail}
+            />
+            <KanbanColumn
+              id="completed"
               title="Done"
               icon={<CheckCircle2 size={18} className="text-qolabb-green-600" />}
-                count={tasksByStatus.completed.length}
-                color="green"
-                tasks={tasksByStatus.completed}
-                user={user}
-                getStatusConfig={getStatusConfig}
-                getPriorityColor={getPriorityColor}
-                activeTaskMenu={activeTaskMenu}
-                setActiveTaskMenu={setActiveTaskMenu}
-                handleDeleteTask={handleDeleteTask}
-                onTaskClick={openTaskDetail}
-              />
-            </div>
+              count={tasksByStatus.completed.length}
+              color="green"
+              tasks={tasksByStatus.completed}
+              user={user}
+              getStatusConfig={getStatusConfig}
+              getPriorityColor={getPriorityColor}
+              activeTaskMenu={activeTaskMenu}
+              setActiveTaskMenu={setActiveTaskMenu}
+              handleDeleteTask={handleDeleteTask}
+              onTaskClick={openTaskDetail}
+            />
+          </div>
 
-            <DragOverlay>
-              {activeId ? (
+          <DragOverlay>
+            {activeId ? (
               <div className="bg-white border-2 border-blue-500 rounded-xl p-4 shadow-2xl opacity-90">
-                <p className="font-semibold text-gray-900">{filteredTasks.find((t) => t.id === activeId)?.title}</p>
-                </div>
-              ) : null}
-            </DragOverlay>
-          </DndContext>
+                <p className="font-semibold text-gray-900">
+                  {filteredTasks.find((t) => t.id === activeId)?.title}
+                </p>
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
       </div>
     );
   };
@@ -1512,7 +1640,7 @@ function TasksPageContent() {
   const renderAllTasksView = () => {
     if (loading) {
       return (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div key={i} className="bg-white rounded-xl p-4 border border-gray-200 animate-pulse">
               <div className="h-4 bg-gray-200 rounded mb-3" />
@@ -1526,10 +1654,16 @@ function TasksPageContent() {
 
     if (filteredTasks.length === 0) {
       return (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border-2 border-dashed border-gray-300 dark:border-gray-600">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border-2 border-dashed border-gray-300 dark:border-gray-600"
+        >
           <CheckSquare size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
           <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-            {isInstructor ? 'No student contributions match your filters' : 'No contributions match your filters'}
+            {isInstructor
+              ? 'No student contributions match your filters'
+              : 'No contributions match your filters'}
           </h3>
           <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
             {isInstructor
@@ -1537,11 +1671,19 @@ function TasksPageContent() {
               : 'Adjust the search or filters to see more contributions. You can also show completed work or contributions waiting for an owner.'}
           </p>
           <div className="flex justify-center gap-3 flex-wrap">
-            <Button variant="secondary" onClick={() => resetFilters()} className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              onClick={() => resetFilters()}
+              className="flex items-center gap-2"
+            >
               <Filter size={16} />
               Clear filters
             </Button>
-            <Button variant="primary" onClick={() => setViewMode('board')} className="flex items-center gap-2">
+            <Button
+              variant="primary"
+              onClick={() => setViewMode('board')}
+              className="flex items-center gap-2"
+            >
               <FolderKanban size={18} />
               Open board
             </Button>
@@ -1554,83 +1696,91 @@ function TasksPageContent() {
       <div className="space-y-4">
         <div>
           <h3 className="text-lg font-semibold text-gray-900">
-            {isInstructor ? `Student contributions (${filteredTasks.length})` : `Contribution library (${filteredTasks.length})`}
+            {isInstructor
+              ? `Student contributions (${filteredTasks.length})`
+              : `Contribution library (${filteredTasks.length})`}
           </h3>
           <p className="text-sm text-gray-600">
-            {isInstructor 
+            {isInstructor
               ? 'Click any contribution to view details, files, and student discussions.'
               : 'Click any contribution to open the full details, files, and conversation.'}
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredTasks.map((task: any, index: number) => {
-              const statusConfig = getStatusConfig(task.status);
+            const statusConfig = getStatusConfig(task.status);
             const isMyTask = isTaskAssignedToUser(task);
-              
-              return (
-                <motion.div
-                  key={task.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
+
+            return (
+              <motion.div
+                key={task.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.02 }}
-                  className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-all group relative cursor-pointer"
-                  onClick={() => openTaskDetail(task)}
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1 min-w-0">
+                className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-all group relative cursor-pointer"
+                onClick={() => openTaskDetail(task)}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2">{task.title}</h3>
-                      <div className="flex items-center text-xs text-gray-500 space-x-2">
-                        <FolderKanban size={12} />
-                        <span className="truncate">{task.project_name}</span>
-                      </div>
+                    <div className="flex items-center text-xs text-gray-500 space-x-2">
+                      <FolderKanban size={12} />
+                      <span className="truncate">{task.project_name}</span>
                     </div>
-                    <div className="relative ml-2">
-                      <button
+                  </div>
+                  <div className="relative ml-2">
+                    <button
                       onClick={(event) => {
                         event.stopPropagation();
                         setActiveTaskMenu(activeTaskMenu === task.id ? null : task.id);
                       }}
-                        className="p-1 hover:bg-gray-100 rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <MoreVertical size={16} className="text-gray-400" />
-                      </button>
-                      {activeTaskMenu === task.id && (
-                        <div className="absolute right-0 top-6 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-10 min-w-[150px]">
-                          <button
+                      className="p-1 hover:bg-gray-100 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <MoreVertical size={16} className="text-gray-400" />
+                    </button>
+                    {activeTaskMenu === task.id && (
+                      <div className="absolute right-0 top-6 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-10 min-w-[150px]">
+                        <button
                           onClick={(event) => {
                             event?.stopPropagation();
-                              handleDeleteTask(task.id);
-                            }}
-                            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center"
-                          >
-                            <Trash2 size={14} className="mr-2" />
-                            Delete
-                          </button>
-                        </div>
-                      )}
-                    </div>
+                            handleDeleteTask(task.id);
+                          }}
+                          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center"
+                        >
+                          <Trash2 size={14} className="mr-2" />
+                          Delete
+                        </button>
+                      </div>
+                    )}
                   </div>
+                </div>
 
-                  {task.description && (
+                {task.description && (
                   <p className="text-sm text-gray-600 mb-3 line-clamp-2">{task.description}</p>
-                  )}
+                )}
 
-                  <div className="flex items-center justify-between mb-3">
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${statusConfig.color}`}>
-                      {statusConfig.icon}
-                      {statusConfig.label}
-                    </span>
-                    <Flag size={14} className={getPriorityColor(task.priority)} />
-                  </div>
+                <div className="flex items-center justify-between mb-3">
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${statusConfig.color}`}
+                  >
+                    {statusConfig.icon}
+                    {statusConfig.label}
+                  </span>
+                  <Flag size={14} className={getPriorityColor(task.priority)} />
+                </div>
 
-                  <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-100">
+                <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-100">
                   {task.assignees && task.assignees.length > 0 ? (
-                      <div className="flex items-center">
+                    <div className="flex items-center">
                       {task.assignees.slice(0, 1).map((assigneeItem: any) => {
                         const assignee = assigneeItem.user || assigneeItem;
-                        const assigneeIsMe = assignee?.id === user?.id || assigneeItem?.user_id === user?.id;
+                        const assigneeIsMe =
+                          assignee?.id === user?.id || assigneeItem?.user_id === user?.id;
                         return (
-                          <div key={assigneeItem.id || assigneeItem.user_id} className="flex items-center">
+                          <div
+                            key={assigneeItem.id || assigneeItem.user_id}
+                            className="flex items-center"
+                          >
                             <div
                               className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold mr-1.5 ${
                                 assigneeIsMe
@@ -1640,9 +1790,13 @@ function TasksPageContent() {
                             >
                               {assignee?.full_name?.charAt(0) || 'U'}
                             </div>
-                            <span className="truncate max-w-[110px]">{assigneeIsMe ? 'You' : assignee?.full_name || 'Unknown'}</span>
+                            <span className="truncate max-w-[110px]">
+                              {assigneeIsMe ? 'You' : assignee?.full_name || 'Unknown'}
+                            </span>
                             {task.assignees.length > 1 && (
-                              <span className="ml-1 text-gray-400">+{task.assignees.length - 1}</span>
+                              <span className="ml-1 text-gray-400">
+                                +{task.assignees.length - 1}
+                              </span>
                             )}
                           </div>
                         );
@@ -1652,27 +1806,31 @@ function TasksPageContent() {
                     <div className="flex items-center">
                       <div
                         className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold mr-1.5 ${
-                          isMyTask ? 'bg-gradient-to-br from-blue-600 to-blue-400' : 'bg-gradient-to-br from-gray-400 to-gray-300'
+                          isMyTask
+                            ? 'bg-gradient-to-br from-blue-600 to-blue-400'
+                            : 'bg-gradient-to-br from-gray-400 to-gray-300'
                         }`}
                       >
-                          {task.assignee.full_name?.charAt(0) || 'U'}
-                        </div>
-                      <span className="truncate max-w-[110px]">{isMyTask ? 'You' : task.assignee.full_name}</span>
+                        {task.assignee.full_name?.charAt(0) || 'U'}
                       </div>
-                    ) : (
-                      <span className="text-gray-400">Unassigned</span>
-                    )}
-                    
-                    {task.due_date && (
-                      <span className="flex items-center">
-                        <Calendar size={12} className="mr-1" />
-                      {formatDueDate(task.due_date)}
+                      <span className="truncate max-w-[110px]">
+                        {isMyTask ? 'You' : task.assignee.full_name}
                       </span>
-                    )}
-                  </div>
-                </motion.div>
-              );
-            })}
+                    </div>
+                  ) : (
+                    <span className="text-gray-400">Unassigned</span>
+                  )}
+
+                  {task.due_date && (
+                    <span className="flex items-center">
+                      <Calendar size={12} className="mr-1" />
+                      {formatDueDate(task.due_date)}
+                    </span>
+                  )}
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     );
@@ -1709,13 +1867,19 @@ function TasksPageContent() {
         ) : (
           <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border-2 border-dashed border-gray-300 dark:border-gray-600">
             <BarChart3 size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">No contributions to analyze yet</h3>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+              No contributions to analyze yet
+            </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
               {isInstructor
                 ? 'Once students start contributing, you will see their workload distribution here.'
                 : 'Create contributions with your group, then return here to see how work is shared.'}
             </p>
-            <Button variant="primary" onClick={() => setViewMode('focus')} className="flex items-center gap-2 mx-auto">
+            <Button
+              variant="primary"
+              onClick={() => setViewMode('focus')}
+              className="flex items-center gap-2 mx-auto"
+            >
               <ArrowRight size={18} />
               Go back to My Day
             </Button>
@@ -1818,10 +1982,7 @@ function TasksPageContent() {
           {loading ? (
             <div className="space-y-4">
               {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 animate-pulse"
-                >
+                <div key={i} className="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 animate-pulse">
                   <div className="h-5 bg-gray-200 dark:bg-gray-600 rounded w-3/4 mb-2"></div>
                   <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-1/2"></div>
                 </div>
@@ -1829,10 +1990,7 @@ function TasksPageContent() {
             </div>
           ) : pendingEvaluations.length === 0 ? (
             <div className="text-center py-12">
-              <ClipboardCheck
-                size={64}
-                className="mx-auto text-gray-300 dark:text-gray-600 mb-4"
-              />
+              <ClipboardCheck size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
               <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
                 No Pending Evaluations
               </h3>
@@ -1865,7 +2023,8 @@ function TasksPageContent() {
                 Team Evaluations (Instructor View)
               </h2>
               <span className="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-xs font-medium">
-                {instructorEvaluations.length} evaluation{instructorEvaluations.length !== 1 ? 's' : ''}
+                {instructorEvaluations.length} evaluation
+                {instructorEvaluations.length !== 1 ? 's' : ''}
               </span>
             </div>
 
@@ -1895,13 +2054,9 @@ function TasksPageContent() {
                         )}
                       </div>
                       <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-                        <span>
-                          Team: {evaluation.evaluation_period?.team?.name || 'Unknown'}
-                        </span>
+                        <span>Team: {evaluation.evaluation_period?.team?.name || 'Unknown'}</span>
                         {evaluation.evaluation_period?.project?.name && (
-                          <span>
-                            Project: {evaluation.evaluation_period.project.name}
-                          </span>
+                          <span>Project: {evaluation.evaluation_period.project.name}</span>
                         )}
                         <span>
                           Period: {evaluation.evaluation_period?.period_name || 'Unknown'}
@@ -1912,9 +2067,7 @@ function TasksPageContent() {
                       <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
                         {evaluation.overall_score?.toFixed(1) || 'N/A'} / 5.0
                       </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                        Overall
-                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Overall</div>
                     </div>
                   </div>
 
@@ -2035,7 +2188,8 @@ function TasksPageContent() {
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Based on {evaluationResults.totalEvaluations} evaluation{evaluationResults.totalEvaluations !== 1 ? 's' : ''}
+                    Based on {evaluationResults.totalEvaluations} evaluation
+                    {evaluationResults.totalEvaluations !== 1 ? 's' : ''}
                   </p>
                   {evaluationResults.evaluations?.[0]?.evaluation_period?.is_anonymous && (
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -2056,13 +2210,21 @@ function TasksPageContent() {
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 space-y-6 shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Contribution options</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              Contribution options
+            </h3>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Search, filter, and reorder contributions. These controls apply to the board and contribution library views.
+              Search, filter, and reorder contributions. These controls apply to the board and
+              contribution library views.
             </p>
           </div>
           <div className="flex gap-3 flex-wrap">
-            <Button variant="ghost" size="sm" onClick={() => resetFilters()} className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => resetFilters()}
+              className="flex items-center gap-2"
+            >
               <Filter size={16} />
               Reset filters
             </Button>
@@ -2076,7 +2238,9 @@ function TasksPageContent() {
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
               <div className="text-2xl font-bold text-gray-900">{taskCounts.all}</div>
-              <div className="text-xs uppercase tracking-wide text-gray-500 mt-1">Total contributions</div>
+              <div className="text-xs uppercase tracking-wide text-gray-500 mt-1">
+                Total contributions
+              </div>
             </div>
             <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
               <div className="text-2xl font-bold text-qolabb-orange-600">{taskCounts.todo}</div>
@@ -2099,11 +2263,17 @@ function TasksPageContent() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <label htmlFor="task-search" className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+            <label
+              htmlFor="task-search"
+              className="text-xs font-semibold text-gray-700 uppercase tracking-wide"
+            >
               Search contributions
             </label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                size={18}
+              />
               <input
                 id="task-search"
                 type="text"
@@ -2114,11 +2284,16 @@ function TasksPageContent() {
               />
             </div>
             <p className="text-xs text-gray-500">
-              Tip: Press <kbd className="px-1 py-0.5 bg-gray-100 border border-gray-300 rounded">⌘</kbd> + <kbd className="px-1 py-0.5 bg-gray-100 border border-gray-300 rounded">K</kbd> to jump here.
+              Tip: Press{' '}
+              <kbd className="px-1 py-0.5 bg-gray-100 border border-gray-300 rounded">⌘</kbd> +{' '}
+              <kbd className="px-1 py-0.5 bg-gray-100 border border-gray-300 rounded">K</kbd> to
+              jump here.
             </p>
           </div>
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Filter by assignment</label>
+            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+              Filter by assignment
+            </label>
             <select
               value={selectedProject}
               onChange={(event) => setSelectedProject(event.target.value)}
@@ -2138,7 +2313,9 @@ function TasksPageContent() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h4 className="text-sm font-semibold text-gray-900">Filter by status</h4>
-              <p className="text-xs text-gray-500">Quickly switch between personal and shared work.</p>
+              <p className="text-xs text-gray-500">
+                Quickly switch between personal and shared work.
+              </p>
             </div>
             <Button variant="ghost" size="sm" onClick={() => setShowFilters(!showFilters)}>
               {showFilters ? 'Hide extra filters' : 'More filters'}
@@ -2146,30 +2323,30 @@ function TasksPageContent() {
           </div>
           <div className="flex items-center gap-2 overflow-x-auto">
             {(['all', 'my_tasks', 'todo', 'in_progress', 'completed'] as FilterType[])
-              .filter(status => !isInstructor || status !== 'my_tasks')
+              .filter((status) => !isInstructor || status !== 'my_tasks')
               .map((status) => {
-              const labels: Record<FilterType, string> = {
-                all: 'All contributions',
-                my_tasks: 'Assigned to me',
-                todo: 'To Start',
-                in_progress: 'Doing',
-                completed: 'Done',
-              };
-              return (
-                <button
-                  key={status}
-                  onClick={() => setStatusFilter(status)}
-                  className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors ${
-                    statusFilter === status
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {labels[status]}
-                  <span className="ml-2 opacity-75">({taskCounts[status]})</span>
-                </button>
-              );
-            })}
+                const labels: Record<FilterType, string> = {
+                  all: 'All contributions',
+                  my_tasks: 'Assigned to me',
+                  todo: 'To Start',
+                  in_progress: 'Doing',
+                  completed: 'Done',
+                };
+                return (
+                  <button
+                    key={status}
+                    onClick={() => setStatusFilter(status)}
+                    className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors ${
+                      statusFilter === status
+                        ? 'bg-blue-600 text-white shadow-sm'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {labels[status]}
+                    <span className="ml-2 opacity-75">({taskCounts[status]})</span>
+                  </button>
+                );
+              })}
           </div>
           <AnimatePresence initial={false}>
             {showFilters && (
@@ -2180,7 +2357,9 @@ function TasksPageContent() {
                 className="grid grid-cols-1 md:grid-cols-2 gap-4"
               >
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Priority</label>
+                  <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                    Priority
+                  </label>
                   <select
                     value={priorityFilter}
                     onChange={(event) => setPriorityFilter(event.target.value as any)}
@@ -2193,7 +2372,9 @@ function TasksPageContent() {
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Assignee</label>
+                  <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                    Assignee
+                  </label>
                   <select
                     value={assigneeFilter}
                     onChange={(event) => setAssigneeFilter(event.target.value as any)}
@@ -2205,7 +2386,9 @@ function TasksPageContent() {
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Sort by</label>
+                  <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                    Sort by
+                  </label>
                   <select
                     value={sortBy}
                     onChange={(event) => setSortBy(event.target.value as any)}
@@ -2218,7 +2401,9 @@ function TasksPageContent() {
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Sort order</label>
+                  <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                    Sort order
+                  </label>
                   <select
                     value={sortOrder}
                     onChange={(event) => setSortOrder(event.target.value as any)}
@@ -2292,16 +2477,22 @@ function TasksPageContent() {
                   <div className="flex items-start gap-3">
                     <span
                       className={`p-2 rounded-lg ${
-                        isActive ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+                        isActive
+                          ? 'bg-white/20 text-white'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
                       }`}
                     >
                       <Icon size={18} />
                     </span>
                     <div className="space-y-1 min-w-0">
-                      <span className={`block text-sm font-semibold truncate ${isActive ? 'text-white' : 'text-gray-800 dark:text-gray-200'}`}>
+                      <span
+                        className={`block text-sm font-semibold truncate ${isActive ? 'text-white' : 'text-gray-800 dark:text-gray-200'}`}
+                      >
                         {tab.label}
                       </span>
-                      <span className={`text-xs ${isActive ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'} hidden sm:block truncate`}>
+                      <span
+                        className={`text-xs ${isActive ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'} hidden sm:block truncate`}
+                      >
                         {tab.description}
                       </span>
                     </div>
@@ -2317,7 +2508,10 @@ function TasksPageContent() {
           <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-sm">
             <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
               <Lightbulb size={16} className="text-blue-500 flex-shrink-0" />
-              <span>Need to search, filter, or reorder contributions? Turn on contribution options to reveal those controls.</span>
+              <span>
+                Need to search, filter, or reorder contributions? Turn on contribution options to
+                reveal those controls.
+              </span>
             </div>
             <Button
               variant="ghost"
@@ -2341,25 +2535,25 @@ function TasksPageContent() {
         </AnimatePresence>
       </div>
 
-        {selectedTaskProject && (
-          <TaskModal
-            isOpen={showTaskModal}
-            onClose={() => setShowTaskModal(false)}
-            projectId={selectedTaskProject.id}
-            teamId={selectedTaskProject.team_id}
-            onTaskCreated={handleTaskUpdated}
-          />
-        )}
-
-        <TaskDetailModal
-          task={selectedTask}
-          isOpen={showTaskDetail}
-          onClose={closeTaskDetail}
-          onTaskUpdated={handleTaskUpdated}
-          onTaskDeleted={handleTaskDeleted}
-          canManage={canManageTasks}
-          simplified={true}
+      {selectedTaskProject && (
+        <TaskModal
+          isOpen={showTaskModal}
+          onClose={() => setShowTaskModal(false)}
+          projectId={selectedTaskProject.id}
+          teamId={selectedTaskProject.team_id}
+          onTaskCreated={handleTaskUpdated}
         />
+      )}
+
+      <TaskDetailModal
+        task={selectedTask}
+        isOpen={showTaskDetail}
+        onClose={closeTaskDetail}
+        onTaskUpdated={handleTaskUpdated}
+        onTaskDeleted={handleTaskDeleted}
+        canManage={canManageTasks}
+        simplified={true}
+      />
 
       {taskForContribution && user && (
         <ContributionLogModal
@@ -2422,25 +2616,28 @@ function TasksPageContent() {
       )}
 
       {/* Create Evaluation Period Modal */}
-      {showCreatePeriodModal && currentWorkspace && userTeams.length > 0 && userTeams[0]?.team?.id && (
-        <CreateEvaluationPeriodModal
-          teamId={userTeams[0].team.id}
-          workspaceId={currentWorkspace.id}
-          onSuccess={() => {
-            loadData();
-            setShowCreatePeriodModal(false);
-          }}
-          onClose={() => setShowCreatePeriodModal(false)}
-        />
-      )}
+      {showCreatePeriodModal &&
+        currentWorkspace &&
+        userTeams.length > 0 &&
+        userTeams[0]?.team?.id && (
+          <CreateEvaluationPeriodModal
+            teamId={userTeams[0].team.id}
+            workspaceId={currentWorkspace.id}
+            onSuccess={() => {
+              loadData();
+              setShowCreatePeriodModal(false);
+            }}
+            onClose={() => setShowCreatePeriodModal(false)}
+          />
+        )}
     </DashboardLayout>
   );
 }
 
 export default function TasksPage() {
   return (
-    <FeatureGuard 
-      feature="TASKS" 
+    <FeatureGuard
+      feature="TASKS"
       featureName="Contribution Tracking"
       description="Contribution tracking is not available in the MVP. Focus on logging your contributions instead."
     >

@@ -20,15 +20,13 @@ export const ComingSoon: React.FC = () => {
         >
           <Clock size={80} className="text-blue-600" />
         </motion.div>
-        
-        <h1 className="text-5xl md:text-6xl font-bold mb-4 text-gray-900">
-          Coming Soon
-        </h1>
-        
+
+        <h1 className="text-5xl md:text-6xl font-bold mb-4 text-gray-900">Coming Soon</h1>
+
         <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-2xl mx-auto">
           We're working hard to bring you this feature. Stay tuned for updates!
         </p>
-        
+
         <div className="flex gap-2 justify-center">
           {[0, 1, 2].map((i) => (
             <motion.div

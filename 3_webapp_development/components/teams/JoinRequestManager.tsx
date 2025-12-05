@@ -1,124 +1,127 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Clock, 
-  Check, 
-  X, 
-  Users, 
-  UserPlus, 
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Clock,
+  Check,
+  X,
+  Users,
+  UserPlus,
   AlertCircle,
   Loader2,
   MessageSquare,
-  Calendar
-} from 'lucide-react'
-import { Button } from '@/components/Button'
-import Avatar from '@/components/ui/Avatar'
-import { useAuth } from '@/lib/auth/AuthContext'
-import { useWorkspace } from '@/lib/workspace/WorkspaceContext'
-import { 
-  getTeamJoinRequests, 
+  Calendar,
+} from 'lucide-react';
+import { Button } from '@/components/Button';
+import Avatar from '@/components/ui/Avatar';
+import { useAuth } from '@/lib/auth/AuthContext';
+import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
+import {
+  getTeamJoinRequests,
   getWorkspaceJoinRequests,
   respondToJoinRequest,
-  isTeamLeaderOrInstructor
-} from '@/lib/db/queries'
-import { TeamJoinRequestWithDetails } from '@/lib/types/database'
-import { toast } from 'react-hot-toast'
+  isTeamLeaderOrInstructor,
+} from '@/lib/db/queries';
+import { TeamJoinRequestWithDetails } from '@/lib/types/database';
+import { toast } from 'react-hot-toast';
 
 interface JoinRequestManagerProps {
-  teamId?: string // If provided, show requests for specific team
-  onRequestProcessed?: () => void
+  teamId?: string; // If provided, show requests for specific team
+  onRequestProcessed?: () => void;
 }
 
-export default function JoinRequestManager({ teamId, onRequestProcessed }: JoinRequestManagerProps) {
-  const { user } = useAuth()
-  const { currentWorkspace } = useWorkspace()
-  const [requests, setRequests] = useState<TeamJoinRequestWithDetails[]>([])
-  const [loading, setLoading] = useState(true)
-  const [processingRequest, setProcessingRequest] = useState<string | null>(null)
-  const [canManageRequests, setCanManageRequests] = useState(false)
+export default function JoinRequestManager({
+  teamId,
+  onRequestProcessed,
+}: JoinRequestManagerProps) {
+  const { user } = useAuth();
+  const { currentWorkspace } = useWorkspace();
+  const [requests, setRequests] = useState<TeamJoinRequestWithDetails[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [processingRequest, setProcessingRequest] = useState<string | null>(null);
+  const [canManageRequests, setCanManageRequests] = useState(false);
 
   useEffect(() => {
     if (currentWorkspace?.id && user?.id) {
-      loadJoinRequests()
-      checkPermissions()
+      loadJoinRequests();
+      checkPermissions();
     }
-  }, [currentWorkspace?.id, user?.id, teamId])
+  }, [currentWorkspace?.id, user?.id, teamId]);
 
   const loadJoinRequests = async () => {
-    if (!currentWorkspace?.id) return
-    
+    if (!currentWorkspace?.id) return;
+
     try {
-      setLoading(true)
-      let joinRequests: TeamJoinRequestWithDetails[] = []
-      
+      setLoading(true);
+      let joinRequests: TeamJoinRequestWithDetails[] = [];
+
       if (teamId) {
         // Load requests for specific team
-        joinRequests = await getTeamJoinRequests(teamId)
+        joinRequests = await getTeamJoinRequests(teamId);
       } else {
         // Load all requests for workspace
-        joinRequests = await getWorkspaceJoinRequests(currentWorkspace.id)
+        joinRequests = await getWorkspaceJoinRequests(currentWorkspace.id);
       }
-      
-      setRequests(joinRequests || [])
+
+      setRequests(joinRequests || []);
     } catch (error) {
-      console.error('Error loading join requests:', error)
-      toast.error('Failed to load join requests')
+      console.error('Error loading join requests:', error);
+      toast.error('Failed to load join requests');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const checkPermissions = async () => {
-    if (!user?.id || !currentWorkspace?.id) return
-    
+    if (!user?.id || !currentWorkspace?.id) return;
+
     try {
       if (teamId) {
         // Check if user can manage this specific team
-        const canManage = await isTeamLeaderOrInstructor(user.id, teamId, currentWorkspace.id)
-        setCanManageRequests(canManage)
+        const canManage = await isTeamLeaderOrInstructor(user.id, teamId, currentWorkspace.id);
+        setCanManageRequests(canManage);
       } else {
         // For workspace-wide view, check if user is workspace owner/admin
         // This would need to be implemented based on workspace permissions
-        setCanManageRequests(true) // Placeholder - implement proper permission check
+        setCanManageRequests(true); // Placeholder - implement proper permission check
       }
     } catch (error) {
-      console.error('Error checking permissions:', error)
-      setCanManageRequests(false)
+      console.error('Error checking permissions:', error);
+      setCanManageRequests(false);
     }
-  }
+  };
 
   const handleRequestResponse = async (
-    requestId: string, 
+    requestId: string,
     action: 'approved' | 'rejected',
     userName: string,
     teamName: string
   ) => {
-    if (!user?.id) return
-    
+    if (!user?.id) return;
+
     try {
-      setProcessingRequest(requestId)
-      await respondToJoinRequest(requestId, action, user.id)
-      
-      const actionText = action === 'approved' ? 'approved' : 'rejected'
-      toast.success(`${userName}'s request to join ${teamName} has been ${actionText}`)
-      
+      setProcessingRequest(requestId);
+      await respondToJoinRequest(requestId, action, user.id);
+
+      const actionText = action === 'approved' ? 'approved' : 'rejected';
+      toast.success(`${userName}'s request to join ${teamName} has been ${actionText}`);
+
       // Remove the processed request from the list
-      setRequests(prev => prev.filter(req => req.id !== requestId))
-      
+      setRequests((prev) => prev.filter((req) => req.id !== requestId));
+
       if (onRequestProcessed) {
-        onRequestProcessed()
+        onRequestProcessed();
       }
     } catch (error) {
-      console.error(`Error ${action} join request:`, error)
-      toast.error(`Failed to ${action} join request`)
+      console.error(`Error ${action} join request:`, error);
+      toast.error(`Failed to ${action} join request`);
     } finally {
-      setProcessingRequest(null)
+      setProcessingRequest(null);
     }
-  }
+  };
 
-  const pendingRequests = requests.filter(req => req.status === 'pending')
+  const pendingRequests = requests.filter((req) => req.status === 'pending');
 
   if (!currentWorkspace) {
     return (
@@ -126,10 +129,12 @@ export default function JoinRequestManager({ teamId, onRequestProcessed }: JoinR
         <div className="text-center">
           <Users size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">No Class Selected</h2>
-          <p className="text-gray-600 dark:text-gray-400">Select a workspace to manage join requests</p>
+          <p className="text-gray-600 dark:text-gray-400">
+            Select a workspace to manage join requests
+          </p>
         </div>
       </div>
-    )
+    );
   }
 
   if (!canManageRequests) {
@@ -137,9 +142,11 @@ export default function JoinRequestManager({ teamId, onRequestProcessed }: JoinR
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 p-8 text-center">
         <AlertCircle size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
         <h3 className="text-lg font-semibold text-gray-900 mb-2">Access Denied</h3>
-        <p className="text-gray-600 dark:text-gray-400">You don't have permission to manage join requests</p>
+        <p className="text-gray-600 dark:text-gray-400">
+          You don't have permission to manage join requests
+        </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -149,7 +156,9 @@ export default function JoinRequestManager({ teamId, onRequestProcessed }: JoinR
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Join Requests</h2>
           <p className="text-gray-600 mt-1">
-            {teamId ? 'Manage requests for this group' : `Manage requests in ${currentWorkspace.name}`}
+            {teamId
+              ? 'Manage requests for this group'
+              : `Manage requests in ${currentWorkspace.name}`}
           </p>
         </div>
         {pendingRequests.length > 0 && (
@@ -164,7 +173,10 @@ export default function JoinRequestManager({ teamId, onRequestProcessed }: JoinR
       {loading ? (
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 animate-pulse">
+            <div
+              key={i}
+              className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 animate-pulse"
+            >
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
                 <div className="flex-1">
@@ -188,10 +200,9 @@ export default function JoinRequestManager({ teamId, onRequestProcessed }: JoinR
           <UserPlus size={64} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
           <h3 className="text-xl font-semibold text-gray-900 mb-2">No Pending Requests</h3>
           <p className="text-gray-600 dark:text-gray-400">
-            {teamId 
+            {teamId
               ? 'There are no pending join requests for this group'
-              : 'There are no pending join requests in this class'
-            }
+              : 'There are no pending join requests in this class'}
           </p>
         </motion.div>
       ) : (
@@ -200,32 +211,36 @@ export default function JoinRequestManager({ teamId, onRequestProcessed }: JoinR
             <RequestCard
               key={request.id}
               request={request}
-              onApprove={() => handleRequestResponse(
-                request.id, 
-                'approved', 
-                request.user.full_name,
-                request.team.name
-              )}
-              onReject={() => handleRequestResponse(
-                request.id, 
-                'rejected', 
-                request.user.full_name,
-                request.team.name
-              )}
+              onApprove={() =>
+                handleRequestResponse(
+                  request.id,
+                  'approved',
+                  request.user.full_name,
+                  request.team.name
+                )
+              }
+              onReject={() =>
+                handleRequestResponse(
+                  request.id,
+                  'rejected',
+                  request.user.full_name,
+                  request.team.name
+                )
+              }
               isProcessing={processingRequest === request.id}
             />
           ))}
         </div>
       )}
     </div>
-  )
+  );
 }
 
 interface RequestCardProps {
-  request: TeamJoinRequestWithDetails
-  onApprove: () => void
-  onReject: () => void
-  isProcessing: boolean
+  request: TeamJoinRequestWithDetails;
+  onApprove: () => void;
+  onReject: () => void;
+  isProcessing: boolean;
 }
 
 function RequestCard({ request, onApprove, onReject, isProcessing }: RequestCardProps) {
@@ -234,20 +249,20 @@ function RequestCard({ request, onApprove, onReject, isProcessing }: RequestCard
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
+      minute: '2-digit',
+    });
+  };
 
   const getRequestTypeText = () => {
     switch (request.request_type) {
       case 'self_request':
-        return 'Self-requested to join'
+        return 'Self-requested to join';
       case 'owner_invitation':
-        return 'Invited by owner'
+        return 'Invited by owner';
       default:
-        return 'Requested to join'
+        return 'Requested to join';
     }
-  }
+  };
 
   return (
     <motion.div
@@ -270,9 +285,7 @@ function RequestCard({ request, onApprove, onReject, isProcessing }: RequestCard
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between mb-2">
             <div>
-              <h3 className="font-semibold text-gray-900 text-lg">
-                {request.user.full_name}
-              </h3>
+              <h3 className="font-semibold text-gray-900 text-lg">{request.user.full_name}</h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 {getRequestTypeText()} <span className="font-medium">{request.team.name}</span>
               </p>
@@ -299,7 +312,7 @@ function RequestCard({ request, onApprove, onReject, isProcessing }: RequestCard
 
           {/* Team Info */}
           <div className="flex items-center gap-3 mb-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-            <div 
+            <div
               className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
               style={{ backgroundColor: request.team.avatar_color }}
             >
@@ -343,5 +356,5 @@ function RequestCard({ request, onApprove, onReject, isProcessing }: RequestCard
         </div>
       </div>
     </motion.div>
-  )
+  );
 }

@@ -60,9 +60,7 @@ export function TaskTimeTracker({
     if (isTracking && startTimeRef.current) {
       intervalRef.current = setInterval(() => {
         if (startTimeRef.current) {
-          const elapsed = Math.floor(
-            (Date.now() - startTimeRef.current.getTime()) / 1000
-          );
+          const elapsed = Math.floor((Date.now() - startTimeRef.current.getTime()) / 1000);
           setElapsedSeconds(elapsed);
         }
       }, 1000);
@@ -91,12 +89,9 @@ export function TaskTimeTracker({
 
       if (error) throw error;
 
-      const total = (contributions || []).reduce(
-        (sum, c) => sum + (c.hours_spent || 0),
-        0
-      );
+      const total = (contributions || []).reduce((sum, c) => sum + (c.hours_spent || 0), 0);
       setTotalHours(total);
-      
+
       // Update time entries for display
       setTimeEntries(
         (contributions || []).map((c) => ({
@@ -200,13 +195,9 @@ export function TaskTimeTracker({
             <p className="text-xs font-medium text-blue-700 uppercase tracking-wide mb-1">
               Total Time Spent
             </p>
-            <p className="text-2xl font-bold text-blue-900">
-              {displayHours.toFixed(2)}h
-            </p>
+            <p className="text-2xl font-bold text-blue-900">{displayHours.toFixed(2)}h</p>
             {isTracking && (
-              <p className="text-xs text-blue-600 mt-1">
-                Tracking: {formatTime(elapsedSeconds)}
-              </p>
+              <p className="text-xs text-blue-600 mt-1">Tracking: {formatTime(elapsedSeconds)}</p>
             )}
           </div>
           {isTracking ? (
@@ -300,11 +291,7 @@ export function TaskTimeTracker({
             <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
               <div
                 className={`h-2 rounded-full transition-all ${
-                  isOverEstimate
-                    ? 'bg-red-500'
-                    : isUnderEstimate
-                    ? 'bg-blue-500'
-                    : 'bg-green-500'
+                  isOverEstimate ? 'bg-red-500' : isUnderEstimate ? 'bg-blue-500' : 'bg-green-500'
                 }`}
                 style={{ width: `${Math.min(100, percentComplete)}%` }}
               />
@@ -312,9 +299,7 @@ export function TaskTimeTracker({
 
             {/* Comparison */}
             <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-600">
-                {percentComplete.toFixed(0)}% of estimate
-              </span>
+              <span className="text-gray-600">{percentComplete.toFixed(0)}% of estimate</span>
               <div className="flex items-center space-x-1">
                 {isOverEstimate && (
                   <>
@@ -345,15 +330,11 @@ export function TaskTimeTracker({
             <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-200">
               <div>
                 <p className="text-xs text-gray-500">Actual</p>
-                <p className="text-sm font-semibold text-gray-900">
-                  {displayHours.toFixed(2)}h
-                </p>
+                <p className="text-sm font-semibold text-gray-900">{displayHours.toFixed(2)}h</p>
               </div>
               <div>
                 <p className="text-xs text-gray-500">Estimated</p>
-                <p className="text-sm font-semibold text-gray-900">
-                  {estimated.toFixed(2)}h
-                </p>
+                <p className="text-sm font-semibold text-gray-900">{estimated.toFixed(2)}h</p>
               </div>
             </div>
           </div>
@@ -362,9 +343,7 @@ export function TaskTimeTracker({
 
       {/* Manual Time Entry */}
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-        <p className="text-xs font-medium text-gray-700 mb-2">
-          Manual Time Entry
-        </p>
+        <p className="text-xs font-medium text-gray-700 mb-2">Manual Time Entry</p>
         <div className="flex items-center space-x-2">
           <input
             type="number"
@@ -398,12 +377,8 @@ export function TaskTimeTracker({
       {/* Time Entries Summary */}
       {totalHours > 0 && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-          <p className="text-xs text-green-700 mb-1 font-medium">
-            ✓ Total Time Logged
-          </p>
-          <p className="text-sm font-semibold text-green-900">
-            {totalHours.toFixed(2)} hours
-          </p>
+          <p className="text-xs text-green-700 mb-1 font-medium">✓ Total Time Logged</p>
+          <p className="text-sm font-semibold text-green-900">{totalHours.toFixed(2)} hours</p>
         </div>
       )}
     </div>

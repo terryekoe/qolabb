@@ -4,7 +4,12 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/Button';
 import { FileText, Link2, Check, X, Loader2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/AuthContext';
-import { getIntegrationByPlatform, linkDocument, getLinkedDocuments, unlinkDocument } from '@/lib/db/integrationQueries';
+import {
+  getIntegrationByPlatform,
+  linkDocument,
+  getLinkedDocuments,
+  unlinkDocument,
+} from '@/lib/db/integrationQueries';
 import { listUserDocuments } from '@/lib/services/google/docs';
 import { toast } from 'react-hot-toast';
 import type { ExternalIntegration, LinkedDocument } from '@/lib/db/integrationQueries';
@@ -18,7 +23,9 @@ export function GoogleDocsConnect({ projectId, workspaceId }: GoogleDocsConnectP
   const { user } = useAuth();
   const [integration, setIntegration] = useState<ExternalIntegration | null>(null);
   const [linkedDocs, setLinkedDocs] = useState<LinkedDocument[]>([]);
-  const [availableDocs, setAvailableDocs] = useState<Array<{ id: string; name: string; modifiedTime: string; webViewLink: string }>>([]);
+  const [availableDocs, setAvailableDocs] = useState<
+    Array<{ id: string; name: string; modifiedTime: string; webViewLink: string }>
+  >([]);
   const [loading, setLoading] = useState(true);
   const [connecting, setConnecting] = useState(false);
   const [syncing, setSyncing] = useState(false);
@@ -34,7 +41,7 @@ export function GoogleDocsConnect({ projectId, workspaceId }: GoogleDocsConnectP
 
     try {
       setLoading(true);
-      
+
       // Check for existing integration
       const existingIntegration = await getIntegrationByPlatform(
         user.id,
@@ -138,11 +145,7 @@ export function GoogleDocsConnect({ projectId, workspaceId }: GoogleDocsConnectP
           </div>
         </div>
 
-        <Button
-          variant="primary"
-          onClick={handleConnect}
-          className="w-full"
-        >
+        <Button variant="primary" onClick={handleConnect} className="w-full">
           <FileText className="w-4 h-4 mr-2" />
           Connect Google Account
         </Button>
@@ -170,11 +173,7 @@ export function GoogleDocsConnect({ projectId, workspaceId }: GoogleDocsConnectP
               </p>
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => window.location.reload()}
-          >
+          <Button variant="ghost" size="sm" onClick={() => window.location.reload()}>
             Disconnect
           </Button>
         </div>
@@ -199,17 +198,14 @@ export function GoogleDocsConnect({ projectId, workspaceId }: GoogleDocsConnectP
                       {doc.document_name}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Last synced: {doc.last_synced_at 
+                      Last synced:{' '}
+                      {doc.last_synced_at
                         ? new Date(doc.last_synced_at).toLocaleDateString()
                         : 'Never'}
                     </p>
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleUnlinkDocument(doc.id)}
-                >
+                <Button variant="ghost" size="sm" onClick={() => handleUnlinkDocument(doc.id)}>
                   <X className="w-4 h-4" />
                 </Button>
               </div>

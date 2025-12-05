@@ -18,7 +18,12 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/Button';
 import Avatar from '@/components/ui/Avatar';
-import { getTaskAttachments, uploadTaskAttachment, addTaskAttachmentLink, deleteTaskAttachment } from '@/lib/db/queries';
+import {
+  getTaskAttachments,
+  uploadTaskAttachment,
+  addTaskAttachmentLink,
+  deleteTaskAttachment,
+} from '@/lib/db/queries';
 import { supabase } from '@/lib/supabase';
 import { TaskAttachment } from '@/lib/types/database';
 import { cn } from '@/lib/utils';
@@ -179,7 +184,12 @@ export function TaskAttachments({ taskId, userId, canManage }: TaskAttachmentsPr
 
     try {
       console.log('Adding link:', { taskId, userId, url: linkUrl.trim(), name: linkName.trim() });
-      const result = await addTaskAttachmentLink(taskId, userId, linkUrl.trim(), linkName.trim() || undefined);
+      const result = await addTaskAttachmentLink(
+        taskId,
+        userId,
+        linkUrl.trim(),
+        linkName.trim() || undefined
+      );
       console.log('Link added successfully:', result);
       setLinkUrl('');
       setLinkName('');
@@ -320,10 +330,7 @@ export function TaskAttachments({ taskId, userId, canManage }: TaskAttachmentsPr
         <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start space-x-2">
           <AlertCircle size={16} className="text-red-600 flex-shrink-0 mt-0.5" />
           <p className="text-sm text-red-800">{error}</p>
-          <button
-            onClick={() => setError('')}
-            className="ml-auto text-red-600 hover:text-red-800"
-          >
+          <button onClick={() => setError('')} className="ml-auto text-red-600 hover:text-red-800">
             <X size={16} />
           </button>
         </div>
@@ -379,7 +386,9 @@ export function TaskAttachments({ taskId, userId, canManage }: TaskAttachmentsPr
               <div className="space-y-4">
                 <div className="text-center">
                   <LinkIcon size={28} className="mx-auto text-blue-600 mb-2" />
-                  <p className="text-base font-semibold text-gray-900 mb-1">Add a link to external file</p>
+                  <p className="text-base font-semibold text-gray-900 mb-1">
+                    Add a link to external file
+                  </p>
                   <p className="text-xs text-gray-600 mb-2">
                     Supports Google Drive, Dropbox, OneDrive, and other cloud storage links
                   </p>
@@ -457,8 +466,13 @@ export function TaskAttachments({ taskId, userId, canManage }: TaskAttachmentsPr
         <div className="space-y-2">
           <AnimatePresence>
             {attachments.map((attachment) => {
-              const FileIcon = attachment.external_url ? ExternalLink : getFileIcon(attachment.file_type);
-              const isImage = attachment.file_type?.startsWith('image/') && !attachment.external_url && attachment.file_path;
+              const FileIcon = attachment.external_url
+                ? ExternalLink
+                : getFileIcon(attachment.file_type);
+              const isImage =
+                attachment.file_type?.startsWith('image/') &&
+                !attachment.external_url &&
+                attachment.file_path;
               const isExternalLink = !!attachment.external_url;
 
               return (
@@ -477,11 +491,16 @@ export function TaskAttachments({ taskId, userId, canManage }: TaskAttachmentsPr
                         className="w-12 h-12 object-cover rounded"
                       />
                     ) : (
-                      <div className={cn(
-                        "w-12 h-12 rounded flex items-center justify-center",
-                        isExternalLink ? "bg-blue-100" : "bg-gray-100"
-                      )}>
-                        <FileIcon size={20} className={isExternalLink ? "text-blue-600" : "text-gray-500"} />
+                      <div
+                        className={cn(
+                          'w-12 h-12 rounded flex items-center justify-center',
+                          isExternalLink ? 'bg-blue-100' : 'bg-gray-100'
+                        )}
+                      >
+                        <FileIcon
+                          size={20}
+                          className={isExternalLink ? 'text-blue-600' : 'text-gray-500'}
+                        />
                       </div>
                     )}
                   </div>

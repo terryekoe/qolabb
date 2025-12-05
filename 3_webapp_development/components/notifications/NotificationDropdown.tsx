@@ -2,14 +2,7 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Bell,
-  Check,
-  X,
-  Trash2,
-  Settings,
-  ExternalLink,
-} from 'lucide-react';
+import { Bell, Check, X, Trash2, Settings, ExternalLink } from 'lucide-react';
 import { Notification } from '@/lib/db/queries';
 import { cn } from '@/lib/utils';
 // Format date helper function
@@ -58,7 +51,7 @@ export function NotificationDropdown({
         // Check if we're on the settings page (has sticky nav bar at top-16)
         const settingsNavBar = document.querySelector('.sticky.top-16');
         let topOffset = 8;
-        
+
         if (settingsNavBar) {
           const navRect = settingsNavBar.getBoundingClientRect();
           // If nav bar exists and is below the header, position dropdown below it
@@ -70,7 +63,7 @@ export function NotificationDropdown({
         } else {
           topOffset = rect.bottom - rect.top + 8;
         }
-        
+
         setDropdownPosition({
           top: rect.top + topOffset,
           right: window.innerWidth - rect.right,
@@ -158,7 +151,7 @@ export function NotificationDropdown({
     if (!notification.read && onMarkAsRead) {
       onMarkAsRead(notification.id);
     }
-    
+
     // Navigate based on notification type
     if (notification.type === 'task_assignment' && notification.data?.task_id) {
       // Navigate to tasks page - the user can find their assigned task there
@@ -168,7 +161,7 @@ export function NotificationDropdown({
     } else if (notification.data?.project_id) {
       router.push('/projects');
     }
-    
+
     onClose();
   };
 
@@ -185,7 +178,7 @@ export function NotificationDropdown({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -10, scale: 0.95 }}
       className="fixed w-[calc(100vw-2rem)] sm:w-96 max-w-md bg-white rounded-xl shadow-2xl border border-gray-200 z-[9999] overflow-hidden"
-      style={{ 
+      style={{
         maxHeight: '80vh',
         top: `${dropdownPosition.top}px`,
         right: `${dropdownPosition.right}px`,
@@ -220,7 +213,7 @@ export function NotificationDropdown({
             </button>
           </div>
         </div>
-        
+
         {unreadCount > 0 && (
           <button
             onClick={handleMarkAllAsRead}
@@ -231,7 +224,7 @@ export function NotificationDropdown({
           </button>
         )}
       </div>
-      
+
       {/* Notifications List */}
       <div className="max-h-[500px] overflow-y-auto">
         <AnimatePresence>
@@ -243,9 +236,7 @@ export function NotificationDropdown({
             >
               <Bell size={48} className="mx-auto text-gray-300 mb-3" />
               <p className="text-gray-500 font-medium">No notifications</p>
-              <p className="text-sm text-gray-400 mt-1">
-                You're all caught up!
-              </p>
+              <p className="text-sm text-gray-400 mt-1">You're all caught up!</p>
             </motion.div>
           ) : (
             notifications.map((notification, index) => (
@@ -263,38 +254,40 @@ export function NotificationDropdown({
               >
                 <div className="flex items-start space-x-3">
                   {/* Icon */}
-                  <div className={cn(
-                    'flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center text-lg',
-                    getNotificationColor(notification.type)
-                  )}>
+                  <div
+                    className={cn(
+                      'flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center text-lg',
+                      getNotificationColor(notification.type)
+                    )}
+                  >
                     {getNotificationIcon(notification.type)}
                   </div>
-                  
+
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <h4 className={cn(
-                          'text-sm font-semibold text-gray-900 mb-1',
-                          !notification.read && 'font-bold'
-                        )}>
+                        <h4
+                          className={cn(
+                            'text-sm font-semibold text-gray-900 mb-1',
+                            !notification.read && 'font-bold'
+                          )}
+                        >
                           {notification.title}
                         </h4>
-                        <p className="text-sm text-gray-600 line-clamp-2">
-                          {notification.message}
-                        </p>
+                        <p className="text-sm text-gray-600 line-clamp-2">{notification.message}</p>
                         <p className="text-xs text-gray-500 mt-2">
                           {formatDistanceToNow(new Date(notification.created_at))}
                         </p>
                       </div>
-                      
+
                       {/* Unread indicator */}
                       {!notification.read && (
                         <div className="flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full mt-2" />
                       )}
                     </div>
                   </div>
-                  
+
                   {/* Actions */}
                   <div className="flex-shrink-0 flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     {!notification.read && onMarkAsRead && (
@@ -328,7 +321,7 @@ export function NotificationDropdown({
           )}
         </AnimatePresence>
       </div>
-      
+
       {/* Footer */}
       {notifications.length > 0 && (
         <div className="p-3 border-t border-gray-200 bg-gray-50">

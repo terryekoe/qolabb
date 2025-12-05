@@ -2,15 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  CheckCircle2,
-  X,
-  Bell,
-  Trophy,
-  Sparkles,
-  Star,
-  Zap,
-} from 'lucide-react';
+import { CheckCircle2, X, Bell, Trophy, Sparkles, Star, Zap } from 'lucide-react';
 import { Notification } from '@/lib/db/queries';
 import { cn } from '@/lib/utils';
 
@@ -40,7 +32,7 @@ export function InAppNotification({
     // Progress bar animation
     const progressTimer = setInterval(() => {
       setProgress((prev) => {
-        const newProgress = prev - (100 / (duration / 100));
+        const newProgress = prev - 100 / (duration / 100);
         return Math.max(0, newProgress);
       });
     }, 100);
@@ -126,35 +118,34 @@ export function InAppNotification({
 
   const config = getNotificationConfig();
   const Icon = config.icon;
-  const isAchievement = ['task_completed', 'project_completed', 'milestone_achieved'].includes(notification.type);
+  const isAchievement = ['task_completed', 'project_completed', 'milestone_achieved'].includes(
+    notification.type
+  );
 
   return (
     <AnimatePresence>
       {isVisible && (
         <motion.div
           initial={{ opacity: 0, y: -50, scale: 0.8, rotateX: -15 }}
-          animate={{ 
-            opacity: 1, 
-            y: 0, 
-            scale: 1, 
+          animate={{
+            opacity: 1,
+            y: 0,
+            scale: 1,
             rotateX: 0,
             transition: {
               type: 'spring',
               stiffness: 300,
               damping: 25,
-            }
+            },
           }}
-          exit={{ 
-            opacity: 0, 
-            y: -20, 
+          exit={{
+            opacity: 0,
+            y: -20,
             scale: 0.9,
-            transition: { duration: 0.2 }
+            transition: { duration: 0.2 },
           }}
           onClick={handleClick}
-          className={cn(
-            'relative cursor-pointer overflow-hidden',
-            'transform-gpu'
-          )}
+          className={cn('relative cursor-pointer overflow-hidden', 'transform-gpu')}
           style={{ perspective: '1000px' }}
         >
           {/* Main notification card */}
@@ -170,7 +161,7 @@ export function InAppNotification({
           >
             {/* Glow effect */}
             <div className="absolute inset-0 bg-white/10 rounded-2xl blur-xl" />
-            
+
             {/* Content */}
             <div className="relative z-10 p-5">
               {/* Header with icon and close */}
@@ -195,7 +186,7 @@ export function InAppNotification({
                   >
                     <Icon className="text-white" size={24} />
                   </motion.div>
-                  
+
                   <div className="flex-1">
                     <motion.h3
                       initial={{ opacity: 0, x: -10 }}
@@ -206,11 +197,11 @@ export function InAppNotification({
                       {notification.title}
                       {isAchievement && (
                         <motion.span
-                          animate={{ 
+                          animate={{
                             rotate: [0, 10, -10, 10, 0],
                             scale: [1, 1.2, 1],
                           }}
-                          transition={{ 
+                          transition={{
                             duration: 0.5,
                             repeat: Infinity,
                             repeatDelay: 2,
@@ -231,7 +222,7 @@ export function InAppNotification({
                     </motion.p>
                   </div>
                 </div>
-                
+
                 <motion.button
                   whileHover={{ scale: 1.1, rotate: 90 }}
                   whileTap={{ scale: 0.9 }}

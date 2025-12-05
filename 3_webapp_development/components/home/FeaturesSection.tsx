@@ -1,46 +1,46 @@
-"use client";
+'use client';
 
-import React from "react";
-import { motion } from "framer-motion";
-import { BarChart3, Users, Award, TrendingUp, Shield, Zap } from "lucide-react";
+import React from 'react';
+import { motion } from 'framer-motion';
+import { BarChart3, Users, Award, TrendingUp, Shield, Zap } from 'lucide-react';
 
 export const FeaturesSection: React.FC = () => {
   const features = [
     {
       icon: BarChart3,
-      title: "Data-Driven Insights",
+      title: 'Data-Driven Insights',
       description:
-        "Transform participation logs into actionable analytics. Understand team dynamics through clear visualizations and metrics.",
+        'Transform participation logs into actionable analytics. Understand team dynamics through clear visualizations and metrics.',
     },
     {
       icon: Users,
-      title: "Team Management",
+      title: 'Team Management',
       description:
-        "Easily create, join, and manage project teams. Keep everyone organized and connected in one place.",
+        'Easily create, join, and manage project teams. Keep everyone organized and connected in one place.',
     },
     {
       icon: Award,
-      title: "Fair Assessment",
+      title: 'Fair Assessment',
       description:
-        "Help instructors make informed grading decisions based on transparent contribution tracking.",
+        'Help instructors make informed grading decisions based on transparent contribution tracking.',
     },
     {
       icon: TrendingUp,
-      title: "Engagement Tracking",
+      title: 'Engagement Tracking',
       description:
-        "Monitor individual and team participation trends over time to identify and address imbalances early.",
+        'Monitor individual and team participation trends over time to identify and address imbalances early.',
     },
     {
       icon: Shield,
-      title: "Transparency",
+      title: 'Transparency',
       description:
-        "Build trust within teams through clear, visible contribution records that everyone can access.",
+        'Build trust within teams through clear, visible contribution records that everyone can access.',
     },
     {
       icon: Zap,
-      title: "Real-time Updates",
+      title: 'Real-time Updates',
       description:
-        "Stay informed with instant notifications and live dashboard updates as team members contribute.",
+        'Stay informed with instant notifications and live dashboard updates as team members contribute.',
     },
   ];
 
@@ -78,8 +78,8 @@ export const FeaturesSection: React.FC = () => {
             Why Choose <span className="text-blue-600 dark:text-blue-400">Qolabb</span>?
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-            Everything you need to promote fair collaboration and accountability
-            in student group projects.
+            Everything you need to promote fair collaboration and accountability in student group
+            projects.
           </p>
         </motion.div>
 

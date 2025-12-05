@@ -41,11 +41,15 @@ export const StatCard: React.FC<StatCardProps> = ({
   const Content = (
     <>
       <div className="flex items-center justify-between mb-4">
-        <div className={`${colorClasses[color]} w-12 h-12 rounded-lg flex items-center justify-center`}>
+        <div
+          className={`${colorClasses[color]} w-12 h-12 rounded-lg flex items-center justify-center`}
+        >
           <Icon size={24} className="text-white" />
         </div>
         {change && (
-          <span className={`text-xs font-semibold px-2 py-1 rounded-full ${changeColors[changeType]}`}>
+          <span
+            className={`text-xs font-semibold px-2 py-1 rounded-full ${changeColors[changeType]}`}
+          >
             {change}
           </span>
         )}
@@ -55,7 +59,8 @@ export const StatCard: React.FC<StatCardProps> = ({
     </>
   );
 
-  const cardClasses = "bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow h-full block";
+  const cardClasses =
+    'bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow h-full block';
 
   if (href) {
     return (

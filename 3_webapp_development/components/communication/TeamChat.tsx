@@ -94,7 +94,7 @@ export function TeamChat({ teamId, userId }: TeamChatProps) {
 
       // Select default channel or first channel
       if (fetchedChannels.length > 0) {
-        const defaultChannel = fetchedChannels.find(c => c.is_default) || fetchedChannels[0];
+        const defaultChannel = fetchedChannels.find((c) => c.is_default) || fetchedChannels[0];
         setSelectedChannelId(defaultChannel.id);
       } else {
         // No channels exist, try to create default
@@ -123,9 +123,7 @@ export function TeamChat({ teamId, userId }: TeamChatProps) {
       setMessages(fetchedMessages);
 
       // Mark messages as read
-      const unreadMessageIds = fetchedMessages
-        .filter((m) => m.user_id !== userId)
-        .map((m) => m.id);
+      const unreadMessageIds = fetchedMessages.filter((m) => m.user_id !== userId).map((m) => m.id);
       if (unreadMessageIds.length > 0) {
         await markTeamChatMessagesAsRead(unreadMessageIds, userId);
       }
@@ -231,7 +229,9 @@ export function TeamChat({ teamId, userId }: TeamChatProps) {
             <MessageSquare size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-2" />
             <p className="text-gray-500 dark:text-gray-400">No channel selected</p>
             <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
-              {channels.length === 0 ? 'No channels available. Contact your group leader.' : 'Please select a channel above.'}
+              {channels.length === 0
+                ? 'No channels available. Contact your group leader.'
+                : 'Please select a channel above.'}
             </p>
           </div>
         ) : loading && messages.length === 0 ? (
@@ -242,15 +242,13 @@ export function TeamChat({ teamId, userId }: TeamChatProps) {
           <div className="text-center py-8">
             <MessageSquare size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-2" />
             <p className="text-gray-500 dark:text-gray-400">No messages yet</p>
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
-              Start the conversation!
-            </p>
+            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Start the conversation!</p>
           </div>
         ) : (
           messages.map((message) => {
             const isOwnMessage = message.user_id === userId;
-            const showAvatar = !isOwnMessage || 
-              (messages[messages.indexOf(message) - 1]?.user_id !== message.user_id);
+            const showAvatar =
+              !isOwnMessage || messages[messages.indexOf(message) - 1]?.user_id !== message.user_id;
 
             return (
               <motion.div
@@ -283,8 +281,12 @@ export function TeamChat({ teamId, userId }: TeamChatProps) {
                   )}
 
                   {message.reply_to && (
-                    <div className={`mb-1 p-2 bg-gray-100 dark:bg-gray-700 rounded text-xs text-gray-600 dark:text-gray-300 border-l-2 border-blue-500 ${isOwnMessage ? 'text-right' : ''}`}>
-                      <div className="font-medium">{message.reply_to.user?.full_name || 'Unknown'}</div>
+                    <div
+                      className={`mb-1 p-2 bg-gray-100 dark:bg-gray-700 rounded text-xs text-gray-600 dark:text-gray-300 border-l-2 border-blue-500 ${isOwnMessage ? 'text-right' : ''}`}
+                    >
+                      <div className="font-medium">
+                        {message.reply_to.user?.full_name || 'Unknown'}
+                      </div>
                       <div className="truncate">{message.reply_to.message}</div>
                     </div>
                   )}
@@ -384,7 +386,13 @@ export function TeamChat({ teamId, userId }: TeamChatProps) {
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={editingMessage ? 'Edit your message...' : replyingTo ? 'Type a reply...' : 'Type a message...'}
+                placeholder={
+                  editingMessage
+                    ? 'Edit your message...'
+                    : replyingTo
+                      ? 'Type a reply...'
+                      : 'Type a message...'
+                }
                 rows={1}
                 className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 resize-none"
                 disabled={submitting}

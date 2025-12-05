@@ -38,7 +38,7 @@ export function GradingPanel({ isOpen, onClose, teamData, onGradingComplete }: G
 
     try {
       setSaving(true);
-      
+
       const { error } = await supabase
         .from('project_submissions')
         .update({
@@ -82,7 +82,9 @@ export function GradingPanel({ isOpen, onClose, teamData, onGradingComplete }: G
                   Grading: {team.name}
                 </h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {submission ? `Submitted on ${new Date(submission.submitted_at).toLocaleDateString()}` : 'No submission yet'}
+                  {submission
+                    ? `Submitted on ${new Date(submission.submitted_at).toLocaleDateString()}`
+                    : 'No submission yet'}
                 </p>
               </div>
               <button
@@ -122,96 +124,102 @@ export function GradingPanel({ isOpen, onClose, teamData, onGradingComplete }: G
             {/* Content Area */}
             {viewMode === 'workspace' ? (
               <div className="h-[500px] border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-                <GroupWorkspaceEditor 
-                  projectId={team.project_id} 
-                  initialContent={team.project?.content} 
+                <GroupWorkspaceEditor
+                  projectId={team.project_id}
+                  initialContent={team.project?.content}
                   isReadOnly={true}
                 />
               </div>
+            ) : /* Submission Content */
+            !submission ? (
+              <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-xl border border-orange-100 dark:border-orange-800 text-center">
+                <p className="text-orange-800 dark:text-orange-300">
+                  This team has not submitted their project yet.
+                </p>
+              </div>
             ) : (
-              /* Submission Content */
-              !submission ? (
-                <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-xl border border-orange-100 dark:border-orange-800 text-center">
-                  <p className="text-orange-800 dark:text-orange-300">
-                    This team has not submitted their project yet.
-                  </p>
+              <div className="space-y-6">
+                {/* Notes & Contribution Report */}
+                <div>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 flex items-center">
+                    <FileText size={18} className="mr-2 text-blue-500" />
+                    Submission Notes & Report
+                  </h3>
+                  <div className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-xl border border-gray-200 dark:border-gray-700 text-sm whitespace-pre-wrap font-mono text-gray-700 dark:text-gray-300 max-h-60 overflow-y-auto">
+                    {submission.content || 'No notes provided.'}
+                  </div>
                 </div>
-              ) : (
-                <div className="space-y-6">
-                  {/* Notes & Contribution Report */}
+
+                {/* Attachments */}
+                {submission.resources && submission.resources.length > 0 && (
                   <div>
                     <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 flex items-center">
-                      <FileText size={18} className="mr-2 text-blue-500" />
-                      Submission Notes & Report
+                      <LinkIcon size={18} className="mr-2 text-blue-500" />
+                      Attachments
                     </h3>
-                    <div className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-xl border border-gray-200 dark:border-gray-700 text-sm whitespace-pre-wrap font-mono text-gray-700 dark:text-gray-300 max-h-60 overflow-y-auto">
-                      {submission.content || 'No notes provided.'}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {submission.resources.map((resource: any) => (
+                        <a
+                          key={resource.id}
+                          href={resource.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center p-3 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-blue-500 transition-colors group"
+                        >
+                          <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-lg mr-3">
+                            {resource.type === 'link' ? (
+                              <LinkIcon size={16} className="text-blue-600" />
+                            ) : (
+                              <FileText size={16} className="text-blue-600" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                              {resource.name}
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              {resource.type === 'file' ? resource.size : 'External Link'}
+                            </p>
+                          </div>
+                          <Download size={16} className="text-gray-400 group-hover:text-blue-500" />
+                        </a>
+                      ))}
                     </div>
                   </div>
+                )}
 
-                  {/* Attachments */}
-                  {submission.resources && submission.resources.length > 0 && (
-                    <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 flex items-center">
-                        <LinkIcon size={18} className="mr-2 text-blue-500" />
-                        Attachments
-                      </h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {submission.resources.map((resource: any) => (
-                          <a
-                            key={resource.id}
-                            href={resource.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center p-3 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-blue-500 transition-colors group"
-                          >
-                            <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-lg mr-3">
-                              {resource.type === 'link' ? <LinkIcon size={16} className="text-blue-600" /> : <FileText size={16} className="text-blue-600" />}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-gray-900 dark:text-gray-100 truncate">{resource.name}</p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400">{resource.type === 'file' ? resource.size : 'External Link'}</p>
-                            </div>
-                            <Download size={16} className="text-gray-400 group-hover:text-blue-500" />
-                          </a>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                <hr className="border-gray-200 dark:border-gray-700" />
 
-                  <hr className="border-gray-200 dark:border-gray-700" />
-
-                  {/* Grading Form */}
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Grade (0-100)
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={grade}
-                        onChange={(e) => setGrade(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500"
-                        placeholder="Enter score..."
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Feedback
-                      </label>
-                      <textarea
-                        value={feedback}
-                        onChange={(e) => setFeedback(e.target.value)}
-                        rows={4}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500"
-                        placeholder="Provide constructive feedback..."
-                      />
-                    </div>
+                {/* Grading Form */}
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Grade (0-100)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={grade}
+                      onChange={(e) => setGrade(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter score..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Feedback
+                    </label>
+                    <textarea
+                      value={feedback}
+                      onChange={(e) => setFeedback(e.target.value)}
+                      rows={4}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500"
+                      placeholder="Provide constructive feedback..."
+                    />
                   </div>
                 </div>
-              )
+              </div>
             )}
           </div>
 
@@ -221,13 +229,17 @@ export function GradingPanel({ isOpen, onClose, teamData, onGradingComplete }: G
               <Button variant="ghost" onClick={onClose}>
                 Cancel
               </Button>
-              <Button 
-                variant="primary" 
-                onClick={handleSave} 
+              <Button
+                variant="primary"
+                onClick={handleSave}
                 disabled={saving || !submission}
                 className="flex items-center"
               >
-                {saving ? <Loader2 size={18} className="animate-spin mr-2" /> : <Save size={18} className="mr-2" />}
+                {saving ? (
+                  <Loader2 size={18} className="animate-spin mr-2" />
+                ) : (
+                  <Save size={18} className="mr-2" />
+                )}
                 Save Grade
               </Button>
             </div>

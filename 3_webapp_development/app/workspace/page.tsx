@@ -24,26 +24,29 @@ export default function WorkspacePage() {
 
   const handleCreateWorkspace = async () => {
     if (!user || !workspaceName.trim()) return;
-    
+
     setLoading(true);
     setError('');
 
     try {
-      const newWorkspace = await createWorkspace({
-        name: workspaceName,
-        description: workspaceDescription || null,
-        owner_id: user.id,
-        icon_url: null,
-        settings: {},
-      }, user.id);
+      const newWorkspace = await createWorkspace(
+        {
+          name: workspaceName,
+          description: workspaceDescription || null,
+          owner_id: user.id,
+          icon_url: null,
+          settings: {},
+        },
+        user.id
+      );
 
       await refreshWorkspaces();
-      
+
       // Automatically switch to the newly created workspace
       if (newWorkspace?.id) {
         switchWorkspace(newWorkspace.id);
       }
-      
+
       router.push('/dashboard');
     } catch (error: any) {
       console.error('Error creating workspace:', error);
@@ -61,15 +64,15 @@ export default function WorkspacePage() {
 
     try {
       const result = await joinWorkspaceByInviteCode(inviteCode.toUpperCase());
-      
+
       if (result.success) {
         await refreshWorkspaces();
-        
+
         // Automatically switch to the newly joined workspace
         if (result.workspaceId) {
           switchWorkspace(result.workspaceId);
         }
-        
+
         router.push('/dashboard');
       } else {
         setError(result.error || 'Failed to join workspace. Check your invite code.');
@@ -81,25 +84,27 @@ export default function WorkspacePage() {
     }
   };
 
-
-
   // Function to clear expired auth cookies
   const clearExpiredCookies = () => {
     if (typeof document !== 'undefined') {
       // Get all cookies
       const cookies = document.cookie.split(';');
-      
+
       // Find and clear Supabase auth token cookies
-      cookies.forEach(cookie => {
+      cookies.forEach((cookie) => {
         const [name] = cookie.trim().split('=');
-        if (name.includes('sb-') && name.includes('auth-token') && !name.includes('code-verifier')) {
+        if (
+          name.includes('sb-') &&
+          name.includes('auth-token') &&
+          !name.includes('code-verifier')
+        ) {
           console.log('🧹 Clearing expired auth cookie:', name);
           // Set cookie to expire in the past
           document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname}`;
           document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
         }
       });
-      
+
       // Refresh the page to reload with clean cookies
       window.location.reload();
     }
@@ -136,9 +141,7 @@ export default function WorkspacePage() {
             <div className="bg-blue-100 w-16 h-16 rounded-xl flex items-center justify-center mb-6">
               <Plus className="text-blue-700" size={32} />
             </div>
-            <h2 className="text-2xl font-bold mb-3 text-gray-900">
-              Create Class
-            </h2>
+            <h2 className="text-2xl font-bold mb-3 text-gray-900">Create Class</h2>
             <p className="text-gray-600 mb-6">
               Start a new class for your course, organization, or team projects
             </p>
@@ -159,9 +162,7 @@ export default function WorkspacePage() {
             <div className="bg-qolabb-beige-100 w-16 h-16 rounded-xl flex items-center justify-center mb-6">
               <Users className="text-qolabb-beige-700" size={32} />
             </div>
-            <h2 className="text-2xl font-bold mb-3 text-gray-900">
-              Join Class
-            </h2>
+            <h2 className="text-2xl font-bold mb-3 text-gray-900">Join Class</h2>
             <p className="text-gray-600 mb-6">
               Have a class code? Join an existing class to collaborate
             </p>
@@ -170,8 +171,6 @@ export default function WorkspacePage() {
             </div>
           </motion.div>
         </div>
-
-
 
         {/* Create Workspace Modal */}
         <AnimatePresence>
@@ -202,7 +201,9 @@ export default function WorkspacePage() {
                     <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-800">
                       <div className="flex items-start justify-between">
                         <span className="flex-1">{error}</span>
-                        {(error.includes('logged in') || error.includes('authentication') || error.includes('cookies')) && (
+                        {(error.includes('logged in') ||
+                          error.includes('authentication') ||
+                          error.includes('cookies')) && (
                           <button
                             onClick={clearExpiredCookies}
                             className="ml-3 px-3 py-1 bg-red-100 hover:bg-red-200 text-red-800 rounded text-xs font-medium transition-colors"
@@ -292,7 +293,9 @@ export default function WorkspacePage() {
                     <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-800">
                       <div className="flex items-start justify-between">
                         <span className="flex-1">{error}</span>
-                        {(error.includes('logged in') || error.includes('authentication') || error.includes('cookies')) && (
+                        {(error.includes('logged in') ||
+                          error.includes('authentication') ||
+                          error.includes('cookies')) && (
                           <button
                             onClick={clearExpiredCookies}
                             className="ml-3 px-3 py-1 bg-red-100 hover:bg-red-200 text-red-800 rounded text-xs font-medium transition-colors"

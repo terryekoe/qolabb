@@ -36,17 +36,17 @@ export function InAppNotificationManager({
         },
         (payload) => {
           const newNotification = payload.new as Notification;
-          
+
           // Only show unread notifications
           if (!newNotification.read) {
             // Check if this notification should be shown
             // (filter based on type if needed)
             setActiveNotification(newNotification);
-            
+
             // Add to notifications list
             setNotifications((prev) => {
               // Avoid duplicates
-              if (prev.find(n => n.id === newNotification.id)) {
+              if (prev.find((n) => n.id === newNotification.id)) {
                 return prev;
               }
               return [newNotification, ...prev].slice(0, 10); // Keep last 10
@@ -63,21 +63,27 @@ export function InAppNotificationManager({
 
   const handleClose = useCallback((notificationId: string) => {
     setActiveNotification(null);
-    setNotifications((prev) => prev.filter(n => n.id !== notificationId));
+    setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
   }, []);
 
-  const handleNotificationClick = useCallback((notification: Notification) => {
-    if (onNotificationClick) {
-      onNotificationClick(notification);
-    }
-    handleClose(notification.id);
-  }, [onNotificationClick, handleClose]);
+  const handleNotificationClick = useCallback(
+    (notification: Notification) => {
+      if (onNotificationClick) {
+        onNotificationClick(notification);
+      }
+      handleClose(notification.id);
+    },
+    [onNotificationClick, handleClose]
+  );
 
-  const handleMarkAsRead = useCallback((notificationId: string) => {
-    if (onMarkAsRead) {
-      onMarkAsRead(notificationId);
-    }
-  }, [onMarkAsRead]);
+  const handleMarkAsRead = useCallback(
+    (notificationId: string) => {
+      if (onMarkAsRead) {
+        onMarkAsRead(notificationId);
+      }
+    },
+    [onMarkAsRead]
+  );
 
   return (
     <div className="fixed top-20 right-6 z-50 space-y-4">

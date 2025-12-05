@@ -30,7 +30,7 @@ export async function generateActionableRecommendations(
 
   // Get team members and their task counts
   let teamMembersQuery;
-  
+
   if (teamId) {
     teamMembersQuery = supabase
       .from('team_members')
@@ -38,12 +38,18 @@ export async function generateActionableRecommendations(
       .eq('team_id', teamId);
   } else {
     // Get all teams in workspace
-    const { data: teams } = await supabase.from('teams').select('id').eq('workspace_id', workspaceId);
+    const { data: teams } = await supabase
+      .from('teams')
+      .select('id')
+      .eq('workspace_id', workspaceId);
     if (teams && teams.length > 0) {
       teamMembersQuery = supabase
         .from('team_members')
         .select('user_id, team_id, profiles(full_name, id)')
-        .in('team_id', teams.map((t) => t.id));
+        .in(
+          'team_id',
+          teams.map((t) => t.id)
+        );
     } else {
       teamMembersQuery = supabase
         .from('team_members')
@@ -67,7 +73,7 @@ export async function generateActionableRecommendations(
 
   // Calculate task distribution
   const taskCounts: Record<string, { count: number; tasks: any[]; userName: string }> = {};
-  
+
   teamMembers.forEach((member) => {
     const userTasks = taskAssignees?.filter((ta) => ta.user_id === member.user_id) || [];
     taskCounts[member.user_id] = {
@@ -77,12 +83,16 @@ export async function generateActionableRecommendations(
     };
   });
 
-  const avgTasks = Object.values(taskCounts).reduce((sum, tc) => sum + tc.count, 0) / Object.values(taskCounts).length;
+  const avgTasks =
+    Object.values(taskCounts).reduce((sum, tc) => sum + tc.count, 0) /
+    Object.values(taskCounts).length;
 
   // Find overloaded and underutilized members
   const sortedByTasks = Object.entries(taskCounts).sort((a, b) => b[1].count - a[1].count);
   const overloaded = sortedByTasks.find(([_, tc]) => tc.count > avgTasks * 1.5);
-  const underutilized = sortedByTasks.reverse().find(([_, tc]) => tc.count < avgTasks * 0.7 && tc.count > 0);
+  const underutilized = sortedByTasks
+    .reverse()
+    .find(([_, tc]) => tc.count < avgTasks * 0.7 && tc.count > 0);
 
   // Generate task redistribution recommendation
   if (overloaded && underutilized && overloaded[1].tasks.length > 0) {

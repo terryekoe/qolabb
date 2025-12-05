@@ -1,7 +1,7 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY! // This would need to be added to env
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!; // This would need to be added to env
 
 /**
  * Sets up the avatars storage bucket with proper policies
@@ -11,9 +11,9 @@ export async function setupAvatarsStorage() {
   // For now, we'll assume the bucket exists or is created manually
   // In a production environment, you would use the service role key
   // to create buckets and policies programmatically
-  
-  console.log('Storage setup would be handled by Supabase admin or migrations')
-  return true
+
+  console.log('Storage setup would be handled by Supabase admin or migrations');
+  return true;
 }
 
 /**
@@ -22,18 +22,16 @@ export async function setupAvatarsStorage() {
 export async function validateStorageSetup(supabase: any) {
   try {
     // Try to list files in the avatars bucket to check if it exists
-    const { data, error } = await supabase.storage
-      .from('avatars')
-      .list('', { limit: 1 })
-    
+    const { data, error } = await supabase.storage.from('avatars').list('', { limit: 1 });
+
     if (error) {
-      console.warn('Avatars storage bucket may not be set up:', error.message)
-      return false
+      console.warn('Avatars storage bucket may not be set up:', error.message);
+      return false;
     }
-    
-    return true
+
+    return true;
   } catch (error) {
-    console.warn('Error validating storage setup:', error)
-    return false
+    console.warn('Error validating storage setup:', error);
+    return false;
   }
 }

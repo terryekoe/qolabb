@@ -14,18 +14,18 @@ export function detectUrlType(url: string): 'github' | 'google_docs' | 'google_s
   try {
     const urlObj = new URL(url);
     const hostname = urlObj.hostname.toLowerCase();
-    
+
     if (hostname.includes('github.com')) {
       return 'github';
     }
-    
+
     if (hostname.includes('docs.google.com')) {
       if (url.includes('/spreadsheets/')) {
         return 'google_sheets';
       }
       return 'google_docs';
     }
-    
+
     return 'other';
   } catch {
     return 'other';
@@ -40,14 +40,14 @@ export function parseGitHubUrl(url: string): { owner: string; repo: string } | n
   try {
     const urlObj = new URL(url);
     const pathParts = urlObj.pathname.split('/').filter(Boolean);
-    
+
     if (pathParts.length >= 2) {
       return {
         owner: pathParts[0],
-        repo: pathParts[1]
+        repo: pathParts[1],
       };
     }
-    
+
     return null;
   } catch {
     return null;
@@ -73,60 +73,57 @@ export function parseGoogleDocId(url: string): string | null {
  */
 export async function verifyGitHubUrl(url: string): Promise<VerificationResult> {
   const parsed = parseGitHubUrl(url);
-  
+
   if (!parsed) {
     return {
       verified: false,
       url_type: 'github',
-      error: 'Invalid GitHub URL format'
+      error: 'Invalid GitHub URL format',
     };
   }
-  
+
   const { owner, repo } = parsed;
-  
+
   try {
     // Fetch repository data
-    const repoResponse = await fetch(
-      `https://api.github.com/repos/${owner}/${repo}`,
-      {
-        headers: {
-          'Accept': 'application/vnd.github.v3+json',
-          // Add token if available for higher rate limits
-          ...(process.env.GITHUB_API_TOKEN && {
-            'Authorization': `token ${process.env.GITHUB_API_TOKEN}`
-          })
-        }
-      }
-    );
-    
+    const repoResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
+      headers: {
+        Accept: 'application/vnd.github.v3+json',
+        // Add token if available for higher rate limits
+        ...(process.env.GITHUB_API_TOKEN && {
+          Authorization: `token ${process.env.GITHUB_API_TOKEN}`,
+        }),
+      },
+    });
+
     if (!repoResponse.ok) {
       if (repoResponse.status === 404) {
         return {
           verified: false,
           url_type: 'github',
-          error: 'Repository not found or is private'
+          error: 'Repository not found or is private',
         };
       }
       throw new Error(`GitHub API error: ${repoResponse.status}`);
     }
-    
+
     const repoData = await repoResponse.json();
-    
+
     // Fetch recent commits
     const commitsResponse = await fetch(
       `https://api.github.com/repos/${owner}/${repo}/commits?per_page=100`,
       {
         headers: {
-          'Accept': 'application/vnd.github.v3+json',
+          Accept: 'application/vnd.github.v3+json',
           ...(process.env.GITHUB_API_TOKEN && {
-            'Authorization': `token ${process.env.GITHUB_API_TOKEN}`
-          })
-        }
+            Authorization: `token ${process.env.GITHUB_API_TOKEN}`,
+          }),
+        },
       }
     );
-    
+
     const commits = commitsResponse.ok ? await commitsResponse.json() : [];
-    
+
     return {
       verified: true,
       url_type: 'github',
@@ -137,14 +134,14 @@ export async function verifyGitHubUrl(url: string): Promise<VerificationResult> 
         stars: repoData.stargazers_count,
         commit_count: Array.isArray(commits) ? commits.length : 0,
         last_updated: repoData.updated_at,
-        is_public: !repoData.private
-      }
+        is_public: !repoData.private,
+      },
     };
   } catch (error: any) {
     return {
       verified: false,
       url_type: 'github',
-      error: error.message || 'Failed to verify GitHub repository'
+      error: error.message || 'Failed to verify GitHub repository',
     };
   }
 }
@@ -156,17 +153,17 @@ export async function verifyGitHubUrl(url: string): Promise<VerificationResult> 
 export async function verifyGoogleDocUrl(url: string): Promise<VerificationResult> {
   const docId = parseGoogleDocId(url);
   const urlType = detectUrlType(url) as 'google_docs' | 'google_sheets';
-  
+
   if (!docId) {
     return {
       verified: false,
       url_type: urlType,
-      error: 'Invalid Google Docs/Sheets URL format'
+      error: 'Invalid Google Docs/Sheets URL format',
     };
   }
-  
+
   const apiKey = process.env.GOOGLE_API_KEY;
-  
+
   if (!apiKey) {
     // If no API key, just check if URL is accessible
     return {
@@ -174,29 +171,29 @@ export async function verifyGoogleDocUrl(url: string): Promise<VerificationResul
       url_type: urlType,
       data: {
         doc_name: 'Document',
-        doc_type: urlType === 'google_docs' ? 'Google Docs' : 'Google Sheets'
-      }
+        doc_type: urlType === 'google_docs' ? 'Google Docs' : 'Google Sheets',
+      },
     };
   }
-  
+
   try {
     const response = await fetch(
       `https://www.googleapis.com/drive/v3/files/${docId}?fields=name,mimeType,modifiedTime,owners&key=${apiKey}`
     );
-    
+
     if (!response.ok) {
       if (response.status === 404) {
         return {
           verified: false,
           url_type: urlType,
-          error: 'Document not found or not accessible. Make sure sharing is enabled.'
+          error: 'Document not found or not accessible. Make sure sharing is enabled.',
         };
       }
       throw new Error(`Google API error: ${response.status}`);
     }
-    
+
     const data = await response.json();
-    
+
     return {
       verified: true,
       url_type: urlType,
@@ -204,14 +201,14 @@ export async function verifyGoogleDocUrl(url: string): Promise<VerificationResul
         doc_name: data.name,
         doc_type: data.mimeType,
         last_modified: data.modifiedTime,
-        owner: data.owners?.[0]?.displayName
-      }
+        owner: data.owners?.[0]?.displayName,
+      },
     };
   } catch (error: any) {
     return {
       verified: false,
       url_type: urlType,
-      error: error.message || 'Failed to verify Google document'
+      error: error.message || 'Failed to verify Google document',
     };
   }
 }
@@ -221,15 +218,15 @@ export async function verifyGoogleDocUrl(url: string): Promise<VerificationResul
  */
 export async function verifySubmissionUrl(url: string): Promise<VerificationResult> {
   const urlType = detectUrlType(url);
-  
+
   switch (urlType) {
     case 'github':
       return verifyGitHubUrl(url);
-    
+
     case 'google_docs':
     case 'google_sheets':
       return verifyGoogleDocUrl(url);
-    
+
     default:
       // For other URLs, just verify it's a valid URL
       try {
@@ -237,13 +234,13 @@ export async function verifySubmissionUrl(url: string): Promise<VerificationResu
         return {
           verified: true,
           url_type: 'other',
-          data: {}
+          data: {},
         };
       } catch {
         return {
           verified: false,
           url_type: 'other',
-          error: 'Invalid URL format'
+          error: 'Invalid URL format',
         };
       }
   }

@@ -3,8 +3,8 @@
 // Functions for user profile management
 // =====================================================
 
-import { supabase } from '../supabase'
-import type { Profile } from '../types/database'
+import { supabase } from '../supabase';
+import type { Profile } from '../types/database';
 
 /**
  * Create a new user profile
@@ -29,10 +29,10 @@ export async function createProfile(profile: {
       updated_at: new Date().toISOString(),
     })
     .select()
-    .single()
+    .single();
 
-  if (error) throw error
-  return data as Profile
+  if (error) throw error;
+  return data as Profile;
 }
 
 /**
@@ -41,20 +41,16 @@ export async function createProfile(profile: {
  * @returns User profile or null if not found
  */
 export async function getProfile(userId: string) {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', userId)
-    .single()
+  const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
 
   if (error) {
     if (error.code === 'PGRST116') {
       // Profile not found
-      return null
+      return null;
     }
-    throw error
+    throw error;
   }
-  return data as Profile
+  return data as Profile;
 }
 
 /**
@@ -72,27 +68,29 @@ export async function getOrCreateProfile(
     .from('profiles')
     .select('*')
     .eq('id', userId)
-    .maybeSingle()
+    .maybeSingle();
 
   if (selectError) {
-    console.error('Error fetching profile:', selectError)
-    throw selectError
+    console.error('Error fetching profile:', selectError);
+    throw selectError;
   }
 
   if (existingProfile) {
-    return existingProfile as Profile
+    return existingProfile as Profile;
   }
 
   // Profile doesn't exist, create one
   // Get user email from auth if not provided
-  let email = defaultData?.email
-  let fullName = defaultData?.full_name
+  let email = defaultData?.email;
+  let fullName = defaultData?.full_name;
 
   if (!email || !fullName) {
-    const { data: { user } } = await supabase.auth.getUser()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (user) {
-      email = email || user.email || null
-      fullName = fullName || user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'
+      email = email || user.email || null;
+      fullName = fullName || user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
     }
   }
 
@@ -107,7 +105,7 @@ export async function getOrCreateProfile(
       updated_at: new Date().toISOString(),
     })
     .select()
-    .single()
+    .single();
 
   if (insertError) {
     // Handle race condition - profile might have been created by trigger
@@ -116,13 +114,13 @@ export async function getOrCreateProfile(
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single()
-      return profile as Profile
+        .single();
+      return profile as Profile;
     }
-    throw insertError
+    throw insertError;
   }
 
-  return newProfile as Profile
+  return newProfile as Profile;
 }
 
 /**
@@ -140,8 +138,8 @@ export async function updateProfile(userId: string, updates: Partial<Profile>) {
     })
     .eq('id', userId)
     .select()
-    .single()
+    .single();
 
-  if (error) throw error
-  return data as Profile
+  if (error) throw error;
+  return data as Profile;
 }

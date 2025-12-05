@@ -90,9 +90,15 @@ export function ActionableRecommendationCard({
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
           <div className="flex items-center space-x-2 mb-2">
-            {recommendation.type === 'task_redistribution' && <RefreshCw className="text-blue-600" size={18} />}
-            {recommendation.type === 'support_needed' && <AlertTriangle className="text-yellow-600" size={18} />}
-            {recommendation.type === 'workload_balance' && <Users className="text-blue-600" size={18} />}
+            {recommendation.type === 'task_redistribution' && (
+              <RefreshCw className="text-blue-600" size={18} />
+            )}
+            {recommendation.type === 'support_needed' && (
+              <AlertTriangle className="text-yellow-600" size={18} />
+            )}
+            {recommendation.type === 'workload_balance' && (
+              <Users className="text-blue-600" size={18} />
+            )}
             <h4 className="font-semibold text-gray-900">{recommendation.title}</h4>
           </div>
           <p className="text-sm text-gray-700 mb-3">{recommendation.description}</p>
@@ -108,7 +114,8 @@ export function ActionableRecommendationCard({
             <div className="text-xs text-gray-600 space-y-1">
               {recommendation.affectedEntities.from && (
                 <p>
-                  <span className="font-medium">From:</span> {recommendation.affectedEntities.from.name}
+                  <span className="font-medium">From:</span>{' '}
+                  {recommendation.affectedEntities.from.name}
                 </p>
               )}
               {recommendation.affectedEntities.to && (
@@ -118,7 +125,8 @@ export function ActionableRecommendationCard({
               )}
               {recommendation.affectedEntities.task && (
                 <p>
-                  <span className="font-medium">Task:</span> {recommendation.affectedEntities.task.title}
+                  <span className="font-medium">Task:</span>{' '}
+                  {recommendation.affectedEntities.task.title}
                 </p>
               )}
             </div>
@@ -180,7 +188,9 @@ export function ActionableRecommendationsPanel({
   if (recommendations.length === 0) {
     return (
       <div className="bg-gray-50 rounded-xl p-8 text-center">
-        <p className="text-gray-500">No recommendations at this time. Everything looks balanced! 🎉</p>
+        <p className="text-gray-500">
+          No recommendations at this time. Everything looks balanced! 🎉
+        </p>
       </div>
     );
   }
@@ -189,7 +199,9 @@ export function ActionableRecommendationsPanel({
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-900">Actionable Recommendations</h3>
-        <span className="text-sm text-gray-500">{recommendations.length} suggestion{recommendations.length !== 1 ? 's' : ''}</span>
+        <span className="text-sm text-gray-500">
+          {recommendations.length} suggestion{recommendations.length !== 1 ? 's' : ''}
+        </span>
       </div>
       {recommendations.map((rec) => (
         <ActionableRecommendationCard

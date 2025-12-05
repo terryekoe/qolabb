@@ -1,6 +1,6 @@
 /**
  * Hook to check if a feature is enabled
- * 
+ *
  * Usage:
  * const canUseTasks = useFeatureFlag('TASKS');
  * if (canUseTasks) { ... }
@@ -16,5 +16,5 @@ export function useFeatureFlag(feature: FeatureKey): boolean {
  * Hook to check multiple features
  */
 export function useFeatureFlags(...features: FeatureKey[]): boolean {
-  return features.every(feature => isFeatureEnabled(feature));
+  return features.every((feature) => isFeatureEnabled(feature));
 }

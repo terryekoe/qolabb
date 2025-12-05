@@ -46,20 +46,18 @@ export default function LoginPage() {
           {/* Logo */}
           <div>
             <Link href="/" className="inline-block">
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                className="text-4xl font-bold mb-2"
-              >
+              <motion.div whileHover={{ scale: 1.05 }} className="text-4xl font-bold mb-2">
                 <span className="text-black dark:text-white">Qol</span>
                 <span className="text-blue-600 dark:text-blue-500">abb</span>
               </motion.div>
             </Link>
-            <h2 className="mt-6 text-3xl font-bold text-gray-900 dark:text-white">
-              Welcome back
-            </h2>
+            <h2 className="mt-6 text-3xl font-bold text-gray-900 dark:text-white">Welcome back</h2>
             <p className="mt-2 text-gray-600 dark:text-gray-400">
               Don't have an account?{' '}
-              <Link href="/signup" className="text-blue-600 dark:text-blue-400 font-medium hover:text-blue-700 dark:hover:text-blue-300">
+              <Link
+                href="/signup"
+                className="text-blue-600 dark:text-blue-400 font-medium hover:text-blue-700 dark:hover:text-blue-300"
+              >
                 Sign up
               </Link>
             </p>
@@ -82,7 +80,10 @@ export default function LoginPage() {
             <div className="space-y-4">
               {/* Email Input */}
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
                   Email address
                 </label>
                 <div className="relative">
@@ -105,7 +106,10 @@ export default function LoginPage() {
 
               {/* Password Input */}
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
                   Password
                 </label>
                 <div className="relative">
@@ -136,12 +140,18 @@ export default function LoginPage() {
                   type="checkbox"
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                <label
+                  htmlFor="remember-me"
+                  className="ml-2 block text-sm text-gray-700 dark:text-gray-300"
+                >
                   Remember me
                 </label>
               </div>
 
-              <Link href="/forgot-password" className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">
+              <Link
+                href="/forgot-password"
+                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+              >
                 Forgot password?
               </Link>
             </div>
@@ -155,7 +165,10 @@ export default function LoginPage() {
               disabled={loading}
             >
               {loading ? 'Signing in...' : 'Sign in'}
-              <ArrowRight className="inline-block ml-2 group-hover:translate-x-1 transition-transform" size={20} />
+              <ArrowRight
+                className="inline-block ml-2 group-hover:translate-x-1 transition-transform"
+                size={20}
+              />
             </Button>
           </form>
 
@@ -165,7 +178,9 @@ export default function LoginPage() {
               <div className="w-full border-t border-gray-300 dark:border-gray-700"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400">Or continue with</span>
+              <span className="px-2 bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400">
+                Or continue with
+              </span>
             </div>
           </div>
 
@@ -197,11 +212,10 @@ export default function LoginPage() {
           transition={{ duration: 0.8 }}
           className="max-w-lg text-white"
         >
-          <h2 className="text-4xl font-bold mb-6">
-            Fair collaboration starts here
-          </h2>
+          <h2 className="text-4xl font-bold mb-6">Fair collaboration starts here</h2>
           <p className="text-xl text-white/90 mb-8">
-            Track contributions, visualize engagement, and promote equitable participation in every team project.
+            Track contributions, visualize engagement, and promote equitable participation in every
+            team project.
           </p>
           <div className="space-y-4">
             {['Real-time analytics', 'Transparent tracking', 'Team insights'].map((feature, i) => (

@@ -17,8 +17,8 @@ export const HeroSection: React.FC = () => {
       return {
         width: ((seed * 17) % 250) + 50,
         height: ((seed * 23) % 250) + 50,
-        left: ((seed * 31) % 100),
-        top: ((seed * 41) % 100),
+        left: (seed * 31) % 100,
+        top: (seed * 41) % 100,
         animateY: ((seed * 13) % 100) - 50,
         animateX: ((seed * 19) % 100) - 50,
         duration: ((seed * 7) % 10) + 10,
@@ -79,14 +79,18 @@ export const HeroSection: React.FC = () => {
             </h1>
 
             <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
-              Track contributions, visualize engagement, and promote equitable participation in student team projects with data-driven insights.
+              Track contributions, visualize engagement, and promote equitable participation in
+              student team projects with data-driven insights.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
               <Link href="/signup">
                 <Button variant="primary" size="lg" className="group">
                   Get Started
-                  <ArrowRight className="inline-block ml-2 group-hover:translate-x-1 transition-transform" size={20} />
+                  <ArrowRight
+                    className="inline-block ml-2 group-hover:translate-x-1 transition-transform"
+                    size={20}
+                  />
                 </Button>
               </Link>
               <Button variant="outline" size="lg" className="group">
@@ -143,7 +147,9 @@ export const HeroSection: React.FC = () => {
               >
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <span className="text-sm font-semibold text-gray-900 dark:text-white">Active Teams</span>
+                  <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                    Active Teams
+                  </span>
                 </div>
                 <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">24</div>
               </motion.div>
@@ -155,7 +161,9 @@ export const HeroSection: React.FC = () => {
               >
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                  <span className="text-sm font-semibold text-gray-900 dark:text-white">Engagement</span>
+                  <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                    Engagement
+                  </span>
                 </div>
                 <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">95%</div>
               </motion.div>

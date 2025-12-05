@@ -37,10 +37,7 @@ export function TaskTriageView({
     [tasks]
   );
 
-  const triagedTasks = useMemo(
-    () => tasks.filter((t) => t.triage_status === 'triage'),
-    [tasks]
-  );
+  const triagedTasks = useMemo(() => tasks.filter((t) => t.triage_status === 'triage'), [tasks]);
 
   const workingTasks = useMemo(
     () => tasks.filter((t) => t.triage_status === 'working' || t.status === 'in_progress'),
@@ -50,7 +47,9 @@ export function TaskTriageView({
   const filteredInbox = useMemo(() => {
     if (filter === 'urgent') {
       return inboxTasks.filter(
-        (t) => t.priority === 'high' || (t.due_date && new Date(t.due_date) < new Date(Date.now() + 86400000 * 2))
+        (t) =>
+          t.priority === 'high' ||
+          (t.due_date && new Date(t.due_date) < new Date(Date.now() + 86400000 * 2))
       );
     }
     if (filter === 'due-soon') {
@@ -73,7 +72,9 @@ export function TaskTriageView({
 
   const handleStartWork = (taskId: string) => {
     if (isOverWipLimit) {
-      alert(`You've reached your WIP limit of ${wipLimit}. Complete or pause existing tasks first.`);
+      alert(
+        `You've reached your WIP limit of ${wipLimit}. Complete or pause existing tasks first.`
+      );
       return;
     }
     onTriageStatusChange(taskId, 'working');
@@ -91,7 +92,9 @@ export function TaskTriageView({
               {currentWip} / {wipLimit} tasks
             </p>
           </div>
-          <div className={`text-2xl font-bold ${isOverWipLimit ? 'text-red-600' : 'text-blue-600'}`}>
+          <div
+            className={`text-2xl font-bold ${isOverWipLimit ? 'text-red-600' : 'text-blue-600'}`}
+          >
             {currentWip}/{wipLimit}
           </div>
         </div>
@@ -99,7 +102,9 @@ export function TaskTriageView({
           <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
             <div className="flex items-center space-x-2 text-red-800">
               <AlertCircle size={16} />
-              <span className="text-sm font-medium">WIP limit reached. Complete or pause tasks to start new work.</span>
+              <span className="text-sm font-medium">
+                WIP limit reached. Complete or pause tasks to start new work.
+              </span>
             </div>
           </div>
         )}
@@ -116,7 +121,9 @@ export function TaskTriageView({
             <button
               onClick={() => setFilter('all')}
               className={`px-3 py-1 text-xs rounded-lg transition-colors ${
-                filter === 'all' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                filter === 'all'
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
               All
@@ -124,7 +131,9 @@ export function TaskTriageView({
             <button
               onClick={() => setFilter('urgent')}
               className={`px-3 py-1 text-xs rounded-lg transition-colors ${
-                filter === 'urgent' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                filter === 'urgent'
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
               Urgent
@@ -132,7 +141,9 @@ export function TaskTriageView({
             <button
               onClick={() => setFilter('due-soon')}
               className={`px-3 py-1 text-xs rounded-lg transition-colors ${
-                filter === 'due-soon' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                filter === 'due-soon'
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
               Due Soon
@@ -157,10 +168,14 @@ export function TaskTriageView({
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <h4 className="font-semibold text-gray-900">{task.title}</h4>
-                    {task.description && <p className="text-sm text-gray-600 mt-1">{task.description}</p>}
+                    {task.description && (
+                      <p className="text-sm text-gray-600 mt-1">{task.description}</p>
+                    )}
                     <div className="flex items-center space-x-3 mt-2">
                       {task.priority === 'high' && (
-                        <span className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded-full">High Priority</span>
+                        <span className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded-full">
+                          High Priority
+                        </span>
                       )}
                       {task.due_date && (
                         <div className="flex items-center space-x-1 text-xs text-gray-500">

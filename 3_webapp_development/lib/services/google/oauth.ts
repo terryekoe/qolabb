@@ -23,7 +23,7 @@ interface GoogleUserInfo {
  */
 export function getGoogleAuthUrl(redirectUri: string, state?: string): string {
   const clientId = process.env.GOOGLE_CLIENT_ID;
-  
+
   if (!clientId) {
     throw new Error('GOOGLE_CLIENT_ID is not configured');
   }
@@ -146,10 +146,10 @@ export async function getGoogleUserInfo(accessToken: string): Promise<GoogleUser
  */
 export function isTokenExpired(expiresAt: Date | string | null): boolean {
   if (!expiresAt) return true;
-  
+
   const expiry = typeof expiresAt === 'string' ? new Date(expiresAt) : expiresAt;
   const now = new Date();
   const buffer = 5 * 60 * 1000; // 5 minutes buffer
-  
+
   return expiry.getTime() - now.getTime() < buffer;
 }

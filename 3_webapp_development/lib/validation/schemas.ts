@@ -26,14 +26,20 @@ export const workspaceSchema = z.object({
 });
 
 export const inviteCodeSchema = z.object({
-  invite_code: z.string().length(6, 'Invite code must be 6 characters').regex(/^[A-Z0-9]+$/, 'Invalid invite code format'),
+  invite_code: z
+    .string()
+    .length(6, 'Invite code must be 6 characters')
+    .regex(/^[A-Z0-9]+$/, 'Invalid invite code format'),
 });
 
 // Team schemas
 export const teamSchema = z.object({
   name: z.string().min(1, 'Team name is required').max(100, 'Name too long'),
   description: z.string().max(500, 'Description too long').optional(),
-  avatar_color: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid color format').default('#334e68'),
+  avatar_color: z
+    .string()
+    .regex(/^#[0-9A-F]{6}$/i, 'Invalid color format')
+    .default('#334e68'),
 });
 
 // Project schemas
@@ -67,7 +73,11 @@ export const contributionSchema = z.object({
   title: z.string().min(1, 'Contribution title is required').max(200, 'Title too long'),
   description: z.string().max(1000, 'Description too long').optional(),
   contribution_type: z.enum(['code', 'documentation', 'research', 'design', 'meeting', 'other']),
-  hours_spent: z.number().min(0, 'Hours must be positive').max(24, 'Hours per day cannot exceed 24').optional(),
+  hours_spent: z
+    .number()
+    .min(0, 'Hours must be positive')
+    .max(24, 'Hours per day cannot exceed 24')
+    .optional(),
   task_id: z.string().uuid('Invalid task ID').optional(),
 });
 
@@ -84,7 +94,10 @@ export function validateInput<T>(schema: z.ZodSchema<T>, data: unknown): T {
   }
 }
 
-export function safeValidateInput<T>(schema: z.ZodSchema<T>, data: unknown): { success: true; data: T } | { success: false; error: string } {
+export function safeValidateInput<T>(
+  schema: z.ZodSchema<T>,
+  data: unknown
+): { success: true; data: T } | { success: false; error: string } {
   try {
     const result = schema.parse(data);
     return { success: true, data: result };

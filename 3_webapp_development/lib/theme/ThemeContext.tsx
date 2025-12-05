@@ -92,17 +92,17 @@ export function useTheme() {
   if (context === undefined) {
     // Fallback instead of throwing to prevent crash if used outside provider
     console.warn('useTheme must be used within a ThemeProvider');
-    return { 
-      theme: 'light' as Theme, 
-      setTheme: () => {}, 
+    return {
+      theme: 'light' as Theme,
+      setTheme: () => {},
       actualTheme: 'light' as const,
-      toggleTheme: () => {} 
+      toggleTheme: () => {},
     };
   }
   return {
     ...context,
     toggleTheme: () => {
       context.setTheme(context.theme === 'dark' ? 'light' : 'dark');
-    }
+    },
   };
 }

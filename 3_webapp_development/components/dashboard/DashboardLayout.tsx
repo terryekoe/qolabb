@@ -90,7 +90,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
     <div className="h-screen overflow-hidden bg-gray-50 dark:bg-gray-900 flex flex-col">
       <Sidebar collapsed={sidebarCollapsed} onClose={() => setSidebarCollapsed(true)} />
       <DashboardHeader onToggleSidebar={toggleSidebar} sidebarCollapsed={sidebarCollapsed} />
-      
+
       {/* In-App Notifications */}
       {user?.id && (
         <InAppNotificationManager
@@ -104,7 +104,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
       {user?.id && isFeatureEnabled('MOTIVATIONAL_MESSAGES') && (
         <MotivationalMessageBanner userId={user.id} sidebarCollapsed={sidebarCollapsed} />
       )}
-      
+
       {/* Main Content */}
       <main
         className={`flex-1 pt-16 overflow-y-auto transition-all duration-300 ${

@@ -3,15 +3,15 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { User } from 'lucide-react';
-import { 
-  generateAvatarColors, 
-  generateFallbackColor, 
-  generateGradientCSS, 
-  getUserInitials, 
+import {
+  generateAvatarColors,
+  generateFallbackColor,
+  generateGradientCSS,
+  getUserInitials,
   supportsGradients,
   getContrastingTextColor,
   AVATAR_PRESETS,
-  type AvatarColorConfig 
+  type AvatarColorConfig,
 } from '@/lib/utils/avatar-colors';
 
 // =====================================================
@@ -56,38 +56,38 @@ const SIZE_CONFIG = {
     container: 'w-6 h-6',
     text: 'text-xs',
     status: 'w-2 h-2 border',
-    statusPosition: '-bottom-0 -right-0'
+    statusPosition: '-bottom-0 -right-0',
   },
   sm: {
     container: 'w-8 h-8',
     text: 'text-sm',
     status: 'w-2.5 h-2.5 border',
-    statusPosition: '-bottom-0.5 -right-0.5'
+    statusPosition: '-bottom-0.5 -right-0.5',
   },
   md: {
     container: 'w-10 h-10',
     text: 'text-base',
     status: 'w-3 h-3 border-2',
-    statusPosition: '-bottom-0.5 -right-0.5'
+    statusPosition: '-bottom-0.5 -right-0.5',
   },
   lg: {
     container: 'w-12 h-12',
     text: 'text-lg',
     status: 'w-3.5 h-3.5 border-2',
-    statusPosition: '-bottom-1 -right-1'
+    statusPosition: '-bottom-1 -right-1',
   },
   xl: {
     container: 'w-16 h-16',
     text: 'text-xl',
     status: 'w-4 h-4 border-2',
-    statusPosition: '-bottom-1 -right-1'
+    statusPosition: '-bottom-1 -right-1',
   },
   '2xl': {
     container: 'w-20 h-20',
     text: 'text-2xl',
     status: 'w-5 h-5 border-2',
-    statusPosition: '-bottom-1.5 -right-1.5'
-  }
+    statusPosition: '-bottom-1.5 -right-1.5',
+  },
 } as const;
 
 // =====================================================
@@ -107,7 +107,7 @@ export default function Avatar({
   isOnline = false,
   customSeed,
   noAnimation = false,
-  square = false
+  square = false,
 }: AvatarProps) {
   const [imageError, setImageError] = useState(false);
   const [gradientSupported, setGradientSupported] = useState(true);
@@ -124,7 +124,7 @@ export default function Avatar({
     userId,
     size,
     variant,
-    customSeed
+    customSeed,
   };
 
   const colors = generateAvatarColors(colorConfig);
@@ -138,7 +138,7 @@ export default function Avatar({
     }
 
     return {
-      background: `linear-gradient(${colors.direction}, ${colors.primary}, ${colors.secondary})`
+      background: `linear-gradient(${colors.direction}, ${colors.primary}, ${colors.secondary})`,
     };
   };
 
@@ -159,14 +159,16 @@ export default function Avatar({
     transition-all duration-200
     ${onClick ? 'cursor-pointer hover:scale-105 hover:shadow-lg' : ''}
     ${className}
-  `.trim().replace(/\s+/g, ' ');
+  `
+    .trim()
+    .replace(/\s+/g, ' ');
 
   // Animation variants
   const animationVariants = {
     initial: { scale: 0.8, opacity: 0 },
     animate: { scale: 1, opacity: 1 },
     hover: { scale: 1.05 },
-    tap: { scale: 0.95 }
+    tap: { scale: 0.95 },
   };
 
   // Handle image load error
@@ -195,7 +197,7 @@ export default function Avatar({
         className="w-full h-full flex items-center justify-center"
         style={{
           ...getBackgroundStyle(),
-          color: textColor
+          color: textColor,
         }}
       >
         {initials || <User className="w-1/2 h-1/2" />}
@@ -224,7 +226,9 @@ export default function Avatar({
   // Don't render until gradient support is checked (prevents hydration mismatch)
   if (!isLoaded) {
     return (
-      <div className={`${sizeConfig.container} ${square ? 'rounded-lg' : 'rounded-full'} bg-gray-200 animate-pulse`} />
+      <div
+        className={`${sizeConfig.container} ${square ? 'rounded-lg' : 'rounded-full'} bg-gray-200 animate-pulse`}
+      />
     );
   }
 
@@ -250,8 +254,8 @@ export default function Avatar({
       variants={animationVariants}
       initial="initial"
       animate="animate"
-      whileHover={onClick ? "hover" : undefined}
-      whileTap={onClick ? "tap" : undefined}
+      whileHover={onClick ? 'hover' : undefined}
+      whileTap={onClick ? 'tap' : undefined}
       onClick={onClick}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
@@ -298,7 +302,7 @@ export function AvatarGroup({
   className = '',
   showCount = true,
   onAvatarClick,
-  onCountClick
+  onCountClick,
 }: AvatarGroupProps) {
   const visibleUsers = users.slice(0, max);
   const remainingCount = Math.max(0, users.length - max);
@@ -323,7 +327,7 @@ export function AvatarGroup({
           />
         </div>
       ))}
-      
+
       {showCount && remainingCount > 0 && (
         <div
           className={`

@@ -33,24 +33,26 @@ export function StudentAnalyticsView() {
 
     try {
       setLoading(true);
-      
+
       // Get user's analytics
       const userAnalytics = await getUserAnalytics(user.id, currentWorkspace.id);
       setUserStats(userAnalytics);
 
       // Get user's teams
       const teams = await getUserTeams(user.id, currentWorkspace.id);
-      
-      // Get analytics for each team
-      const teamAnalyticsPromises = teams?.map((teamMember: any) => {
-        const teamId = teamMember.team_id || teamMember.team?.id;
-        if (!teamId) return null;
-        return getTeamAnalytics(teamId).catch(() => null);
-      }).filter(Boolean) || [];
-      
-      const teamAnalyticsResults = await Promise.all(teamAnalyticsPromises);
-      setTeamStats(teamAnalyticsResults.filter(t => t !== null));
 
+      // Get analytics for each team
+      const teamAnalyticsPromises =
+        teams
+          ?.map((teamMember: any) => {
+            const teamId = teamMember.team_id || teamMember.team?.id;
+            if (!teamId) return null;
+            return getTeamAnalytics(teamId).catch(() => null);
+          })
+          .filter(Boolean) || [];
+
+      const teamAnalyticsResults = await Promise.all(teamAnalyticsPromises);
+      setTeamStats(teamAnalyticsResults.filter((t) => t !== null));
     } catch (error) {
       console.error('Error loading student analytics:', error);
     } finally {
@@ -87,16 +89,19 @@ export function StudentAnalyticsView() {
     );
   }
 
-  const completionRate = userStats.totalTasks > 0
-    ? Math.round((userStats.completedTasks / userStats.totalTasks) * 100)
-    : 0;
+  const completionRate =
+    userStats.totalTasks > 0
+      ? Math.round((userStats.completedTasks / userStats.totalTasks) * 100)
+      : 0;
 
   return (
     <div className="h-full overflow-y-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl p-4 sm:p-8 text-white">
         <h1 className="text-2xl sm:text-3xl font-bold mb-2">My Analytics</h1>
-        <p className="text-sm sm:text-base text-blue-100">Track your participation and contributions</p>
+        <p className="text-sm sm:text-base text-blue-100">
+          Track your participation and contributions
+        </p>
       </div>
 
       {/* Stats Grid */}
@@ -104,9 +109,11 @@ export function StudentAnalyticsView() {
         <StatCard
           title="Total Hours"
           value={userStats.totalUnifiedHours || userStats.totalHours || 0}
-          change={userStats.completedTasksWithoutContributions > 0 
-            ? `${userStats.estimatedHoursFromTasks || 0}h from tasks` 
-            : `${userStats.weekHours || 0} this week`}
+          change={
+            userStats.completedTasksWithoutContributions > 0
+              ? `${userStats.estimatedHoursFromTasks || 0}h from tasks`
+              : `${userStats.weekHours || 0} this week`
+          }
           changeType="positive"
           icon={Clock}
           color="blue"
@@ -114,10 +121,12 @@ export function StudentAnalyticsView() {
         <StatCard
           title="Contributions"
           value={userStats.totalUnifiedContributions || userStats.totalContributions || 0}
-          change={userStats.completedTasksWithoutContributions > 0 
-            ? `+${userStats.completedTasksWithoutContributions} from tasks` 
-            : "All time"}
-          changeType={userStats.completedTasksWithoutContributions > 0 ? "positive" : "neutral"}
+          change={
+            userStats.completedTasksWithoutContributions > 0
+              ? `+${userStats.completedTasksWithoutContributions} from tasks`
+              : 'All time'
+          }
+          changeType={userStats.completedTasksWithoutContributions > 0 ? 'positive' : 'neutral'}
           icon={Activity}
           color="green"
         />
@@ -131,12 +140,15 @@ export function StudentAnalyticsView() {
         />
         <StatCard
           title="Participation Score"
-          value={userStats.unifiedParticipationScore || Math.round(
-            (userStats.totalUnifiedHours * 0.4) +
-            (userStats.totalUnifiedContributions * 2) +
-            (completionRate * 0.5) +
-            (userStats.completedTasks * 1.0)
-          )}
+          value={
+            userStats.unifiedParticipationScore ||
+            Math.round(
+              userStats.totalUnifiedHours * 0.4 +
+                userStats.totalUnifiedContributions * 2 +
+                completionRate * 0.5 +
+                userStats.completedTasks * 1.0
+            )
+          }
           change={`Unified: Tasks + Contributions`}
           changeType="positive"
           icon={Award}
@@ -181,11 +193,14 @@ export function StudentAnalyticsView() {
                       Enhanced Participation Tracking
                     </p>
                     <p className="text-xs text-blue-800">
-                      {userStats.completedTasksWithoutContributions} completed task{userStats.completedTasksWithoutContributions !== 1 ? 's' : ''} without logged contributions.
-                      Estimated {userStats.estimatedHoursFromTasks || 0} hours included in your participation score.
+                      {userStats.completedTasksWithoutContributions} completed task
+                      {userStats.completedTasksWithoutContributions !== 1 ? 's' : ''} without logged
+                      contributions. Estimated {userStats.estimatedHoursFromTasks || 0} hours
+                      included in your participation score.
                       {userStats.completedTasksWithoutContributions > 0 && (
                         <span className="block mt-1 font-medium">
-                          💡 Tip: Log contributions when completing tasks for more accurate tracking!
+                          💡 Tip: Log contributions when completing tasks for more accurate
+                          tracking!
                         </span>
                       )}
                     </p>
@@ -198,24 +213,28 @@ export function StudentAnalyticsView() {
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Contribution Types</h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
-                {Object.entries(userStats.contributionBreakdown || {}).map(([type, count]: [string, any]) => (
-                  <div key={type} className="bg-gray-50 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-700 capitalize">{type}</span>
-                      <span className="text-lg font-bold text-blue-600">{count}</span>
+                {Object.entries(userStats.contributionBreakdown || {}).map(
+                  ([type, count]: [string, any]) => (
+                    <div key={type} className="bg-gray-50 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-gray-700 capitalize">{type}</span>
+                        <span className="text-lg font-bold text-blue-600">{count}</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-blue-600 h-2 rounded-full transition-all"
+                          style={{
+                            width: `${
+                              userStats.totalContributions > 0
+                                ? (count / userStats.totalContributions) * 100
+                                : 0
+                            }%`,
+                          }}
+                        />
+                      </div>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-blue-600 h-2 rounded-full transition-all"
-                        style={{
-                          width: `${userStats.totalContributions > 0 
-                            ? (count / userStats.totalContributions) * 100 
-                            : 0}%`
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
+                  )
+                )}
               </div>
             </div>
 
@@ -237,7 +256,9 @@ export function StudentAnalyticsView() {
                 </div>
                 <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                   <div className="text-2xl font-bold text-gray-600 mb-1">
-                    {(userStats.totalTasks || 0) - (userStats.completedTasks || 0) - (userStats.inProgressTasks || 0)}
+                    {(userStats.totalTasks || 0) -
+                      (userStats.completedTasks || 0) -
+                      (userStats.inProgressTasks || 0)}
                   </div>
                   <div className="text-sm text-gray-600">To Do</div>
                 </div>
@@ -258,9 +279,12 @@ export function StudentAnalyticsView() {
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-semibold text-gray-900">{contrib.title || 'Contribution'}</h4>
+                        <h4 className="font-semibold text-gray-900">
+                          {contrib.title || 'Contribution'}
+                        </h4>
                         <p className="text-sm text-gray-600 mt-1">
-                          {contrib.project?.name || 'Project'} • {contrib.contribution_type || 'other'}
+                          {contrib.project?.name || 'Project'} •{' '}
+                          {contrib.contribution_type || 'other'}
                         </p>
                       </div>
                       <div className="text-right">
@@ -278,7 +302,9 @@ export function StudentAnalyticsView() {
             ) : (
               <div className="text-center py-12">
                 <FileText size={48} className="mx-auto text-gray-300 mb-4" />
-                <p className="text-gray-600">No contributions yet. Start contributing to see your analytics!</p>
+                <p className="text-gray-600">
+                  No contributions yet. Start contributing to see your analytics!
+                </p>
               </div>
             )}
           </div>
@@ -296,10 +322,11 @@ export function StudentAnalyticsView() {
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 space-y-2 sm:space-y-0">
                     <h3 className="text-lg sm:text-xl font-bold text-gray-900">{team.team.name}</h3>
                     <div className="text-xs sm:text-sm text-gray-600">
-                      Fairness Score: <span className="font-semibold text-blue-600">{team.fairnessScore}%</span>
+                      Fairness Score:{' '}
+                      <span className="font-semibold text-blue-600">{team.fairnessScore}%</span>
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-4">
                     <div>
                       <div className="text-sm text-gray-600">Total Hours</div>
@@ -307,7 +334,9 @@ export function StudentAnalyticsView() {
                     </div>
                     <div>
                       <div className="text-sm text-gray-600">Contributions</div>
-                      <div className="text-xl font-bold text-gray-900">{team.totalContributions || 0}</div>
+                      <div className="text-xl font-bold text-gray-900">
+                        {team.totalContributions || 0}
+                      </div>
                     </div>
                     <div>
                       <div className="text-sm text-gray-600">Tasks</div>
@@ -317,7 +346,9 @@ export function StudentAnalyticsView() {
                     </div>
                     <div>
                       <div className="text-sm text-gray-600">Projects</div>
-                      <div className="text-xl font-bold text-gray-900">{team.totalProjects || 0}</div>
+                      <div className="text-xl font-bold text-gray-900">
+                        {team.totalProjects || 0}
+                      </div>
                     </div>
                   </div>
 
@@ -327,17 +358,20 @@ export function StudentAnalyticsView() {
                     <div className="space-y-2">
                       {team.members.map((member: any) => {
                         const isMe = member.userId === user?.id;
-                        const memberPercentage = team.totalHours > 0
-                          ? Math.round((member.hours / team.totalHours) * 100)
-                          : 0;
-                        
+                        const memberPercentage =
+                          team.totalHours > 0
+                            ? Math.round((member.hours / team.totalHours) * 100)
+                            : 0;
+
                         return (
                           <div key={member.userId} className="bg-white rounded-lg p-3">
                             <div className="flex items-center justify-between mb-2">
-                              <span className={cn(
-                                'text-sm font-medium',
-                                isMe ? 'text-blue-600' : 'text-gray-700'
-                              )}>
+                              <span
+                                className={cn(
+                                  'text-sm font-medium',
+                                  isMe ? 'text-blue-600' : 'text-gray-700'
+                                )}
+                              >
                                 {member.name} {isMe && '(You)'}
                               </span>
                               <span className="text-sm font-semibold text-gray-900">

@@ -31,9 +31,19 @@ interface ContributionLogModalProps {
   userId: string;
 }
 
-const CONTRIBUTION_TYPES: { value: ContributionType; label: string; icon: any; description: string }[] = [
+const CONTRIBUTION_TYPES: {
+  value: ContributionType;
+  label: string;
+  icon: any;
+  description: string;
+}[] = [
   { value: 'code', label: 'Code', icon: Code, description: 'Programming and development work' },
-  { value: 'documentation', label: 'Documentation', icon: FileText, description: 'Writing and documentation' },
+  {
+    value: 'documentation',
+    label: 'Documentation',
+    icon: FileText,
+    description: 'Writing and documentation',
+  },
   { value: 'research', label: 'Research', icon: Search, description: 'Research and analysis' },
   { value: 'design', label: 'Design', icon: Palette, description: 'Design and UI/UX work' },
   { value: 'meeting', label: 'Meeting', icon: Users, description: 'Team meetings and discussions' },
@@ -93,7 +103,7 @@ export function ContributionLogModal({
 
       onSuccess();
       onClose();
-      
+
       // Reset form
       setTitle('');
       setDescription('');
@@ -139,7 +149,9 @@ export function ContributionLogModal({
           <div className="p-6 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Log Contribution</h2>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                  Log Contribution
+                </h2>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   Track your work for this completed task to improve participation analytics.
                 </p>
@@ -172,9 +184,7 @@ export function ContributionLogModal({
                   </p>
                   <p className="text-sm font-semibold text-blue-900">{task.title}</p>
                   {task.description && (
-                    <p className="text-xs text-blue-700 mt-1 line-clamp-2">
-                      {task.description}
-                    </p>
+                    <p className="text-xs text-blue-700 mt-1 line-clamp-2">{task.description}</p>
                   )}
                 </div>
               </div>
@@ -228,9 +238,10 @@ export function ContributionLogModal({
                         disabled={loading}
                         className={`
                           p-3 rounded-lg border-2 transition-all text-left
-                          ${isSelected
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-gray-200 bg-white hover:border-gray-300'
+                          ${
+                            isSelected
+                              ? 'border-blue-500 bg-blue-50'
+                              : 'border-gray-200 bg-white hover:border-gray-300'
                           }
                         `}
                       >
@@ -287,11 +298,7 @@ export function ContributionLogModal({
               Skip for now
             </button>
             <div className="flex items-center space-x-3">
-              <Button
-                variant="ghost"
-                onClick={onClose}
-                disabled={loading}
-              >
+              <Button variant="ghost" onClick={onClose} disabled={loading}>
                 Cancel
               </Button>
               <Button

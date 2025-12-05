@@ -1,12 +1,21 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { FileText, Github, Link as LinkIcon, Check, X, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
+import {
+  FileText,
+  Github,
+  Link as LinkIcon,
+  Check,
+  X,
+  Loader2,
+  AlertCircle,
+  RefreshCw,
+} from 'lucide-react';
 import { Button } from '@/components/Button';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useWorkspace } from '@/lib/workspace/WorkspaceContext';
-import { 
-  getIntegrationByPlatform, 
+import {
+  getIntegrationByPlatform,
   getUserIntegrations,
   deleteIntegration,
   getLinkedDocuments,
@@ -25,7 +34,9 @@ export function IntegrationsSettings() {
   const { currentWorkspace } = useWorkspace();
   const [integrations, setIntegrations] = useState<ExternalIntegration[]>([]);
   const [linkedDocs, setLinkedDocs] = useState<LinkedDocument[]>([]);
-  const [availableDocs, setAvailableDocs] = useState<Array<{ id: string; name: string; modifiedTime: string; webViewLink: string }>>([]);
+  const [availableDocs, setAvailableDocs] = useState<
+    Array<{ id: string; name: string; modifiedTime: string; webViewLink: string }>
+  >([]);
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [connecting, setConnecting] = useState(false);
@@ -44,7 +55,7 @@ export function IntegrationsSettings() {
       const params = new URLSearchParams(window.location.search);
       const success = params.get('success');
       const error = params.get('error');
-      
+
       if (success === 'google_connected') {
         showToast.success('Google account connected successfully!');
         // Clean up URL
@@ -64,7 +75,7 @@ export function IntegrationsSettings() {
 
     try {
       setLoading(true);
-      
+
       // Load integrations
       const userIntegrations = await getUserIntegrations(user.id, currentWorkspace.id);
       setIntegrations(userIntegrations);
@@ -82,7 +93,7 @@ export function IntegrationsSettings() {
       setLinkedDocs(allLinkedDocs);
 
       // If Google Docs integration exists, load available documents
-      const googleIntegration = userIntegrations.find(i => i.platform === 'google_docs');
+      const googleIntegration = userIntegrations.find((i) => i.platform === 'google_docs');
       if (googleIntegration && !isTokenExpired(googleIntegration.token_expires_at)) {
         await loadAvailableDocuments(googleIntegration.access_token);
       }
@@ -150,7 +161,7 @@ export function IntegrationsSettings() {
       return;
     }
 
-    const googleIntegration = integrations.find(i => i.platform === 'google_docs');
+    const googleIntegration = integrations.find((i) => i.platform === 'google_docs');
     if (!googleIntegration) {
       showToast.error('Please connect Google first');
       return;
@@ -209,15 +220,13 @@ export function IntegrationsSettings() {
     );
   }
 
-  const googleIntegration = integrations.find(i => i.platform === 'google_docs');
-  const githubIntegration = integrations.find(i => i.platform === 'github');
+  const googleIntegration = integrations.find((i) => i.platform === 'google_docs');
+  const githubIntegration = integrations.find((i) => i.platform === 'github');
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-          Integrations
-        </h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Integrations</h2>
         <p className="text-gray-600 dark:text-gray-400">
           Connect external platforms to automatically track your contributions
         </p>
@@ -254,10 +263,7 @@ export function IntegrationsSettings() {
               </Button>
             </div>
           ) : (
-            <Button
-              variant="primary"
-              onClick={handleConnectGoogle}
-            >
+            <Button variant="primary" onClick={handleConnectGoogle}>
               <FileText className="w-4 h-4 mr-2" />
               Connect Google
             </Button>
@@ -290,7 +296,7 @@ export function IntegrationsSettings() {
               <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
                 Link a Document to a Project
               </h4>
-              
+
               {/* Project Selector */}
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -323,7 +329,9 @@ export function IntegrationsSettings() {
                   ) : (
                     <div className="space-y-2 max-h-64 overflow-y-auto">
                       {availableDocs
-                        .filter((doc) => !linkedDocs.some((linked) => linked.document_id === doc.id))
+                        .filter(
+                          (doc) => !linkedDocs.some((linked) => linked.document_id === doc.id)
+                        )
                         .map((doc) => (
                           <button
                             key={doc.id}
@@ -357,7 +365,7 @@ export function IntegrationsSettings() {
                 </h4>
                 <div className="space-y-2">
                   {linkedDocs.map((doc) => {
-                    const project = projects.find(p => p.id === doc.project_id);
+                    const project = projects.find((p) => p.id === doc.project_id);
                     return (
                       <div
                         key={doc.id}
@@ -373,7 +381,8 @@ export function IntegrationsSettings() {
                               <span>Project: {project?.name || 'Unknown'}</span>
                               <span>•</span>
                               <span>
-                                Last synced: {doc.last_synced_at 
+                                Last synced:{' '}
+                                {doc.last_synced_at
                                   ? new Date(doc.last_synced_at).toLocaleDateString()
                                   : 'Never'}
                               </span>
@@ -419,9 +428,7 @@ export function IntegrationsSettings() {
               <Github className="w-6 h-6 text-gray-600 dark:text-gray-400" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                GitHub
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">GitHub</h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Track commits, pull requests, and code contributions
               </p>
@@ -442,11 +449,7 @@ export function IntegrationsSettings() {
               </Button>
             </div>
           ) : (
-            <Button
-              variant="ghost"
-              onClick={handleConnectGitHub}
-              disabled
-            >
+            <Button variant="ghost" onClick={handleConnectGitHub} disabled>
               <Github className="w-4 h-4 mr-2" />
               Coming Soon
             </Button>
@@ -462,8 +465,8 @@ export function IntegrationsSettings() {
               Privacy & Security
             </p>
             <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-              We only request read-only access to your documents. You can disconnect any integration at any time.
-              Your data is never shared with third parties.
+              We only request read-only access to your documents. You can disconnect any integration
+              at any time. Your data is never shared with third parties.
             </p>
           </div>
         </div>

@@ -2,16 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  X,
-  CheckCircle2,
-  Clock,
-  AlertCircle,
-  Calendar,
-  User,
-  Flag,
-  Plus,
-} from 'lucide-react';
+import { X, CheckCircle2, Clock, AlertCircle, Calendar, User, Flag, Plus } from 'lucide-react';
 import { Button } from '@/components/Button';
 import { createTask, getTeamMembers, addTaskAssignees } from '@/lib/db/queries';
 import { supabase } from '@/lib/supabase';
@@ -39,7 +30,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   const [status, setStatus] = useState<TaskStatus>('todo');
   const [priority, setPriority] = useState<TaskPriority>('medium');
   const [dueDate, setDueDate] = useState('');
-  
+
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -67,18 +58,23 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
     try {
       // Get user ID from Supabase auth
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const newTask = await createTask({
-        project_id: projectId,
-        title,
-        description: description || null,
-        assigned_to: assignedTo || null, // Keep for backward compatibility
-        status,
-        priority,
-        due_date: dueDate || null,
-      }, user.id);
+      const newTask = await createTask(
+        {
+          project_id: projectId,
+          title,
+          description: description || null,
+          assigned_to: assignedTo || null, // Keep for backward compatibility
+          status,
+          priority,
+          due_date: dueDate || null,
+        },
+        user.id
+      );
 
       // Add multiple assignees if selected
       if (selectedAssignees.length > 0) {
@@ -191,7 +187,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 multiple
                 value={selectedAssignees}
                 onChange={(e) => {
-                  const values = Array.from(e.target.selectedOptions, option => option.value);
+                  const values = Array.from(e.target.selectedOptions, (option) => option.value);
                   setSelectedAssignees(values);
                 }}
                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[120px]"
@@ -277,7 +273,9 @@ export const TaskModal: React.FC<TaskModalProps> = ({
               disabled={!title.trim() || loading}
               className="flex-1 flex items-center justify-center"
             >
-              {loading ? 'Creating...' : (
+              {loading ? (
+                'Creating...'
+              ) : (
                 <>
                   <Plus size={18} className="mr-2" />
                   Create Task

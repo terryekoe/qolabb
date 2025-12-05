@@ -6,20 +6,20 @@ import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import Typography from '@tiptap/extension-typography';
 import { supabase } from '@/lib/supabase';
-import { 
-  Bold, 
-  Italic, 
-  List, 
-  ListOrdered, 
-  Heading1, 
-  Heading2, 
+import {
+  Bold,
+  Italic,
+  List,
+  ListOrdered,
+  Heading1,
+  Heading2,
   Heading3,
   Quote,
   Undo,
   Redo,
   Save,
   CheckCircle2,
-  Loader2
+  Loader2,
 } from 'lucide-react';
 
 interface GroupWorkspaceEditorProps {
@@ -28,7 +28,11 @@ interface GroupWorkspaceEditorProps {
   isReadOnly?: boolean;
 }
 
-export function GroupWorkspaceEditor({ projectId, initialContent, isReadOnly = false }: GroupWorkspaceEditorProps) {
+export function GroupWorkspaceEditor({
+  projectId,
+  initialContent,
+  isReadOnly = false,
+}: GroupWorkspaceEditorProps) {
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -45,7 +49,8 @@ export function GroupWorkspaceEditor({ projectId, initialContent, isReadOnly = f
     editable: !isReadOnly,
     editorProps: {
       attributes: {
-        class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[500px] p-4',
+        class:
+          'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[500px] p-4',
       },
     },
     onUpdate: () => {
@@ -84,15 +89,15 @@ export function GroupWorkspaceEditor({ projectId, initialContent, isReadOnly = f
           // This creates a basic "last write wins" sync but prevents overwriting if you are typing
           const newContent = payload.new.content;
           if (newContent && !hasUnsavedChanges && !saving) {
-             const currentContent = editor.getJSON();
-             // Simple deep comparison could be better, but for now just update if different
-             if (JSON.stringify(currentContent) !== JSON.stringify(newContent)) {
-               editor.commands.setContent(newContent);
-               setLastSaved(new Date(payload.new.last_edited_at));
-             }
+            const currentContent = editor.getJSON();
+            // Simple deep comparison could be better, but for now just update if different
+            if (JSON.stringify(currentContent) !== JSON.stringify(newContent)) {
+              editor.commands.setContent(newContent);
+              setLastSaved(new Date(payload.new.last_edited_at));
+            }
           } else if (payload.new.content && hasUnsavedChanges) {
-             // Optional: Notify user that someone else edited content
-             // toast('External changes detected. Save to see them.');
+            // Optional: Notify user that someone else edited content
+            // toast('External changes detected. Save to see them.');
           }
         }
       )
@@ -105,17 +110,17 @@ export function GroupWorkspaceEditor({ projectId, initialContent, isReadOnly = f
 
   const saveContent = async () => {
     if (!editor) return;
-    
+
     setSaving(true);
     try {
       const content = editor.getJSON();
-      
+
       const { error } = await supabase
         .from('projects')
-        .update({ 
+        .update({
           content,
           last_edited_at: new Date().toISOString(),
-          // last_edited_by would be set by RLS or trigger ideally, 
+          // last_edited_by would be set by RLS or trigger ideally,
           // but we can also set it here if we have the user context.
           // For now, relying on the update timestamp.
         })
@@ -142,7 +147,9 @@ export function GroupWorkspaceEditor({ projectId, initialContent, isReadOnly = f
       disabled={disabled}
       title={title}
       className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
-        isActive ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300'
+        isActive
+          ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
+          : 'text-gray-600 dark:text-gray-300'
       } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
     >
       {children}
@@ -171,9 +178,9 @@ export function GroupWorkspaceEditor({ projectId, initialContent, isReadOnly = f
             >
               <Italic size={18} />
             </ToolbarButton>
-            
+
             <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-2" />
-            
+
             <ToolbarButton
               onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
               isActive={editor.isActive('heading', { level: 1 })}
@@ -260,7 +267,10 @@ export function GroupWorkspaceEditor({ projectId, initialContent, isReadOnly = f
       )}
 
       {/* Editor Content */}
-      <div className="flex-1 overflow-y-auto bg-white dark:bg-gray-800 cursor-text" onClick={() => editor.chain().focus().run()}>
+      <div
+        className="flex-1 overflow-y-auto bg-white dark:bg-gray-800 cursor-text"
+        onClick={() => editor.chain().focus().run()}
+      >
         <EditorContent editor={editor} />
       </div>
     </div>

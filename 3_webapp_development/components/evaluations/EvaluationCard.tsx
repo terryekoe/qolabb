@@ -69,7 +69,7 @@ export function EvaluationCard({ evaluationResponse, onClick }: EvaluationCardPr
                 <AlertCircle className="text-red-500 dark:text-red-400 flex-shrink-0" size={16} />
               )}
             </div>
-            
+
             <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
               <div className="flex items-center gap-1">
                 <Calendar size={14} />
@@ -78,13 +78,16 @@ export function EvaluationCard({ evaluationResponse, onClick }: EvaluationCardPr
               {period.project && (
                 <div className="flex items-center gap-1">
                   <FolderKanban size={14} />
-                  <span className="font-medium text-gray-700 dark:text-gray-300">{period.project.name}</span>
+                  <span className="font-medium text-gray-700 dark:text-gray-300">
+                    {period.project.name}
+                  </span>
                 </div>
               )}
               <div className="flex items-center gap-1">
                 <Clock size={14} />
                 <span>
-                  Due {isOverdue ? formatDistanceToNow(dueDate) + ' ago' : formatDistanceToNow(dueDate)}
+                  Due{' '}
+                  {isOverdue ? formatDistanceToNow(dueDate) + ' ago' : formatDistanceToNow(dueDate)}
                 </span>
               </div>
               {!evaluatee?.full_name && (

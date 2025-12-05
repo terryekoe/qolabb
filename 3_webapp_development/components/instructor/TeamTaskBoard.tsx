@@ -31,16 +31,19 @@ export function TeamTaskBoard({ projectId, teamName }: TeamTaskBoardProps) {
   }
 
   const tasksByStatus = {
-    todo: tasks.filter(t => t.status === 'todo'),
-    in_progress: tasks.filter(t => t.status === 'in_progress'),
-    completed: tasks.filter(t => t.status === 'completed'),
+    todo: tasks.filter((t) => t.status === 'todo'),
+    in_progress: tasks.filter((t) => t.status === 'in_progress'),
+    completed: tasks.filter((t) => t.status === 'completed'),
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300';
-      case 'medium': return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300';
-      default: return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300';
+      case 'high':
+        return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300';
+      case 'medium':
+        return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300';
+      default:
+        return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300';
     }
   };
 
@@ -67,7 +70,7 @@ export function TeamTaskBoard({ projectId, teamName }: TeamTaskBoardProps) {
             </span>
           </div>
           <div className="flex-1 overflow-y-auto space-y-3 pr-2 min-h-0 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
-            {tasksByStatus.todo.map(task => (
+            {tasksByStatus.todo.map((task) => (
               <TaskCard key={task.id} task={task} getPriorityColor={getPriorityColor} />
             ))}
             {tasksByStatus.todo.length === 0 && (
@@ -88,7 +91,7 @@ export function TeamTaskBoard({ projectId, teamName }: TeamTaskBoardProps) {
             </span>
           </div>
           <div className="flex-1 overflow-y-auto space-y-3 pr-2 min-h-0 scrollbar-thin scrollbar-thumb-blue-200 dark:scrollbar-thumb-blue-800">
-            {tasksByStatus.in_progress.map(task => (
+            {tasksByStatus.in_progress.map((task) => (
               <TaskCard key={task.id} task={task} getPriorityColor={getPriorityColor} />
             ))}
             {tasksByStatus.in_progress.length === 0 && (
@@ -109,7 +112,7 @@ export function TeamTaskBoard({ projectId, teamName }: TeamTaskBoardProps) {
             </span>
           </div>
           <div className="flex-1 overflow-y-auto space-y-3 pr-2 min-h-0 scrollbar-thin scrollbar-thumb-green-200 dark:scrollbar-thumb-green-800">
-            {tasksByStatus.completed.map(task => (
+            {tasksByStatus.completed.map((task) => (
               <TaskCard key={task.id} task={task} getPriorityColor={getPriorityColor} />
             ))}
             {tasksByStatus.completed.length === 0 && (
@@ -122,13 +125,19 @@ export function TeamTaskBoard({ projectId, teamName }: TeamTaskBoardProps) {
   );
 }
 
-function TaskCard({ task, getPriorityColor }: { task: any, getPriorityColor: (p: string) => string }) {
+function TaskCard({
+  task,
+  getPriorityColor,
+}: {
+  task: any;
+  getPriorityColor: (p: string) => string;
+}) {
   // Combine single assignee and multi-assignees for display
   const allAssignees: any[] = [];
   if (task.assignee) allAssignees.push(task.assignee);
   if (task.assignees && task.assignees.length > 0) {
     task.assignees.forEach((a: any) => {
-      if (!allAssignees.find(existing => existing.id === a.user.id)) {
+      if (!allAssignees.find((existing) => existing.id === a.user.id)) {
         allAssignees.push(a.user);
       }
     });
@@ -137,38 +146,47 @@ function TaskCard({ task, getPriorityColor }: { task: any, getPriorityColor: (p:
   return (
     <div className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
       <div className="flex justify-between items-start mb-2">
-        <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${getPriorityColor(task.priority)}`}>
+        <span
+          className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${getPriorityColor(task.priority)}`}
+        >
           {task.priority.toUpperCase()}
         </span>
         {task.due_date && (
-          <span className={`text-[10px] flex items-center ${
-            new Date(task.due_date) < new Date() && task.status !== 'completed' 
-              ? 'text-red-600' 
-              : 'text-gray-500'
-          }`}>
-            {new Date(task.due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+          <span
+            className={`text-[10px] flex items-center ${
+              new Date(task.due_date) < new Date() && task.status !== 'completed'
+                ? 'text-red-600'
+                : 'text-gray-500'
+            }`}
+          >
+            {new Date(task.due_date).toLocaleDateString(undefined, {
+              month: 'short',
+              day: 'numeric',
+            })}
           </span>
         )}
       </div>
-      
+
       <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1 line-clamp-2">
         {task.title}
       </h4>
-      
+
       <div className="flex items-center justify-between mt-3">
         <div className="flex -space-x-1.5">
           {allAssignees.length > 0 ? (
-            allAssignees.slice(0, 3).map((user: any) => (
-              <Avatar 
-                key={user.id} 
-                userId={user.id}
-                name={user.full_name}
-                src={user.avatar_url} 
-                alt={user.full_name} 
-                size="xs"
-                className="border border-white dark:border-gray-800"
-              />
-            ))
+            allAssignees
+              .slice(0, 3)
+              .map((user: any) => (
+                <Avatar
+                  key={user.id}
+                  userId={user.id}
+                  name={user.full_name}
+                  src={user.avatar_url}
+                  alt={user.full_name}
+                  size="xs"
+                  className="border border-white dark:border-gray-800"
+                />
+              ))
           ) : (
             <span className="text-[10px] text-gray-400 italic">Unassigned</span>
           )}
