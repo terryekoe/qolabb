@@ -28,6 +28,7 @@ import {
   ClipboardCheck,
   TrendingUp,
   X,
+  ChevronDown,
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/Button';
@@ -1145,368 +1146,162 @@ function TasksPageContent() {
   ] : [];
 
   const renderFocusView = () => {
-    const hasMyTasks = upcomingTasks.length > 0;
+    // Group tasks by status
+    const todoTasks = myTasksAll.filter((t: any) => t.status === 'todo');
+    const inProgressTasks = myTasksAll.filter((t: any) => t.status === 'in_progress');
+    const completedTasks = myTasksAll.filter((t: any) => t.status === 'completed');
+    const hasTasks = myTasksAll.length > 0;
 
-    return (
-      <div className="space-y-6">
-        <div className="bg-gradient-to-br from-blue-600 to-blue-500 text-white rounded-2xl p-6 sm:p-8 shadow-sm">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-            <div className="space-y-3 max-w-2xl">
-              <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-white/70">
-                <CheckSquare size={16} />
-                My Contributions
-              </span>
-              <h1 className="text-2xl sm:text-3xl font-bold">Your Contribution History</h1>
-              <p className="text-sm sm:text-base text-white/80">
-                Track your submitted work and see what's pending. You have completed{' '}
-                <strong>{taskCounts.completed}</strong> contributions so far.
+    const TaskCard = ({ task }: { task: any }) => {
+      const dueDate = task.due_date ? new Date(task.due_date) : null;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const isOverdue = !!dueDate && dueDate < today && task.status !== 'completed';
+
+      return (
+        <div
+          onClick={() => openTaskDetail(task)}
+          className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md transition-all cursor-pointer"
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <h3 className="font-medium text-gray-900 dark:text-gray-100 line-clamp-2">
+                {task.title}
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1">
+                <FolderKanban size={12} />
+                <span className="truncate">{task.project_name}</span>
               </p>
             </div>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Button
-                variant="secondary"
-                onClick={() => setViewMode('board')}
-                className="flex items-center gap-2 !bg-white dark:!bg-gray-800 !text-blue-600 dark:!text-blue-400 hover:!bg-white/90 dark:hover:!bg-gray-700"
+            {task.due_date && (
+              <span
+                className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
+                  isOverdue
+                    ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                    : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
+                }`}
               >
-                <FolderKanban size={18} />
-                Open group board
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={() => setShowAdvancedTools(true)}
-                className="!text-white !border !border-white/40 hover:!bg-white/10"
-              >
-                Show contribution options
-              </Button>
-            </div>
+                {formatDueDate(task.due_date)}
+              </span>
+            )}
           </div>
         </div>
+      );
+    };
 
-        <section className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                <Clock size={18} className="text-blue-500" />
-                Pending Submissions
-              </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Active tasks that need to be completed and submitted.
-              </p>
-            </div>
-            {hasMyTasks && (
-              <span className="text-xs text-gray-500">
-                Showing up to {Math.min(upcomingTasks.length, 5)} contribution
-                {upcomingTasks.length === 1 ? '' : 's'} needing attention
-              </span>
-            )}
-          </div>
+    const StatusSection = ({
+      title,
+      icon,
+      color,
+      tasks,
+      emptyText,
+      defaultCollapsed = false,
+    }: {
+      title: string;
+      icon: React.ReactNode;
+      color: string;
+      tasks: any[];
+      emptyText: string;
+      defaultCollapsed?: boolean;
+    }) => {
+      const [collapsed, setCollapsed] = React.useState(defaultCollapsed);
 
-          {hasMyTasks ? (
-            <div className="space-y-3">
-              {upcomingTasks.map((task: any) => {
-                const dueDate = task.due_date ? new Date(task.due_date) : null;
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                const isOverdue = !!dueDate && dueDate < today;
-                const isDueSoon =
-                  !!dueDate &&
-                  !isOverdue &&
-                  dueDate.getTime() - today.getTime() <= 1000 * 60 * 60 * 48;
-                const statusConfig = getStatusConfig(task.status);
-
-                const nextAction: { label: string; status: TaskStatus } | null =
-                  task.status === 'todo'
-                    ? { label: 'Start contribution', status: 'in_progress' }
-                    : task.status === 'in_progress'
-                      ? { label: 'Mark done', status: 'completed' }
-                      : null;
-
-                return (
-                  <div
-                    key={task.id}
-                    className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm transition-all hover:border-blue-200 dark:hover:border-blue-600 hover:shadow-md cursor-pointer"
-                    onClick={() => openTaskDetail(task)}
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="min-w-0">
-                        <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm sm:text-base line-clamp-2">
-                          {task.title}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                          <FolderKanban size={12} />
-                          <span className="truncate">{task.project_name}</span>
-                        </p>
-                      </div>
-                      <span
-                        className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
-                          isOverdue
-                            ? 'bg-qolabb-orange-100 text-qolabb-orange-700'
-                            : isDueSoon
-                              ? 'bg-qolabb-yellow-100 text-qolabb-yellow-700'
-                              : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-                        }`}
-                      >
-                        <Calendar size={12} />
-                        {formatDueDate(task.due_date)}
-                      </span>
-                    </div>
-
-                    {task.description && (
-                      <p className="mt-3 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-                        {task.description}
-                      </p>
-                    )}
-
-                    <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-gray-600">
-                      <span
-                        className={`inline-flex items-center gap-1 px-2 py-1 rounded-full border ${statusConfig.color}`}
-                      >
-                        {statusConfig.icon}
-                        {statusConfig.label}
-                      </span>
-                      {task.priority && (
-                        <span className="inline-flex items-center gap-1">
-                          <Flag size={12} className={getPriorityColor(task.priority)} />
-                          {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)} priority
-                        </span>
-                      )}
-                      {task.assignees && task.assignees.length > 1 && (
-                        <span className="inline-flex items-center gap-1 text-gray-500">
-                          <UsersIcon size={12} />
-                          {task.assignees.length} teammates
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {nextAction && (
-                        <Button
-                          size="sm"
-                          variant="primary"
-                          onClick={(event) => {
-                            event?.stopPropagation();
-                            handleUpdateTaskStatus(task.id, nextAction.status);
-                          }}
-                        >
-                          {nextAction.label}
-                        </Button>
-                      )}
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={(event) => {
-                          event?.stopPropagation();
-                          openTaskDetail(task);
-                        }}
-                      >
-                        View details
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 text-center shadow-sm">
-              <p className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                You're all caught up!
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                No contributions are assigned to you yet. Browse the board or create one together.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button
-                  variant="primary"
-                  onClick={() => setViewMode('board')}
-                  className="flex items-center gap-2"
-                >
-                  <FolderKanban size={18} />
-                  Browse board
-                </Button>
-                {projects.length > 0 && !isInstructor && (
-                  <Button
-                    variant="secondary"
-                    onClick={() => {
-                      if (projects.length === 1) {
-                        handleCreateTask(projects[0]);
-                      } else {
-                        setShowAdvancedTools(true);
-                      }
-                    }}
-                  >
-                    Create a contribution with my group
-                  </Button>
-                )}
-              </div>
-            </div>
-          )}
-        </section>
-
-        {/* Completed Contributions Section */}
-        <section className="space-y-4">
-          <div className="flex items-center gap-2">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-              <CheckCircle2 size={18} className="text-green-600" />
-              Completed Contributions
+      return (
+        <div className="space-y-3">
+          <button
+            onClick={() => tasks.length > 0 && setCollapsed(!collapsed)}
+            className="flex items-center gap-2 w-full text-left"
+          >
+            <span className={`p-1.5 rounded-lg ${color}`}>{icon}</span>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              {title}
             </h2>
-            <span className="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-semibold">
-              {taskCounts.completed}
+            <span
+              className={`px-2 py-0.5 rounded-full text-xs font-medium ${color}`}
+            >
+              {tasks.length}
             </span>
-          </div>
+            {tasks.length > 0 && (
+              <ChevronDown
+                size={16}
+                className={`ml-auto text-gray-400 transition-transform ${
+                  collapsed ? '-rotate-90' : ''
+                }`}
+              />
+            )}
+          </button>
 
-          {myTasksAll.filter((t: any) => t.status === 'completed').length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {myTasksAll
-                .filter((t: any) => t.status === 'completed')
-                .sort(
-                  (a: any, b: any) =>
-                    new Date(b.updated_at || b.created_at).getTime() -
-                    new Date(a.updated_at || a.created_at).getTime()
-                )
-                .map((task: any) => (
-                  <div
-                    key={task.id}
-                    onClick={() => openTaskDetail(task)}
-                    className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:shadow-md transition-all cursor-pointer group"
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-gray-900 dark:text-gray-100 line-clamp-1">
-                          {task.title}
-                        </h3>
-                        <div className="flex items-center text-xs text-gray-500 mt-1">
-                          <FolderKanban size={12} className="mr-1" />
-                          <span className="truncate">{task.project_name}</span>
-                        </div>
-                      </div>
-                      <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full font-medium whitespace-nowrap ml-2">
-                        Submitted{' '}
-                        {new Date(task.updated_at || task.created_at).toLocaleDateString()}
-                      </span>
-                    </div>
-                    {task.description && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-3">
-                        {task.description}
-                      </p>
-                    )}
-                    <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-700">
-                      <span className="text-xs text-gray-500">Click to view submission</span>
-                      <ArrowRight
-                        size={14}
-                        className="text-gray-400 group-hover:text-blue-500 transition-colors"
-                      />
-                    </div>
-                  </div>
-                ))}
-            </div>
-          ) : (
-            <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-8 text-center border border-dashed border-gray-300 dark:border-gray-700">
-              <p className="text-gray-500 dark:text-gray-400">No completed contributions yet.</p>
+          {!collapsed && (
+            <div className="space-y-2">
+              {tasks.length > 0 ? (
+                tasks.map((task: any) => <TaskCard key={task.id} task={task} />)
+              ) : (
+                <p className="text-sm text-gray-400 dark:text-gray-500 py-2 px-4">
+                  {emptyText}
+                </p>
+              )}
             </div>
           )}
-        </section>
+        </div>
+      );
+    };
 
-        {overdueMyTasks.length > 0 && (
-          <section className="bg-qolabb-orange-50 border border-qolabb-orange-200 rounded-xl p-5 space-y-3">
-            <div className="flex items-center gap-2 text-qolabb-orange-800 font-semibold">
-              <AlertCircle size={18} />
-              Needs attention soon
-            </div>
-            <p className="text-sm text-qolabb-orange-700">
-              These contributions are past their due date. Open the details to ask for help or
-              reassign together.
-            </p>
-            <div className="space-y-2">
-              {overdueMyTasks.slice(0, 3).map((task: any) => (
-                <button
-                  key={task.id}
-                  onClick={() => openTaskDetail(task)}
-                  className="w-full bg-white/80 dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-700 border border-red-100 dark:border-red-900/30 rounded-lg px-3 py-2 flex items-center justify-between text-left transition"
-                >
-                  <span className="text-sm font-medium text-qolabb-orange-800 truncate pr-3">
-                    {task.title}
-                  </span>
-                  <span className="text-xs text-qolabb-orange-700">
-                    {formatDueDate(task.due_date)}
-                  </span>
-                </button>
-              ))}
-            </div>
-            {overdueMyTasks.length > 3 && (
-              <p className="text-xs text-qolabb-orange-700">
-                +{overdueMyTasks.length - 3} more overdue contribution
-                {overdueMyTasks.length - 3 === 1 ? '' : 's'} on the board
-              </p>
-            )}
-          </section>
-        )}
-
-        {isSupportRole && unassignedTeamTasks.length > 0 && (
-          <section className="bg-blue-50 border border-blue-200 rounded-xl p-5 space-y-3">
-            <div className="flex items-center gap-2 text-blue-900 font-semibold">
-              <Lightbulb size={18} />
-              Contributions waiting for an owner
-            </div>
-            <p className="text-sm text-blue-800">
-              {unassignedTeamTasks.length} contribution{unassignedTeamTasks.length === 1 ? '' : 's'}{' '}
-              need someone to take the lead. Assign a teammate or invite learners from the group
-              board.
-            </p>
-            <Button
-              variant="secondary"
-              onClick={() => setViewMode('board')}
-              className="flex items-center gap-2 w-fit"
+    return (
+      <div className="space-y-8">
+        {/* Simple header */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            My Tasks
+          </h1>
+          {pendingEvaluations.length > 0 && (
+            <button
+              onClick={() => setViewMode('evaluations')}
+              className="text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
             >
-              <UsersIcon size={16} />
-              Review together
-            </Button>
-          </section>
-        )}
+              <ClipboardCheck size={14} />
+              {pendingEvaluations.length} peer review{pendingEvaluations.length === 1 ? '' : 's'} pending
+            </button>
+          )}
+        </div>
 
-        {recentWins.length > 0 && (
-          <section className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 shadow-sm">
-            <div className="flex items-center gap-2 text-qolabb-green-700 font-semibold mb-3">
-              <CheckCircle2 size={18} />
-              Recent wins
-            </div>
-            <div className="space-y-2">
-              {recentWins.map((task: any) => (
-                <div
-                  key={task.id}
-                  className="flex items-center justify-between text-sm text-gray-700 dark:text-gray-300"
-                >
-                  <span className="truncate pr-3">{task.title}</span>
-                  <span className="text-xs text-gray-400">
-                    {formatDueDate(task.updated_at || task.completed_at || task.created_at)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
+        {hasTasks ? (
+          <>
+            <StatusSection
+              title="To Do"
+              icon={<AlertCircle size={16} className="text-orange-600" />}
+              color="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
+              tasks={todoTasks}
+              emptyText="No tasks to start"
+            />
 
-        <section className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 shadow-sm">
-          <div className="flex items-start gap-3">
-            <HelpCircle size={18} className="text-blue-500 dark:text-blue-400 mt-1" />
-            <div className="space-y-2">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Quick tips</h3>
-              <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                <li>
-                  • Start one contribution at a time. When you finish, log what you contributed so
-                  the class can celebrate it.
-                </li>
-                <li>
-                  • If something feels unclear, open the contribution details and leave a comment
-                  asking for next steps.
-                </li>
-                <li>
-                  • Need more controls? Tap "Show contribution options" above to reveal filters and
-                  advanced tools.
-                </li>
-              </ul>
-            </div>
+            <StatusSection
+              title="In Progress"
+              icon={<Clock size={16} className="text-blue-600" />}
+              color="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+              tasks={inProgressTasks}
+              emptyText="No tasks in progress"
+            />
+
+            <StatusSection
+              title="Completed"
+              icon={<CheckCircle2 size={16} className="text-green-600" />}
+              color="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+              tasks={completedTasks}
+              emptyText="No completed tasks yet"
+              defaultCollapsed={completedTasks.length > 3}
+            />
+          </>
+        ) : (
+          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-8 text-center">
+            <CheckSquare size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+              No tasks assigned yet
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Your team leader will assign tasks to you from the Assignments page.
+            </p>
           </div>
-        </section>
+        )}
       </div>
     );
   };
