@@ -1126,13 +1126,8 @@ function TasksPageContent() {
     setSearchQuery('');
   }, []);
 
-  const viewTabs = [
-    {
-      id: 'focus',
-      label: 'My Contributions',
-      description: 'Track your work history',
-      icon: CheckSquare,
-    },
+  // View tabs - only show for instructors, students get focused view only
+  const viewTabs = isInstructor ? [
     {
       id: 'evaluations',
       label: 'Peer Reviews',
@@ -1147,7 +1142,7 @@ function TasksPageContent() {
       icon: CheckSquare,
     },
     { id: 'team', label: 'Group Workload', description: 'Balance work fairly', icon: UsersIcon },
-  ].filter((tab) => !isInstructor || tab.id !== 'focus') as any;
+  ] : [];
 
   const renderFocusView = () => {
     const hasMyTasks = upcomingTasks.length > 0;
@@ -2453,7 +2448,8 @@ function TasksPageContent() {
   return (
     <DashboardLayout>
       <div className="h-full overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-6">
-        {/* View Tabs Navigation */}
+        {/* View Tabs Navigation - Only shown for instructors */}
+        {viewTabs.length > 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-2 shadow-sm">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
             {viewTabs.map((tab: any) => {
@@ -2502,6 +2498,7 @@ function TasksPageContent() {
             })}
           </div>
         </div>
+        )}
 
         {/* Advanced Tools Banner */}
         {viewMode !== 'focus' && !showAdvancedTools && (
