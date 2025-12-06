@@ -57,7 +57,7 @@ import {
 import { ProjectDiscussion } from '@/lib/db'; // Import from queries as it's defined there
 import { ProjectDiscussions } from '@/components/communication/ProjectDiscussions';
 import { ProjectSubmissionModal } from '@/components/projects/ProjectSubmissionModal';
-import { GroupWorkspaceEditor } from '@/components/editor/GroupWorkspaceEditor';
+import { GroupWorkspaceEditor } from '@/components/editor/LazyGroupWorkspaceEditor';
 
 export default function ProjectDetailPage() {
   const params = useParams();

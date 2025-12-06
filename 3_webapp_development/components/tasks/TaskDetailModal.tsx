@@ -78,6 +78,11 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [loadingContributions, setLoadingContributions] = useState(false);
   const [error, setError] = useState('');
+  
+  // Work content state for student work output
+  const [workContent, setWorkContent] = useState('');
+  const [savingWork, setSavingWork] = useState(false);
+  const [workSaved, setWorkSaved] = useState(false);
 
   // Check if user can manage attachments (either has canManage permission OR is assigned to the task)
   const canManageAttachments = React.useMemo(() => {
@@ -100,6 +105,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
       setEditPriority(task.priority || 'medium');
       setEditAssignedTo(task.assigned_to || '');
       setEditDueDate(task.due_date ? task.due_date.split('T')[0] : '');
+      setWorkContent(task.work_content || '');
 
       // Load team members, contributions, and assignees
       loadTeamMembers();
@@ -107,6 +113,26 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
       loadAssignees();
     }
   }, [task, isOpen]);
+
+  // Auto-save work content after 1.5 seconds of no typing
+  useEffect(() => {
+    if (!task?.id || !workContent || workContent === (task.work_content || '')) return;
+    
+    const saveTimer = setTimeout(async () => {
+      try {
+        setSavingWork(true);
+        await updateTask(task.id, { work_content: workContent });
+        setWorkSaved(true);
+        setTimeout(() => setWorkSaved(false), 2000);
+      } catch (err) {
+        console.error('Error saving work:', err);
+      } finally {
+        setSavingWork(false);
+      }
+    }, 1500);
+
+    return () => clearTimeout(saveTimer);
+  }, [workContent, task?.id, task?.work_content]);
 
   async function loadTeamMembers() {
     if (!task?.team_id) return;
@@ -430,6 +456,57 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Left Column - Main Content */}
                 <div className="lg:col-span-2 space-y-6">
+                  {/* Your Work Section - For assigned students */}
+                  {(canManageAttachments || task?.status === 'completed') && (
+                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center">
+                          <Edit3 size={18} className="mr-2 text-blue-600" />
+                          Your Work
+                        </h3>
+                        {canManageAttachments && (
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                            {savingWork ? (
+                              <span className="text-blue-600 flex items-center">
+                                <Clock size={12} className="mr-1 animate-spin" />
+                                Saving...
+                              </span>
+                            ) : workSaved ? (
+                              <span className="text-green-600 flex items-center">
+                                <CheckCircle2 size={12} className="mr-1" />
+                                Saved
+                              </span>
+                            ) : (
+                              'Auto-saves as you type'
+                            )}
+                          </span>
+                        )}
+                      </div>
+                      
+                      {canManageAttachments && task?.status !== 'completed' ? (
+                        <textarea
+                          value={workContent}
+                          onChange={(e) => setWorkContent(e.target.value)}
+                          rows={8}
+                          className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                          placeholder="Type your work here... This is where you can write your research notes, answers, analysis, or any text content for this task."
+                        />
+                      ) : workContent ? (
+                        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                          <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                            {workContent}
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-4 border border-dashed border-gray-300 dark:border-gray-600 text-center">
+                          <p className="text-gray-400 dark:text-gray-500 italic">
+                            No work content added yet
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {/* Subtasks */}
                   {user && <TaskSubtasks taskId={task.id} userId={user.id} />}
 

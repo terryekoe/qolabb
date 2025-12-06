@@ -4,7 +4,7 @@ import { X, FileText, Link as LinkIcon, Download, Save, Loader2 } from 'lucide-r
 import { Button } from '@/components/Button';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'react-hot-toast';
-import { GroupWorkspaceEditor } from '@/components/editor/GroupWorkspaceEditor';
+import { GroupWorkspaceEditor } from '@/components/editor/LazyGroupWorkspaceEditor';
 
 interface GradingPanelProps {
   isOpen: boolean;

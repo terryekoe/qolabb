@@ -272,6 +272,7 @@ export interface Task {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  work_content: string | null;
 }
 
 export interface Contribution {
@@ -338,7 +339,7 @@ export type TeamMemberInsert = Omit<TeamMember, 'id' | 'joined_at'>;
 export type TeamJoinRequestInsert = Omit<TeamJoinRequest, 'id' | 'created_at' | 'updated_at'>;
 export type TeamAssignmentAuditInsert = Omit<TeamAssignmentAudit, 'id' | 'created_at'>;
 export type ProjectInsert = Omit<Project, 'id' | 'created_at' | 'updated_at'>;
-export type TaskInsert = Omit<Task, 'id' | 'created_by' | 'created_at' | 'updated_at'>;
+export type TaskInsert = Omit<Task, 'id' | 'created_by' | 'created_at' | 'updated_at' | 'work_content'> & { work_content?: string | null };
 export type ContributionInsert = Omit<Contribution, 'id' | 'created_at' | 'updated_at'>;
 export type ActivityLogInsert = Omit<ActivityLog, 'id' | 'created_at'>;
 
