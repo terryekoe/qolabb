@@ -1,0 +1,1001 @@
+id_student,code_module,code_presentation,gender,region,highest_education,age_band,num_of_prev_attempts,studied_credits,final_result
+1,AAA,2024J,F,South,HE Qualification,35-55,0,60,Withdrawn
+2,CCC,2024B,F,Scotland,Post Graduate Qualification,35-55,2,60,Pass
+3,BBB,2024J,F,Wales,A Level or Equivalent,0-35,0,120,Pass
+4,AAA,2024J,M,South,A Level or Equivalent,55<=,3,120,Pass
+5,DDD,2024B,F,West,Post Graduate Qualification,35-55,1,60,Fail
+6,CCC,2024B,F,North,HE Qualification,35-55,0,30,Withdrawn
+7,CCC,2024B,M,North,A Level or Equivalent,55<=,0,90,Pass
+8,AAA,2024J,M,North,A Level or Equivalent,35-55,1,60,Fail
+9,AAA,2024J,M,East,Lower Than A Level,55<=,3,60,Pass
+10,BBB,2024J,M,Wales,HE Qualification,35-55,0,120,Fail
+11,AAA,2024J,F,Scotland,Post Graduate Qualification,55<=,1,120,Pass
+12,CCC,2024B,M,North,HE Qualification,55<=,1,120,Withdrawn
+13,AAA,2024J,F,North,HE Qualification,0-35,1,120,Withdrawn
+14,AAA,2024J,F,Wales,A Level or Equivalent,35-55,0,90,Pass
+15,CCC,2024B,M,North,HE Qualification,55<=,0,90,Withdrawn
+16,DDD,2024B,M,Wales,Lower Than A Level,55<=,0,30,Withdrawn
+17,BBB,2024J,M,South,HE Qualification,35-55,0,90,Withdrawn
+18,CCC,2024B,F,East,A Level or Equivalent,55<=,2,60,Pass
+19,BBB,2024J,M,Scotland,A Level or Equivalent,0-35,1,60,Distinction
+20,DDD,2024B,F,South,Post Graduate Qualification,55<=,1,60,Withdrawn
+21,AAA,2024J,F,East,HE Qualification,0-35,0,60,Pass
+22,BBB,2024J,M,West,Lower Than A Level,0-35,1,120,Distinction
+23,CCC,2024B,M,Scotland,Post Graduate Qualification,55<=,1,60,Pass
+24,DDD,2024B,M,Central,Post Graduate Qualification,55<=,0,90,Fail
+25,DDD,2024B,F,Scotland,HE Qualification,55<=,0,90,Distinction
+26,BBB,2024J,M,Scotland,Post Graduate Qualification,35-55,0,30,Fail
+27,BBB,2024J,M,North,Lower Than A Level,35-55,0,90,Withdrawn
+28,BBB,2024J,M,Wales,HE Qualification,0-35,0,120,Distinction
+29,DDD,2024B,F,East,Post Graduate Qualification,0-35,0,60,Pass
+30,BBB,2024J,F,East,Post Graduate Qualification,55<=,2,30,Pass
+31,AAA,2024J,F,North,Post Graduate Qualification,35-55,0,60,Fail
+32,AAA,2024J,F,South,Post Graduate Qualification,0-35,0,30,Fail
+33,BBB,2024J,F,South,Post Graduate Qualification,35-55,0,120,Pass
+34,CCC,2024B,F,South,A Level or Equivalent,55<=,0,120,Withdrawn
+35,CCC,2024B,F,Scotland,A Level or Equivalent,0-35,2,60,Withdrawn
+36,DDD,2024B,M,North,Lower Than A Level,0-35,0,120,Fail
+37,BBB,2024J,F,South,A Level or Equivalent,35-55,0,120,Withdrawn
+38,AAA,2024J,M,West,A Level or Equivalent,55<=,0,60,Pass
+39,AAA,2024J,F,East,Post Graduate Qualification,35-55,0,60,Pass
+40,AAA,2024J,F,Wales,Lower Than A Level,0-35,0,90,Withdrawn
+41,AAA,2024J,F,Wales,A Level or Equivalent,35-55,0,30,Withdrawn
+42,CCC,2024B,F,Central,Lower Than A Level,55<=,2,120,Pass
+43,BBB,2024J,M,East,HE Qualification,35-55,0,30,Pass
+44,DDD,2024B,F,Central,A Level or Equivalent,35-55,0,120,Withdrawn
+45,BBB,2024J,F,East,Lower Than A Level,35-55,0,60,Fail
+46,DDD,2024B,F,North,Lower Than A Level,35-55,0,120,Fail
+47,BBB,2024J,F,Wales,A Level or Equivalent,55<=,0,90,Pass
+48,BBB,2024J,M,South,Lower Than A Level,55<=,0,120,Fail
+49,BBB,2024J,F,East,Lower Than A Level,0-35,0,60,Withdrawn
+50,CCC,2024B,M,East,Lower Than A Level,0-35,2,60,Distinction
+51,AAA,2024J,F,Central,A Level or Equivalent,0-35,0,30,Distinction
+52,BBB,2024J,M,Wales,A Level or Equivalent,55<=,1,90,Pass
+53,BBB,2024J,M,Central,Post Graduate Qualification,35-55,1,30,Pass
+54,CCC,2024B,F,East,A Level or Equivalent,35-55,1,60,Pass
+55,AAA,2024J,M,North,Lower Than A Level,55<=,0,90,Fail
+56,CCC,2024B,F,West,A Level or Equivalent,0-35,0,60,Withdrawn
+57,DDD,2024B,M,Scotland,HE Qualification,35-55,0,90,Distinction
+58,AAA,2024J,F,Wales,Lower Than A Level,0-35,2,120,Fail
+59,AAA,2024J,F,East,Post Graduate Qualification,0-35,1,120,Withdrawn
+60,AAA,2024J,M,Central,HE Qualification,55<=,2,90,Pass
+61,AAA,2024J,F,West,Lower Than A Level,0-35,0,60,Distinction
+62,CCC,2024B,M,Central,Lower Than A Level,35-55,2,60,Pass
+63,CCC,2024B,F,Wales,Lower Than A Level,0-35,2,60,Distinction
+64,DDD,2024B,F,East,A Level or Equivalent,55<=,0,120,Pass
+65,BBB,2024J,M,West,Lower Than A Level,55<=,0,120,Fail
+66,CCC,2024B,M,Wales,Lower Than A Level,0-35,0,60,Withdrawn
+67,CCC,2024B,M,South,HE Qualification,55<=,1,90,Fail
+68,DDD,2024B,F,North,HE Qualification,55<=,0,90,Withdrawn
+69,BBB,2024J,F,North,HE Qualification,0-35,1,90,Withdrawn
+70,DDD,2024B,M,Wales,HE Qualification,35-55,3,90,Fail
+71,AAA,2024J,F,East,HE Qualification,35-55,1,90,Withdrawn
+72,AAA,2024J,M,Scotland,A Level or Equivalent,55<=,1,60,Pass
+73,BBB,2024J,F,West,Lower Than A Level,55<=,0,30,Withdrawn
+74,AAA,2024J,F,Scotland,Post Graduate Qualification,55<=,1,120,Fail
+75,AAA,2024J,F,Scotland,HE Qualification,0-35,0,90,Pass
+76,CCC,2024B,F,East,Lower Than A Level,55<=,0,30,Withdrawn
+77,CCC,2024B,M,East,A Level or Equivalent,0-35,1,120,Fail
+78,AAA,2024J,M,East,Post Graduate Qualification,55<=,0,120,Withdrawn
+79,AAA,2024J,F,South,A Level or Equivalent,0-35,1,30,Pass
+80,DDD,2024B,F,North,Lower Than A Level,35-55,1,30,Fail
+81,DDD,2024B,M,Central,Post Graduate Qualification,35-55,0,30,Withdrawn
+82,DDD,2024B,M,Central,Post Graduate Qualification,55<=,0,90,Pass
+83,BBB,2024J,F,Scotland,Post Graduate Qualification,55<=,0,120,Distinction
+84,AAA,2024J,M,East,A Level or Equivalent,35-55,0,120,Pass
+85,CCC,2024B,M,North,HE Qualification,55<=,1,60,Withdrawn
+86,CCC,2024B,F,South,A Level or Equivalent,35-55,1,30,Fail
+87,CCC,2024B,M,Wales,HE Qualification,55<=,1,60,Distinction
+88,DDD,2024B,M,South,Lower Than A Level,0-35,0,90,Withdrawn
+89,BBB,2024J,F,West,HE Qualification,0-35,3,120,Pass
+90,BBB,2024J,F,North,Post Graduate Qualification,35-55,0,60,Withdrawn
+91,DDD,2024B,M,West,HE Qualification,0-35,1,30,Fail
+92,CCC,2024B,F,Central,Post Graduate Qualification,55<=,1,30,Distinction
+93,CCC,2024B,M,Scotland,Lower Than A Level,55<=,1,30,Pass
+94,AAA,2024J,F,Wales,A Level or Equivalent,35-55,0,90,Pass
+95,DDD,2024B,F,North,Post Graduate Qualification,35-55,0,30,Distinction
+96,CCC,2024B,M,Central,Lower Than A Level,0-35,0,120,Fail
+97,DDD,2024B,F,East,HE Qualification,55<=,0,120,Withdrawn
+98,BBB,2024J,M,Scotland,Post Graduate Qualification,35-55,0,60,Withdrawn
+99,BBB,2024J,M,Central,A Level or Equivalent,55<=,1,120,Pass
+100,BBB,2024J,F,West,HE Qualification,35-55,0,60,Distinction
+101,CCC,2024B,F,North,HE Qualification,0-35,2,60,Pass
+102,AAA,2024J,M,North,HE Qualification,35-55,1,120,Withdrawn
+103,CCC,2024B,M,East,HE Qualification,55<=,0,90,Pass
+104,DDD,2024B,M,Wales,Lower Than A Level,35-55,0,120,Pass
+105,CCC,2024B,M,Scotland,A Level or Equivalent,35-55,0,30,Fail
+106,CCC,2024B,F,East,Lower Than A Level,55<=,0,60,Fail
+107,CCC,2024B,F,Wales,Post Graduate Qualification,0-35,0,30,Withdrawn
+108,BBB,2024J,F,North,Lower Than A Level,0-35,1,60,Pass
+109,CCC,2024B,M,East,Post Graduate Qualification,35-55,0,30,Withdrawn
+110,AAA,2024J,F,Scotland,Post Graduate Qualification,55<=,0,90,Distinction
+111,DDD,2024B,F,Wales,Post Graduate Qualification,55<=,0,60,Fail
+112,BBB,2024J,M,North,HE Qualification,35-55,0,90,Pass
+113,DDD,2024B,M,Scotland,HE Qualification,35-55,0,90,Pass
+114,AAA,2024J,F,Scotland,Post Graduate Qualification,55<=,2,30,Pass
+115,CCC,2024B,F,North,Lower Than A Level,55<=,0,30,Pass
+116,AAA,2024J,M,Scotland,Post Graduate Qualification,0-35,0,120,Pass
+117,AAA,2024J,F,West,A Level or Equivalent,0-35,0,90,Pass
+118,AAA,2024J,F,Wales,A Level or Equivalent,55<=,0,90,Pass
+119,AAA,2024J,M,South,A Level or Equivalent,0-35,2,90,Distinction
+120,BBB,2024J,F,South,HE Qualification,55<=,0,30,Fail
+121,AAA,2024J,M,Wales,A Level or Equivalent,55<=,0,90,Withdrawn
+122,DDD,2024B,M,North,A Level or Equivalent,55<=,0,30,Withdrawn
+123,BBB,2024J,M,East,A Level or Equivalent,0-35,0,30,Withdrawn
+124,AAA,2024J,M,East,Lower Than A Level,35-55,2,90,Distinction
+125,BBB,2024J,F,West,A Level or Equivalent,0-35,1,120,Fail
+126,CCC,2024B,M,West,HE Qualification,55<=,1,120,Withdrawn
+127,CCC,2024B,F,Wales,Lower Than A Level,0-35,0,30,Withdrawn
+128,AAA,2024J,M,West,HE Qualification,35-55,0,60,Withdrawn
+129,CCC,2024B,M,Scotland,Post Graduate Qualification,35-55,1,30,Withdrawn
+130,DDD,2024B,M,South,Post Graduate Qualification,55<=,0,60,Fail
+131,BBB,2024J,F,North,A Level or Equivalent,0-35,0,90,Pass
+132,DDD,2024B,F,Wales,A Level or Equivalent,35-55,0,60,Fail
+133,BBB,2024J,M,South,Post Graduate Qualification,0-35,3,60,Withdrawn
+134,BBB,2024J,F,Central,A Level or Equivalent,0-35,0,90,Fail
+135,AAA,2024J,M,South,Lower Than A Level,0-35,0,120,Withdrawn
+136,AAA,2024J,M,East,Post Graduate Qualification,0-35,2,60,Fail
+137,AAA,2024J,M,West,HE Qualification,35-55,0,120,Pass
+138,AAA,2024J,F,Wales,HE Qualification,55<=,0,30,Distinction
+139,BBB,2024J,M,North,Post Graduate Qualification,35-55,0,120,Withdrawn
+140,AAA,2024J,M,North,Lower Than A Level,0-35,1,90,Pass
+141,AAA,2024J,F,Central,Lower Than A Level,0-35,2,90,Withdrawn
+142,DDD,2024B,F,North,Post Graduate Qualification,35-55,3,90,Withdrawn
+143,BBB,2024J,F,West,HE Qualification,0-35,0,120,Pass
+144,BBB,2024J,F,East,Post Graduate Qualification,0-35,0,30,Pass
+145,BBB,2024J,F,Central,Lower Than A Level,55<=,0,30,Distinction
+146,BBB,2024J,M,Wales,Lower Than A Level,0-35,1,120,Withdrawn
+147,CCC,2024B,M,East,Lower Than A Level,0-35,0,90,Pass
+148,DDD,2024B,F,West,A Level or Equivalent,55<=,0,60,Withdrawn
+149,AAA,2024J,F,Central,HE Qualification,55<=,1,60,Pass
+150,AAA,2024J,M,South,Post Graduate Qualification,0-35,0,90,Withdrawn
+151,BBB,2024J,M,East,A Level or Equivalent,35-55,1,120,Withdrawn
+152,CCC,2024B,F,Central,A Level or Equivalent,55<=,0,90,Fail
+153,BBB,2024J,F,South,Post Graduate Qualification,35-55,1,120,Pass
+154,BBB,2024J,M,Central,Post Graduate Qualification,35-55,0,30,Withdrawn
+155,CCC,2024B,F,East,Post Graduate Qualification,0-35,0,30,Fail
+156,BBB,2024J,M,East,Post Graduate Qualification,0-35,0,60,Distinction
+157,DDD,2024B,M,South,A Level or Equivalent,35-55,1,90,Withdrawn
+158,CCC,2024B,F,Wales,Post Graduate Qualification,55<=,1,120,Withdrawn
+159,CCC,2024B,F,West,A Level or Equivalent,35-55,0,120,Pass
+160,CCC,2024B,M,East,Lower Than A Level,55<=,3,60,Withdrawn
+161,AAA,2024J,M,Scotland,Post Graduate Qualification,0-35,0,120,Withdrawn
+162,CCC,2024B,F,Central,HE Qualification,55<=,0,60,Pass
+163,DDD,2024B,M,West,Post Graduate Qualification,35-55,0,90,Fail
+164,CCC,2024B,F,East,HE Qualification,35-55,2,60,Withdrawn
+165,BBB,2024J,F,South,A Level or Equivalent,0-35,0,30,Pass
+166,DDD,2024B,M,South,A Level or Equivalent,0-35,0,30,Pass
+167,BBB,2024J,M,East,A Level or Equivalent,55<=,0,120,Distinction
+168,BBB,2024J,F,North,HE Qualification,0-35,1,120,Withdrawn
+169,BBB,2024J,M,Scotland,A Level or Equivalent,0-35,0,60,Pass
+170,AAA,2024J,M,Scotland,A Level or Equivalent,55<=,0,90,Fail
+171,AAA,2024J,F,Scotland,Lower Than A Level,55<=,0,30,Withdrawn
+172,AAA,2024J,M,Wales,HE Qualification,35-55,1,30,Pass
+173,AAA,2024J,F,North,A Level or Equivalent,55<=,0,60,Pass
+174,BBB,2024J,M,Wales,A Level or Equivalent,0-35,0,60,Distinction
+175,AAA,2024J,F,Wales,Post Graduate Qualification,35-55,0,90,Withdrawn
+176,AAA,2024J,F,East,Post Graduate Qualification,0-35,2,30,Withdrawn
+177,BBB,2024J,M,North,Lower Than A Level,35-55,0,120,Pass
+178,AAA,2024J,F,West,HE Qualification,35-55,0,90,Withdrawn
+179,BBB,2024J,M,South,HE Qualification,0-35,0,30,Fail
+180,CCC,2024B,F,East,Lower Than A Level,0-35,0,120,Fail
+181,AAA,2024J,F,Scotland,A Level or Equivalent,35-55,0,60,Withdrawn
+182,BBB,2024J,M,East,Post Graduate Qualification,35-55,0,60,Fail
+183,BBB,2024J,F,East,Lower Than A Level,35-55,2,90,Pass
+184,CCC,2024B,F,South,Lower Than A Level,55<=,0,90,Withdrawn
+185,BBB,2024J,M,West,Lower Than A Level,35-55,0,120,Withdrawn
+186,AAA,2024J,M,North,Lower Than A Level,0-35,0,60,Pass
+187,DDD,2024B,M,Wales,HE Qualification,35-55,0,60,Fail
+188,BBB,2024J,M,Scotland,HE Qualification,0-35,3,120,Withdrawn
+189,CCC,2024B,M,North,Post Graduate Qualification,0-35,0,90,Withdrawn
+190,BBB,2024J,F,Central,Lower Than A Level,35-55,2,30,Withdrawn
+191,DDD,2024B,F,Wales,A Level or Equivalent,35-55,0,30,Fail
+192,BBB,2024J,F,South,HE Qualification,0-35,0,30,Withdrawn
+193,CCC,2024B,F,East,Lower Than A Level,55<=,2,30,Fail
+194,CCC,2024B,F,Central,HE Qualification,55<=,0,60,Fail
+195,AAA,2024J,M,Scotland,Post Graduate Qualification,55<=,0,30,Pass
+196,BBB,2024J,F,East,Lower Than A Level,0-35,1,120,Distinction
+197,DDD,2024B,M,Scotland,Lower Than A Level,55<=,0,90,Pass
+198,DDD,2024B,F,West,Lower Than A Level,35-55,0,30,Withdrawn
+199,BBB,2024J,M,East,Lower Than A Level,55<=,1,120,Distinction
+200,CCC,2024B,M,West,Post Graduate Qualification,0-35,1,120,Withdrawn
+201,DDD,2024B,F,Wales,HE Qualification,35-55,2,60,Pass
+202,BBB,2024J,M,Wales,Lower Than A Level,0-35,0,90,Fail
+203,BBB,2024J,F,South,Lower Than A Level,35-55,0,120,Pass
+204,DDD,2024B,M,North,Lower Than A Level,35-55,0,120,Fail
+205,AAA,2024J,F,East,HE Qualification,55<=,0,60,Withdrawn
+206,BBB,2024J,F,West,Post Graduate Qualification,55<=,1,60,Pass
+207,AAA,2024J,F,East,HE Qualification,55<=,0,60,Pass
+208,BBB,2024J,M,East,HE Qualification,35-55,1,30,Pass
+209,AAA,2024J,M,Wales,HE Qualification,0-35,0,30,Withdrawn
+210,CCC,2024B,M,Wales,Lower Than A Level,55<=,0,120,Fail
+211,AAA,2024J,F,North,Lower Than A Level,0-35,1,30,Fail
+212,BBB,2024J,F,South,Lower Than A Level,0-35,0,120,Withdrawn
+213,CCC,2024B,F,Scotland,A Level or Equivalent,0-35,0,60,Fail
+214,DDD,2024B,F,East,Lower Than A Level,55<=,1,30,Fail
+215,BBB,2024J,F,South,Post Graduate Qualification,35-55,1,120,Withdrawn
+216,BBB,2024J,F,Central,Post Graduate Qualification,0-35,0,90,Distinction
+217,AAA,2024J,M,South,A Level or Equivalent,55<=,0,120,Distinction
+218,BBB,2024J,F,Scotland,HE Qualification,35-55,1,90,Fail
+219,BBB,2024J,M,Scotland,A Level or Equivalent,55<=,0,30,Pass
+220,DDD,2024B,F,East,A Level or Equivalent,0-35,0,30,Fail
+221,CCC,2024B,F,Scotland,HE Qualification,35-55,1,120,Pass
+222,DDD,2024B,M,South,Post Graduate Qualification,0-35,1,120,Withdrawn
+223,CCC,2024B,F,East,HE Qualification,35-55,0,90,Withdrawn
+224,BBB,2024J,F,Wales,Lower Than A Level,35-55,0,120,Fail
+225,BBB,2024J,F,South,A Level or Equivalent,35-55,3,30,Fail
+226,BBB,2024J,M,Central,A Level or Equivalent,55<=,0,30,Pass
+227,BBB,2024J,M,Scotland,Lower Than A Level,35-55,0,90,Withdrawn
+228,BBB,2024J,M,West,Lower Than A Level,35-55,0,120,Fail
+229,BBB,2024J,M,Scotland,Post Graduate Qualification,0-35,0,90,Withdrawn
+230,BBB,2024J,M,Scotland,HE Qualification,35-55,3,30,Withdrawn
+231,DDD,2024B,M,Central,A Level or Equivalent,55<=,0,90,Withdrawn
+232,AAA,2024J,F,South,Lower Than A Level,55<=,0,30,Distinction
+233,DDD,2024B,M,East,HE Qualification,0-35,0,60,Distinction
+234,DDD,2024B,M,East,HE Qualification,0-35,0,30,Withdrawn
+235,AAA,2024J,M,South,HE Qualification,35-55,0,60,Pass
+236,CCC,2024B,M,South,Post Graduate Qualification,0-35,0,90,Pass
+237,AAA,2024J,M,Central,Post Graduate Qualification,35-55,0,30,Fail
+238,DDD,2024B,F,South,Post Graduate Qualification,55<=,3,60,Distinction
+239,AAA,2024J,M,Scotland,Post Graduate Qualification,35-55,1,120,Pass
+240,DDD,2024B,M,North,A Level or Equivalent,0-35,2,120,Withdrawn
+241,CCC,2024B,M,Central,HE Qualification,55<=,1,90,Withdrawn
+242,BBB,2024J,M,Central,Post Graduate Qualification,0-35,0,90,Pass
+243,BBB,2024J,F,East,Lower Than A Level,0-35,3,60,Pass
+244,BBB,2024J,F,Scotland,A Level or Equivalent,35-55,0,30,Withdrawn
+245,DDD,2024B,M,Wales,Post Graduate Qualification,55<=,3,90,Pass
+246,AAA,2024J,M,East,HE Qualification,55<=,1,90,Withdrawn
+247,BBB,2024J,M,Scotland,A Level or Equivalent,0-35,1,90,Fail
+248,DDD,2024B,F,Scotland,A Level or Equivalent,35-55,1,90,Withdrawn
+249,AAA,2024J,M,East,Lower Than A Level,35-55,0,120,Pass
+250,BBB,2024J,M,West,A Level or Equivalent,35-55,0,90,Withdrawn
+251,AAA,2024J,M,North,Post Graduate Qualification,35-55,0,90,Pass
+252,CCC,2024B,F,South,HE Qualification,55<=,0,30,Pass
+253,BBB,2024J,M,South,HE Qualification,0-35,3,90,Withdrawn
+254,DDD,2024B,F,West,HE Qualification,0-35,0,30,Pass
+255,CCC,2024B,M,West,Post Graduate Qualification,55<=,0,90,Fail
+256,DDD,2024B,M,North,Lower Than A Level,0-35,1,60,Withdrawn
+257,CCC,2024B,M,East,A Level or Equivalent,0-35,0,60,Withdrawn
+258,AAA,2024J,M,Scotland,A Level or Equivalent,35-55,0,60,Fail
+259,DDD,2024B,F,West,HE Qualification,0-35,1,30,Fail
+260,CCC,2024B,F,East,Post Graduate Qualification,55<=,0,60,Pass
+261,AAA,2024J,M,Central,A Level or Equivalent,35-55,2,120,Pass
+262,DDD,2024B,F,South,HE Qualification,55<=,0,60,Distinction
+263,AAA,2024J,F,North,HE Qualification,0-35,0,30,Distinction
+264,DDD,2024B,M,North,Lower Than A Level,0-35,0,120,Fail
+265,BBB,2024J,F,West,Lower Than A Level,55<=,0,120,Distinction
+266,CCC,2024B,F,Central,A Level or Equivalent,55<=,2,60,Fail
+267,CCC,2024B,F,Central,HE Qualification,55<=,1,60,Pass
+268,CCC,2024B,F,West,HE Qualification,35-55,0,30,Distinction
+269,CCC,2024B,F,Wales,HE Qualification,0-35,0,90,Pass
+270,AAA,2024J,M,Central,A Level or Equivalent,55<=,3,30,Fail
+271,BBB,2024J,M,East,A Level or Equivalent,55<=,1,120,Fail
+272,CCC,2024B,F,South,HE Qualification,35-55,2,30,Withdrawn
+273,CCC,2024B,F,Central,A Level or Equivalent,35-55,0,60,Pass
+274,BBB,2024J,F,North,HE Qualification,35-55,0,60,Pass
+275,DDD,2024B,M,Scotland,HE Qualification,0-35,0,60,Fail
+276,DDD,2024B,F,Central,HE Qualification,0-35,1,60,Pass
+277,DDD,2024B,M,Scotland,Post Graduate Qualification,55<=,3,30,Fail
+278,BBB,2024J,M,Scotland,HE Qualification,55<=,0,90,Pass
+279,DDD,2024B,M,Scotland,Post Graduate Qualification,0-35,0,30,Distinction
+280,AAA,2024J,F,North,Lower Than A Level,35-55,0,60,Withdrawn
+281,BBB,2024J,F,Scotland,A Level or Equivalent,55<=,0,90,Fail
+282,AAA,2024J,M,Scotland,Lower Than A Level,0-35,0,30,Withdrawn
+283,AAA,2024J,M,Scotland,Post Graduate Qualification,0-35,0,60,Withdrawn
+284,CCC,2024B,F,East,A Level or Equivalent,35-55,0,30,Fail
+285,AAA,2024J,F,Scotland,A Level or Equivalent,0-35,2,60,Distinction
+286,AAA,2024J,M,Wales,Lower Than A Level,55<=,0,30,Pass
+287,DDD,2024B,M,South,A Level or Equivalent,0-35,0,30,Withdrawn
+288,CCC,2024B,F,West,HE Qualification,55<=,0,90,Fail
+289,AAA,2024J,M,Wales,A Level or Equivalent,0-35,0,120,Fail
+290,AAA,2024J,M,North,Post Graduate Qualification,35-55,2,30,Distinction
+291,DDD,2024B,F,North,A Level or Equivalent,55<=,1,120,Withdrawn
+292,CCC,2024B,M,Scotland,HE Qualification,0-35,2,90,Fail
+293,DDD,2024B,F,Central,Post Graduate Qualification,0-35,0,120,Fail
+294,DDD,2024B,F,South,A Level or Equivalent,35-55,1,60,Fail
+295,BBB,2024J,M,Scotland,Post Graduate Qualification,35-55,0,120,Fail
+296,AAA,2024J,F,Central,HE Qualification,35-55,0,30,Pass
+297,BBB,2024J,M,Scotland,Post Graduate Qualification,0-35,1,120,Pass
+298,AAA,2024J,M,West,Post Graduate Qualification,35-55,0,30,Withdrawn
+299,BBB,2024J,M,East,HE Qualification,35-55,0,30,Pass
+300,DDD,2024B,F,South,Post Graduate Qualification,55<=,0,90,Fail
+301,AAA,2024J,M,Central,Lower Than A Level,0-35,0,30,Withdrawn
+302,AAA,2024J,F,North,A Level or Equivalent,55<=,0,60,Withdrawn
+303,DDD,2024B,M,West,Post Graduate Qualification,0-35,1,120,Withdrawn
+304,BBB,2024J,M,North,HE Qualification,55<=,0,90,Withdrawn
+305,CCC,2024B,M,Scotland,Lower Than A Level,0-35,0,120,Withdrawn
+306,BBB,2024J,F,East,HE Qualification,35-55,0,90,Withdrawn
+307,BBB,2024J,M,North,Post Graduate Qualification,55<=,0,60,Fail
+308,BBB,2024J,M,East,Lower Than A Level,0-35,0,120,Withdrawn
+309,AAA,2024J,F,Central,Post Graduate Qualification,0-35,3,120,Fail
+310,DDD,2024B,M,Wales,Lower Than A Level,55<=,0,30,Fail
+311,AAA,2024J,M,Scotland,Post Graduate Qualification,0-35,0,120,Withdrawn
+312,DDD,2024B,F,Scotland,Post Graduate Qualification,0-35,2,90,Fail
+313,DDD,2024B,M,Central,A Level or Equivalent,0-35,1,90,Pass
+314,BBB,2024J,M,North,Post Graduate Qualification,0-35,3,30,Fail
+315,BBB,2024J,F,Central,Post Graduate Qualification,0-35,1,60,Distinction
+316,DDD,2024B,F,East,Post Graduate Qualification,35-55,1,30,Withdrawn
+317,AAA,2024J,M,Scotland,HE Qualification,0-35,1,60,Withdrawn
+318,AAA,2024J,M,Wales,Post Graduate Qualification,55<=,2,120,Pass
+319,BBB,2024J,M,Wales,Post Graduate Qualification,0-35,0,60,Pass
+320,AAA,2024J,F,Wales,Lower Than A Level,35-55,3,30,Distinction
+321,AAA,2024J,M,Wales,A Level or Equivalent,35-55,0,30,Withdrawn
+322,BBB,2024J,M,East,Post Graduate Qualification,35-55,0,120,Withdrawn
+323,CCC,2024B,F,North,Post Graduate Qualification,0-35,1,120,Pass
+324,CCC,2024B,M,Wales,A Level or Equivalent,0-35,1,90,Withdrawn
+325,DDD,2024B,M,Central,Lower Than A Level,35-55,1,90,Fail
+326,BBB,2024J,M,Central,HE Qualification,55<=,2,30,Fail
+327,BBB,2024J,F,North,Post Graduate Qualification,55<=,0,90,Pass
+328,DDD,2024B,F,North,Lower Than A Level,35-55,0,60,Withdrawn
+329,DDD,2024B,M,Wales,A Level or Equivalent,55<=,0,120,Withdrawn
+330,AAA,2024J,F,South,A Level or Equivalent,55<=,0,30,Pass
+331,DDD,2024B,F,Scotland,HE Qualification,35-55,0,30,Withdrawn
+332,AAA,2024J,M,East,Post Graduate Qualification,55<=,0,60,Pass
+333,CCC,2024B,M,Central,Post Graduate Qualification,0-35,0,120,Distinction
+334,AAA,2024J,F,West,A Level or Equivalent,0-35,1,60,Withdrawn
+335,CCC,2024B,M,East,Lower Than A Level,35-55,0,30,Pass
+336,BBB,2024J,F,Central,HE Qualification,0-35,0,30,Pass
+337,AAA,2024J,F,Wales,HE Qualification,55<=,2,90,Withdrawn
+338,CCC,2024B,M,Wales,Lower Than A Level,55<=,0,120,Fail
+339,BBB,2024J,M,Central,HE Qualification,0-35,3,90,Pass
+340,BBB,2024J,M,Wales,Lower Than A Level,0-35,1,60,Distinction
+341,DDD,2024B,F,East,HE Qualification,0-35,0,60,Withdrawn
+342,BBB,2024J,M,East,Post Graduate Qualification,0-35,0,120,Fail
+343,CCC,2024B,F,North,HE Qualification,35-55,2,120,Withdrawn
+344,AAA,2024J,F,Central,Lower Than A Level,0-35,0,120,Fail
+345,CCC,2024B,F,North,HE Qualification,0-35,2,60,Pass
+346,BBB,2024J,F,Wales,A Level or Equivalent,35-55,0,120,Pass
+347,DDD,2024B,M,South,Lower Than A Level,55<=,0,30,Withdrawn
+348,AAA,2024J,M,Scotland,Lower Than A Level,0-35,1,60,Withdrawn
+349,BBB,2024J,M,West,HE Qualification,55<=,1,120,Pass
+350,BBB,2024J,F,South,Lower Than A Level,35-55,0,60,Pass
+351,CCC,2024B,M,South,HE Qualification,35-55,0,120,Fail
+352,CCC,2024B,F,Scotland,Lower Than A Level,35-55,0,120,Withdrawn
+353,CCC,2024B,F,North,A Level or Equivalent,55<=,0,90,Pass
+354,DDD,2024B,F,West,Lower Than A Level,35-55,0,120,Pass
+355,BBB,2024J,F,West,Lower Than A Level,55<=,0,120,Withdrawn
+356,AAA,2024J,M,South,HE Qualification,0-35,1,90,Pass
+357,AAA,2024J,M,Wales,Post Graduate Qualification,35-55,3,30,Withdrawn
+358,DDD,2024B,M,Wales,Lower Than A Level,55<=,0,90,Withdrawn
+359,DDD,2024B,F,Central,Post Graduate Qualification,0-35,2,60,Pass
+360,BBB,2024J,M,Wales,Post Graduate Qualification,0-35,0,90,Fail
+361,BBB,2024J,M,North,Lower Than A Level,0-35,0,30,Withdrawn
+362,DDD,2024B,F,West,Lower Than A Level,55<=,1,30,Fail
+363,BBB,2024J,F,North,A Level or Equivalent,55<=,2,120,Fail
+364,BBB,2024J,M,East,A Level or Equivalent,0-35,0,90,Distinction
+365,BBB,2024J,F,Central,Lower Than A Level,35-55,1,90,Pass
+366,AAA,2024J,M,North,Lower Than A Level,0-35,0,90,Withdrawn
+367,CCC,2024B,F,Scotland,HE Qualification,55<=,0,120,Fail
+368,BBB,2024J,F,Wales,Lower Than A Level,0-35,1,60,Fail
+369,BBB,2024J,M,West,A Level or Equivalent,35-55,1,90,Distinction
+370,CCC,2024B,M,West,HE Qualification,55<=,2,30,Withdrawn
+371,BBB,2024J,M,West,Post Graduate Qualification,35-55,0,60,Fail
+372,CCC,2024B,F,North,A Level or Equivalent,0-35,2,90,Distinction
+373,BBB,2024J,F,South,Lower Than A Level,55<=,0,90,Fail
+374,DDD,2024B,M,West,HE Qualification,0-35,0,60,Withdrawn
+375,CCC,2024B,F,West,HE Qualification,0-35,0,90,Fail
+376,DDD,2024B,M,Wales,Lower Than A Level,0-35,1,120,Fail
+377,AAA,2024J,M,Wales,A Level or Equivalent,35-55,0,60,Withdrawn
+378,BBB,2024J,M,South,HE Qualification,0-35,0,30,Pass
+379,DDD,2024B,M,North,HE Qualification,0-35,0,30,Withdrawn
+380,CCC,2024B,M,South,Lower Than A Level,35-55,1,60,Withdrawn
+381,DDD,2024B,M,North,HE Qualification,35-55,0,90,Pass
+382,DDD,2024B,M,North,HE Qualification,35-55,0,30,Fail
+383,CCC,2024B,F,Central,Post Graduate Qualification,55<=,1,30,Fail
+384,BBB,2024J,F,Central,A Level or Equivalent,0-35,0,30,Withdrawn
+385,DDD,2024B,F,West,HE Qualification,0-35,0,30,Withdrawn
+386,DDD,2024B,F,West,Post Graduate Qualification,55<=,0,120,Withdrawn
+387,CCC,2024B,F,North,HE Qualification,0-35,1,120,Withdrawn
+388,BBB,2024J,M,Wales,Lower Than A Level,55<=,0,120,Fail
+389,BBB,2024J,F,Wales,HE Qualification,35-55,1,90,Pass
+390,DDD,2024B,M,Scotland,A Level or Equivalent,55<=,0,30,Pass
+391,BBB,2024J,F,North,HE Qualification,55<=,1,90,Withdrawn
+392,DDD,2024B,M,Wales,Lower Than A Level,55<=,0,120,Withdrawn
+393,BBB,2024J,F,Scotland,Post Graduate Qualification,0-35,1,120,Withdrawn
+394,CCC,2024B,M,Wales,HE Qualification,0-35,1,120,Pass
+395,CCC,2024B,M,East,Post Graduate Qualification,35-55,1,90,Pass
+396,BBB,2024J,M,Central,Post Graduate Qualification,35-55,1,60,Withdrawn
+397,CCC,2024B,M,North,Post Graduate Qualification,55<=,1,90,Pass
+398,CCC,2024B,M,East,HE Qualification,35-55,1,120,Distinction
+399,BBB,2024J,M,Wales,HE Qualification,55<=,1,30,Distinction
+400,CCC,2024B,F,North,A Level or Equivalent,55<=,0,60,Withdrawn
+401,DDD,2024B,M,Wales,Lower Than A Level,55<=,1,60,Withdrawn
+402,BBB,2024J,M,South,Lower Than A Level,55<=,0,90,Pass
+403,AAA,2024J,M,North,Post Graduate Qualification,55<=,1,30,Withdrawn
+404,AAA,2024J,F,Scotland,A Level or Equivalent,55<=,3,60,Distinction
+405,AAA,2024J,M,Wales,Lower Than A Level,35-55,0,60,Distinction
+406,BBB,2024J,M,Scotland,HE Qualification,35-55,0,60,Withdrawn
+407,BBB,2024J,M,Wales,HE Qualification,0-35,2,90,Fail
+408,CCC,2024B,M,South,A Level or Equivalent,35-55,0,30,Pass
+409,AAA,2024J,M,West,HE Qualification,0-35,0,120,Withdrawn
+410,CCC,2024B,F,South,Post Graduate Qualification,0-35,0,60,Fail
+411,AAA,2024J,F,Wales,Post Graduate Qualification,55<=,0,120,Fail
+412,DDD,2024B,F,South,HE Qualification,35-55,1,60,Pass
+413,BBB,2024J,M,South,Post Graduate Qualification,0-35,0,120,Withdrawn
+414,DDD,2024B,M,West,Post Graduate Qualification,0-35,2,90,Fail
+415,CCC,2024B,M,North,Post Graduate Qualification,55<=,1,30,Distinction
+416,BBB,2024J,M,South,A Level or Equivalent,0-35,0,90,Withdrawn
+417,DDD,2024B,M,South,Lower Than A Level,35-55,0,90,Pass
+418,BBB,2024J,F,South,Lower Than A Level,0-35,0,30,Pass
+419,DDD,2024B,F,Scotland,Post Graduate Qualification,55<=,0,120,Pass
+420,DDD,2024B,M,North,Post Graduate Qualification,55<=,0,30,Fail
+421,AAA,2024J,F,West,Post Graduate Qualification,55<=,0,120,Withdrawn
+422,DDD,2024B,M,East,A Level or Equivalent,55<=,0,60,Distinction
+423,AAA,2024J,M,East,HE Qualification,35-55,0,60,Pass
+424,DDD,2024B,M,East,Post Graduate Qualification,0-35,0,30,Distinction
+425,AAA,2024J,F,Scotland,A Level or Equivalent,55<=,0,60,Pass
+426,AAA,2024J,M,Scotland,A Level or Equivalent,35-55,1,90,Pass
+427,AAA,2024J,F,Central,HE Qualification,55<=,1,60,Distinction
+428,BBB,2024J,F,North,Post Graduate Qualification,55<=,0,120,Fail
+429,AAA,2024J,M,East,Post Graduate Qualification,0-35,0,120,Distinction
+430,BBB,2024J,M,South,Lower Than A Level,55<=,0,30,Fail
+431,DDD,2024B,F,Central,HE Qualification,35-55,0,90,Distinction
+432,DDD,2024B,M,Wales,Post Graduate Qualification,0-35,0,90,Pass
+433,BBB,2024J,M,Scotland,HE Qualification,55<=,0,90,Pass
+434,AAA,2024J,M,North,HE Qualification,0-35,0,90,Fail
+435,BBB,2024J,M,Wales,Post Graduate Qualification,0-35,2,30,Distinction
+436,CCC,2024B,F,East,Lower Than A Level,55<=,0,90,Withdrawn
+437,BBB,2024J,F,West,Post Graduate Qualification,55<=,0,30,Fail
+438,AAA,2024J,F,Wales,A Level or Equivalent,35-55,2,60,Pass
+439,AAA,2024J,F,Scotland,Post Graduate Qualification,35-55,0,60,Distinction
+440,DDD,2024B,M,North,HE Qualification,35-55,0,90,Distinction
+441,CCC,2024B,M,North,Post Graduate Qualification,0-35,1,60,Fail
+442,BBB,2024J,F,Scotland,Post Graduate Qualification,0-35,2,90,Pass
+443,BBB,2024J,M,North,Lower Than A Level,55<=,0,30,Withdrawn
+444,DDD,2024B,F,West,Lower Than A Level,35-55,1,90,Pass
+445,BBB,2024J,M,Central,Lower Than A Level,55<=,1,120,Pass
+446,AAA,2024J,F,Scotland,HE Qualification,35-55,0,120,Fail
+447,CCC,2024B,M,West,HE Qualification,55<=,0,60,Distinction
+448,BBB,2024J,F,South,Post Graduate Qualification,0-35,0,90,Fail
+449,AAA,2024J,F,North,Post Graduate Qualification,55<=,0,60,Fail
+450,AAA,2024J,F,Scotland,HE Qualification,35-55,0,90,Pass
+451,DDD,2024B,F,Scotland,HE Qualification,55<=,0,60,Pass
+452,AAA,2024J,F,Wales,Post Graduate Qualification,55<=,1,30,Distinction
+453,AAA,2024J,M,North,HE Qualification,35-55,0,90,Withdrawn
+454,DDD,2024B,F,South,A Level or Equivalent,0-35,0,120,Pass
+455,BBB,2024J,M,North,Post Graduate Qualification,35-55,1,30,Withdrawn
+456,AAA,2024J,M,South,Post Graduate Qualification,35-55,0,120,Fail
+457,BBB,2024J,F,Central,Lower Than A Level,0-35,3,60,Pass
+458,DDD,2024B,F,East,Post Graduate Qualification,55<=,0,120,Withdrawn
+459,DDD,2024B,F,West,Post Graduate Qualification,55<=,0,90,Fail
+460,CCC,2024B,F,East,HE Qualification,0-35,3,30,Pass
+461,BBB,2024J,M,North,Lower Than A Level,0-35,0,30,Fail
+462,AAA,2024J,F,Central,Lower Than A Level,0-35,0,90,Withdrawn
+463,CCC,2024B,M,East,A Level or Equivalent,0-35,0,60,Pass
+464,AAA,2024J,M,Scotland,A Level or Equivalent,55<=,2,120,Pass
+465,DDD,2024B,F,North,HE Qualification,55<=,1,120,Withdrawn
+466,AAA,2024J,M,Wales,Lower Than A Level,55<=,0,120,Withdrawn
+467,CCC,2024B,F,Central,Post Graduate Qualification,55<=,1,90,Fail
+468,DDD,2024B,M,Wales,Post Graduate Qualification,55<=,1,90,Withdrawn
+469,BBB,2024J,M,Wales,HE Qualification,0-35,0,60,Pass
+470,BBB,2024J,F,West,A Level or Equivalent,55<=,1,90,Fail
+471,BBB,2024J,M,Central,A Level or Equivalent,35-55,0,90,Pass
+472,DDD,2024B,M,West,Lower Than A Level,0-35,2,90,Pass
+473,BBB,2024J,M,Scotland,HE Qualification,0-35,0,60,Withdrawn
+474,AAA,2024J,M,Central,A Level or Equivalent,35-55,0,30,Distinction
+475,AAA,2024J,M,Scotland,A Level or Equivalent,0-35,2,30,Withdrawn
+476,AAA,2024J,M,West,A Level or Equivalent,55<=,0,30,Fail
+477,CCC,2024B,M,Central,A Level or Equivalent,55<=,3,120,Fail
+478,AAA,2024J,F,North,A Level or Equivalent,55<=,0,120,Distinction
+479,CCC,2024B,F,East,A Level or Equivalent,55<=,0,120,Withdrawn
+480,AAA,2024J,F,South,HE Qualification,0-35,1,30,Fail
+481,AAA,2024J,F,East,Lower Than A Level,55<=,0,30,Withdrawn
+482,BBB,2024J,M,North,Lower Than A Level,55<=,0,60,Pass
+483,DDD,2024B,M,Central,Lower Than A Level,55<=,0,30,Withdrawn
+484,CCC,2024B,M,Scotland,A Level or Equivalent,55<=,0,120,Distinction
+485,AAA,2024J,F,Scotland,A Level or Equivalent,35-55,0,90,Pass
+486,DDD,2024B,M,Central,A Level or Equivalent,55<=,1,90,Pass
+487,CCC,2024B,M,South,A Level or Equivalent,35-55,0,120,Distinction
+488,AAA,2024J,M,Wales,HE Qualification,35-55,0,30,Pass
+489,DDD,2024B,M,North,A Level or Equivalent,0-35,1,120,Pass
+490,BBB,2024J,F,Wales,HE Qualification,35-55,0,90,Withdrawn
+491,AAA,2024J,M,Scotland,A Level or Equivalent,35-55,0,90,Withdrawn
+492,BBB,2024J,M,Wales,HE Qualification,35-55,1,90,Fail
+493,DDD,2024B,M,South,HE Qualification,55<=,3,90,Pass
+494,BBB,2024J,M,Central,A Level or Equivalent,35-55,0,60,Fail
+495,DDD,2024B,M,Wales,HE Qualification,35-55,2,30,Pass
+496,AAA,2024J,F,West,Post Graduate Qualification,55<=,1,120,Distinction
+497,BBB,2024J,M,Wales,HE Qualification,35-55,0,90,Withdrawn
+498,CCC,2024B,F,West,Post Graduate Qualification,0-35,0,30,Pass
+499,CCC,2024B,F,West,Post Graduate Qualification,35-55,1,90,Distinction
+500,AAA,2024J,M,Scotland,HE Qualification,35-55,1,30,Distinction
+501,CCC,2024B,F,Central,A Level or Equivalent,0-35,0,60,Pass
+502,CCC,2024B,M,West,HE Qualification,55<=,0,90,Pass
+503,DDD,2024B,F,Scotland,HE Qualification,55<=,2,120,Withdrawn
+504,CCC,2024B,M,East,Post Graduate Qualification,55<=,1,120,Fail
+505,CCC,2024B,M,West,HE Qualification,35-55,0,90,Pass
+506,DDD,2024B,F,Wales,A Level or Equivalent,0-35,2,60,Distinction
+507,BBB,2024J,F,North,Post Graduate Qualification,0-35,2,30,Distinction
+508,CCC,2024B,F,Wales,HE Qualification,0-35,0,60,Withdrawn
+509,AAA,2024J,M,East,A Level or Equivalent,0-35,0,90,Withdrawn
+510,BBB,2024J,F,Central,HE Qualification,55<=,0,60,Fail
+511,CCC,2024B,M,Wales,Lower Than A Level,55<=,0,90,Withdrawn
+512,AAA,2024J,M,Wales,A Level or Equivalent,0-35,0,60,Distinction
+513,BBB,2024J,M,East,Post Graduate Qualification,55<=,0,120,Pass
+514,CCC,2024B,M,East,A Level or Equivalent,0-35,0,30,Withdrawn
+515,AAA,2024J,M,Wales,A Level or Equivalent,55<=,0,30,Fail
+516,BBB,2024J,M,Scotland,Lower Than A Level,35-55,0,30,Pass
+517,DDD,2024B,F,Wales,HE Qualification,0-35,0,120,Pass
+518,CCC,2024B,M,West,HE Qualification,0-35,0,90,Pass
+519,BBB,2024J,M,West,A Level or Equivalent,55<=,1,90,Withdrawn
+520,BBB,2024J,M,Wales,Post Graduate Qualification,55<=,1,90,Withdrawn
+521,CCC,2024B,M,East,Lower Than A Level,35-55,0,60,Pass
+522,AAA,2024J,F,West,Post Graduate Qualification,55<=,0,30,Withdrawn
+523,AAA,2024J,F,East,HE Qualification,35-55,0,120,Pass
+524,AAA,2024J,F,Central,HE Qualification,35-55,1,90,Pass
+525,BBB,2024J,F,East,HE Qualification,0-35,3,60,Withdrawn
+526,AAA,2024J,M,North,Post Graduate Qualification,55<=,0,60,Pass
+527,DDD,2024B,M,Central,Post Graduate Qualification,0-35,1,120,Pass
+528,AAA,2024J,M,South,HE Qualification,35-55,0,120,Pass
+529,BBB,2024J,M,Central,Post Graduate Qualification,0-35,2,30,Withdrawn
+530,AAA,2024J,M,Scotland,A Level or Equivalent,35-55,0,120,Distinction
+531,AAA,2024J,F,Scotland,HE Qualification,55<=,0,60,Fail
+532,DDD,2024B,M,Wales,Lower Than A Level,55<=,0,90,Withdrawn
+533,BBB,2024J,M,South,A Level or Equivalent,0-35,0,30,Withdrawn
+534,AAA,2024J,M,East,Post Graduate Qualification,35-55,1,30,Fail
+535,BBB,2024J,F,West,HE Qualification,55<=,0,120,Fail
+536,CCC,2024B,F,North,HE Qualification,0-35,0,30,Withdrawn
+537,CCC,2024B,M,South,A Level or Equivalent,0-35,1,60,Pass
+538,AAA,2024J,M,West,Lower Than A Level,35-55,0,30,Distinction
+539,AAA,2024J,M,West,HE Qualification,0-35,3,60,Pass
+540,DDD,2024B,F,Central,Post Graduate Qualification,55<=,1,90,Pass
+541,AAA,2024J,M,Scotland,HE Qualification,55<=,1,90,Withdrawn
+542,DDD,2024B,F,Scotland,A Level or Equivalent,35-55,1,30,Fail
+543,BBB,2024J,F,West,Post Graduate Qualification,55<=,0,60,Pass
+544,BBB,2024J,M,North,HE Qualification,0-35,0,60,Pass
+545,CCC,2024B,F,Wales,A Level or Equivalent,0-35,0,60,Withdrawn
+546,AAA,2024J,M,Scotland,HE Qualification,35-55,0,90,Pass
+547,CCC,2024B,F,North,A Level or Equivalent,0-35,1,60,Withdrawn
+548,DDD,2024B,F,Scotland,HE Qualification,55<=,1,60,Withdrawn
+549,CCC,2024B,M,Central,Lower Than A Level,35-55,0,120,Withdrawn
+550,DDD,2024B,F,North,A Level or Equivalent,55<=,0,90,Withdrawn
+551,CCC,2024B,F,Wales,Lower Than A Level,55<=,2,90,Distinction
+552,AAA,2024J,F,North,A Level or Equivalent,0-35,0,60,Distinction
+553,BBB,2024J,F,Wales,A Level or Equivalent,55<=,0,90,Distinction
+554,CCC,2024B,M,South,Post Graduate Qualification,0-35,0,60,Withdrawn
+555,DDD,2024B,F,Wales,Lower Than A Level,55<=,1,60,Withdrawn
+556,DDD,2024B,M,Scotland,HE Qualification,35-55,1,30,Pass
+557,CCC,2024B,M,Central,Post Graduate Qualification,55<=,0,120,Pass
+558,DDD,2024B,F,West,A Level or Equivalent,55<=,2,120,Withdrawn
+559,AAA,2024J,M,Wales,A Level or Equivalent,55<=,1,120,Pass
+560,BBB,2024J,M,East,Post Graduate Qualification,35-55,0,60,Withdrawn
+561,DDD,2024B,F,Central,A Level or Equivalent,35-55,2,60,Pass
+562,CCC,2024B,M,Scotland,HE Qualification,35-55,0,30,Pass
+563,AAA,2024J,M,Scotland,A Level or Equivalent,35-55,1,30,Pass
+564,BBB,2024J,M,Central,Lower Than A Level,35-55,1,30,Withdrawn
+565,AAA,2024J,M,Central,A Level or Equivalent,0-35,0,120,Withdrawn
+566,CCC,2024B,M,North,HE Qualification,35-55,0,30,Withdrawn
+567,CCC,2024B,F,West,Post Graduate Qualification,0-35,2,120,Pass
+568,BBB,2024J,F,Central,Lower Than A Level,0-35,2,90,Withdrawn
+569,CCC,2024B,M,North,A Level or Equivalent,35-55,0,90,Pass
+570,AAA,2024J,F,Wales,Lower Than A Level,0-35,0,90,Fail
+571,BBB,2024J,M,Central,A Level or Equivalent,35-55,0,30,Pass
+572,AAA,2024J,M,Scotland,A Level or Equivalent,55<=,1,120,Pass
+573,DDD,2024B,F,Central,Post Graduate Qualification,35-55,1,30,Fail
+574,BBB,2024J,M,Scotland,HE Qualification,55<=,2,30,Fail
+575,AAA,2024J,M,Wales,Lower Than A Level,0-35,1,60,Withdrawn
+576,BBB,2024J,F,Wales,A Level or Equivalent,0-35,0,60,Withdrawn
+577,BBB,2024J,M,South,A Level or Equivalent,0-35,0,60,Withdrawn
+578,DDD,2024B,F,North,A Level or Equivalent,0-35,0,60,Pass
+579,AAA,2024J,M,Wales,Post Graduate Qualification,55<=,0,90,Pass
+580,AAA,2024J,M,Central,HE Qualification,35-55,0,30,Distinction
+581,CCC,2024B,F,North,Post Graduate Qualification,55<=,0,60,Fail
+582,CCC,2024B,F,North,Post Graduate Qualification,35-55,1,30,Fail
+583,CCC,2024B,F,West,Lower Than A Level,0-35,0,30,Fail
+584,AAA,2024J,M,East,Lower Than A Level,35-55,0,30,Withdrawn
+585,BBB,2024J,F,West,A Level or Equivalent,35-55,2,120,Pass
+586,BBB,2024J,M,South,HE Qualification,55<=,0,90,Withdrawn
+587,AAA,2024J,M,South,HE Qualification,0-35,0,120,Pass
+588,BBB,2024J,F,South,A Level or Equivalent,55<=,0,60,Fail
+589,AAA,2024J,F,South,Post Graduate Qualification,35-55,0,30,Fail
+590,CCC,2024B,F,Scotland,Post Graduate Qualification,0-35,2,90,Withdrawn
+591,AAA,2024J,M,West,HE Qualification,0-35,3,30,Pass
+592,AAA,2024J,M,East,A Level or Equivalent,35-55,0,60,Distinction
+593,AAA,2024J,M,West,Post Graduate Qualification,0-35,2,30,Distinction
+594,AAA,2024J,M,Wales,A Level or Equivalent,0-35,1,120,Withdrawn
+595,CCC,2024B,M,East,Lower Than A Level,35-55,0,90,Withdrawn
+596,BBB,2024J,F,South,Post Graduate Qualification,0-35,0,90,Pass
+597,DDD,2024B,M,Wales,HE Qualification,35-55,0,90,Distinction
+598,AAA,2024J,M,West,Lower Than A Level,55<=,0,120,Pass
+599,AAA,2024J,M,West,A Level or Equivalent,55<=,2,30,Fail
+600,AAA,2024J,F,North,Post Graduate Qualification,0-35,3,30,Distinction
+601,AAA,2024J,F,West,Lower Than A Level,55<=,0,60,Distinction
+602,CCC,2024B,M,Scotland,A Level or Equivalent,0-35,0,60,Fail
+603,DDD,2024B,F,North,Lower Than A Level,35-55,0,30,Pass
+604,BBB,2024J,M,North,A Level or Equivalent,35-55,0,30,Distinction
+605,BBB,2024J,F,South,A Level or Equivalent,55<=,2,30,Pass
+606,AAA,2024J,F,Wales,Lower Than A Level,35-55,0,30,Pass
+607,AAA,2024J,F,Scotland,HE Qualification,35-55,0,90,Withdrawn
+608,CCC,2024B,M,Scotland,HE Qualification,0-35,0,120,Pass
+609,BBB,2024J,M,Central,Lower Than A Level,0-35,0,120,Pass
+610,BBB,2024J,F,East,HE Qualification,0-35,1,60,Distinction
+611,CCC,2024B,F,North,A Level or Equivalent,55<=,0,60,Distinction
+612,AAA,2024J,M,East,Lower Than A Level,55<=,0,120,Fail
+613,BBB,2024J,M,South,Lower Than A Level,35-55,0,90,Pass
+614,AAA,2024J,M,Central,A Level or Equivalent,35-55,3,90,Pass
+615,AAA,2024J,M,Central,HE Qualification,35-55,0,30,Withdrawn
+616,AAA,2024J,M,West,Lower Than A Level,35-55,1,90,Withdrawn
+617,BBB,2024J,F,West,HE Qualification,0-35,1,30,Distinction
+618,BBB,2024J,M,Scotland,Lower Than A Level,35-55,1,60,Pass
+619,AAA,2024J,F,Central,Lower Than A Level,0-35,0,120,Pass
+620,DDD,2024B,F,South,HE Qualification,35-55,0,120,Fail
+621,DDD,2024B,F,West,Post Graduate Qualification,0-35,1,30,Fail
+622,AAA,2024J,M,West,A Level or Equivalent,0-35,0,90,Distinction
+623,DDD,2024B,F,Scotland,Lower Than A Level,55<=,0,60,Pass
+624,AAA,2024J,F,Scotland,Lower Than A Level,0-35,0,30,Distinction
+625,BBB,2024J,M,Scotland,Lower Than A Level,35-55,2,120,Distinction
+626,DDD,2024B,M,North,HE Qualification,0-35,0,90,Pass
+627,DDD,2024B,F,Wales,A Level or Equivalent,55<=,1,120,Distinction
+628,AAA,2024J,F,North,A Level or Equivalent,0-35,3,30,Withdrawn
+629,CCC,2024B,M,East,Post Graduate Qualification,35-55,0,30,Pass
+630,DDD,2024B,M,East,HE Qualification,55<=,2,90,Withdrawn
+631,BBB,2024J,F,South,Lower Than A Level,0-35,0,30,Pass
+632,BBB,2024J,M,South,Post Graduate Qualification,55<=,0,90,Pass
+633,CCC,2024B,M,North,A Level or Equivalent,35-55,0,30,Pass
+634,CCC,2024B,F,South,A Level or Equivalent,0-35,0,120,Pass
+635,AAA,2024J,M,Central,Post Graduate Qualification,0-35,0,120,Pass
+636,CCC,2024B,M,Central,HE Qualification,35-55,0,90,Fail
+637,BBB,2024J,F,East,Post Graduate Qualification,0-35,0,90,Fail
+638,AAA,2024J,F,Wales,A Level or Equivalent,35-55,0,60,Distinction
+639,BBB,2024J,M,North,Lower Than A Level,35-55,1,60,Withdrawn
+640,CCC,2024B,F,West,HE Qualification,0-35,0,60,Pass
+641,DDD,2024B,F,South,Lower Than A Level,55<=,1,30,Withdrawn
+642,BBB,2024J,F,North,HE Qualification,0-35,0,60,Fail
+643,CCC,2024B,F,North,A Level or Equivalent,55<=,1,30,Pass
+644,AAA,2024J,M,Scotland,Lower Than A Level,55<=,3,30,Fail
+645,BBB,2024J,F,South,Post Graduate Qualification,35-55,0,120,Pass
+646,CCC,2024B,M,East,Lower Than A Level,55<=,0,30,Pass
+647,DDD,2024B,F,South,Lower Than A Level,55<=,0,120,Fail
+648,CCC,2024B,F,East,Lower Than A Level,35-55,0,60,Pass
+649,BBB,2024J,F,South,Lower Than A Level,35-55,0,30,Distinction
+650,BBB,2024J,M,Wales,A Level or Equivalent,0-35,0,120,Fail
+651,DDD,2024B,M,Scotland,HE Qualification,35-55,1,90,Fail
+652,AAA,2024J,F,South,HE Qualification,55<=,0,30,Fail
+653,BBB,2024J,M,East,Lower Than A Level,0-35,2,60,Pass
+654,DDD,2024B,M,North,Lower Than A Level,55<=,0,30,Fail
+655,DDD,2024B,F,West,Lower Than A Level,35-55,2,120,Withdrawn
+656,CCC,2024B,F,North,Lower Than A Level,0-35,1,120,Fail
+657,AAA,2024J,M,Scotland,Post Graduate Qualification,35-55,1,60,Pass
+658,BBB,2024J,M,North,A Level or Equivalent,55<=,0,30,Pass
+659,AAA,2024J,M,West,Post Graduate Qualification,35-55,0,60,Fail
+660,AAA,2024J,F,Wales,Lower Than A Level,35-55,0,60,Pass
+661,DDD,2024B,F,Scotland,A Level or Equivalent,35-55,2,30,Fail
+662,BBB,2024J,M,North,HE Qualification,55<=,1,60,Withdrawn
+663,AAA,2024J,F,West,HE Qualification,55<=,1,60,Withdrawn
+664,CCC,2024B,F,North,HE Qualification,35-55,2,60,Withdrawn
+665,AAA,2024J,M,South,A Level or Equivalent,35-55,2,60,Fail
+666,AAA,2024J,M,Central,Lower Than A Level,55<=,2,30,Withdrawn
+667,AAA,2024J,M,Scotland,A Level or Equivalent,35-55,1,120,Withdrawn
+668,AAA,2024J,F,North,Post Graduate Qualification,0-35,0,60,Distinction
+669,DDD,2024B,M,North,Lower Than A Level,35-55,0,90,Fail
+670,CCC,2024B,F,West,A Level or Equivalent,35-55,0,120,Withdrawn
+671,CCC,2024B,F,East,A Level or Equivalent,55<=,1,30,Withdrawn
+672,CCC,2024B,M,Scotland,Lower Than A Level,55<=,0,90,Withdrawn
+673,BBB,2024J,M,South,Lower Than A Level,35-55,0,120,Withdrawn
+674,AAA,2024J,M,East,Lower Than A Level,35-55,2,120,Fail
+675,AAA,2024J,M,Central,Post Graduate Qualification,0-35,1,90,Pass
+676,CCC,2024B,M,West,HE Qualification,0-35,3,90,Fail
+677,CCC,2024B,M,West,Post Graduate Qualification,35-55,0,90,Pass
+678,AAA,2024J,F,South,HE Qualification,55<=,0,30,Withdrawn
+679,AAA,2024J,F,South,HE Qualification,0-35,2,30,Withdrawn
+680,DDD,2024B,M,Wales,HE Qualification,0-35,1,60,Pass
+681,AAA,2024J,M,Wales,Post Graduate Qualification,55<=,0,60,Pass
+682,BBB,2024J,F,West,HE Qualification,55<=,0,30,Fail
+683,AAA,2024J,M,Scotland,HE Qualification,0-35,0,60,Pass
+684,AAA,2024J,F,Central,HE Qualification,0-35,0,60,Fail
+685,BBB,2024J,M,Scotland,A Level or Equivalent,0-35,0,120,Distinction
+686,DDD,2024B,M,North,HE Qualification,0-35,0,120,Pass
+687,BBB,2024J,M,West,A Level or Equivalent,35-55,0,30,Pass
+688,DDD,2024B,F,East,HE Qualification,55<=,2,60,Withdrawn
+689,DDD,2024B,M,Scotland,Post Graduate Qualification,55<=,0,60,Fail
+690,BBB,2024J,M,East,Lower Than A Level,0-35,1,30,Pass
+691,DDD,2024B,F,Central,Post Graduate Qualification,0-35,1,90,Pass
+692,AAA,2024J,F,North,Lower Than A Level,0-35,0,60,Distinction
+693,DDD,2024B,F,Central,Lower Than A Level,55<=,0,90,Withdrawn
+694,CCC,2024B,F,East,Post Graduate Qualification,55<=,0,30,Distinction
+695,BBB,2024J,M,North,Post Graduate Qualification,55<=,0,30,Fail
+696,AAA,2024J,F,Central,Lower Than A Level,0-35,0,30,Pass
+697,AAA,2024J,F,Wales,A Level or Equivalent,35-55,0,120,Withdrawn
+698,DDD,2024B,F,North,HE Qualification,55<=,0,30,Pass
+699,DDD,2024B,M,Central,A Level or Equivalent,0-35,0,30,Fail
+700,AAA,2024J,F,Scotland,A Level or Equivalent,55<=,1,30,Pass
+701,AAA,2024J,M,West,Lower Than A Level,0-35,2,120,Pass
+702,BBB,2024J,F,Wales,A Level or Equivalent,35-55,1,60,Pass
+703,AAA,2024J,M,West,Post Graduate Qualification,0-35,1,90,Fail
+704,AAA,2024J,M,South,HE Qualification,0-35,1,60,Pass
+705,DDD,2024B,M,East,Lower Than A Level,55<=,0,60,Pass
+706,CCC,2024B,F,West,A Level or Equivalent,0-35,0,120,Fail
+707,AAA,2024J,F,West,Lower Than A Level,35-55,0,120,Pass
+708,CCC,2024B,F,North,Lower Than A Level,55<=,0,90,Withdrawn
+709,AAA,2024J,F,Central,HE Qualification,55<=,0,30,Pass
+710,AAA,2024J,F,North,Lower Than A Level,0-35,0,60,Distinction
+711,DDD,2024B,M,Wales,A Level or Equivalent,0-35,0,30,Distinction
+712,BBB,2024J,M,Central,Post Graduate Qualification,55<=,0,60,Fail
+713,CCC,2024B,F,Scotland,A Level or Equivalent,35-55,3,90,Pass
+714,AAA,2024J,M,Scotland,HE Qualification,35-55,0,30,Withdrawn
+715,DDD,2024B,M,Central,Post Graduate Qualification,55<=,0,90,Withdrawn
+716,AAA,2024J,F,West,Lower Than A Level,35-55,1,30,Withdrawn
+717,AAA,2024J,F,East,Lower Than A Level,55<=,1,60,Fail
+718,BBB,2024J,M,West,Lower Than A Level,0-35,0,30,Withdrawn
+719,CCC,2024B,M,West,Post Graduate Qualification,35-55,2,120,Withdrawn
+720,BBB,2024J,F,South,Lower Than A Level,0-35,1,90,Fail
+721,BBB,2024J,F,South,A Level or Equivalent,35-55,1,30,Distinction
+722,BBB,2024J,M,East,A Level or Equivalent,55<=,0,60,Distinction
+723,BBB,2024J,F,North,Lower Than A Level,0-35,0,120,Pass
+724,BBB,2024J,M,East,HE Qualification,0-35,1,120,Pass
+725,BBB,2024J,M,West,Post Graduate Qualification,0-35,1,120,Withdrawn
+726,AAA,2024J,M,North,Lower Than A Level,55<=,0,60,Fail
+727,DDD,2024B,M,Scotland,Lower Than A Level,35-55,0,60,Withdrawn
+728,BBB,2024J,F,Central,Lower Than A Level,35-55,1,60,Withdrawn
+729,DDD,2024B,M,Scotland,HE Qualification,55<=,0,120,Distinction
+730,BBB,2024J,M,Scotland,Lower Than A Level,35-55,0,120,Pass
+731,BBB,2024J,M,South,HE Qualification,35-55,0,60,Pass
+732,AAA,2024J,F,East,HE Qualification,35-55,0,60,Fail
+733,DDD,2024B,F,Wales,Lower Than A Level,55<=,0,90,Fail
+734,AAA,2024J,M,Wales,HE Qualification,0-35,0,60,Pass
+735,CCC,2024B,F,North,A Level or Equivalent,35-55,1,90,Fail
+736,CCC,2024B,M,West,Post Graduate Qualification,35-55,0,60,Fail
+737,DDD,2024B,M,East,A Level or Equivalent,0-35,0,60,Withdrawn
+738,DDD,2024B,F,Wales,HE Qualification,55<=,0,90,Withdrawn
+739,CCC,2024B,M,Central,Lower Than A Level,0-35,2,30,Distinction
+740,DDD,2024B,F,Wales,Post Graduate Qualification,55<=,1,60,Pass
+741,CCC,2024B,F,South,A Level or Equivalent,0-35,1,30,Pass
+742,AAA,2024J,F,Scotland,Lower Than A Level,35-55,0,30,Withdrawn
+743,DDD,2024B,F,East,HE Qualification,35-55,0,30,Distinction
+744,CCC,2024B,M,Central,A Level or Equivalent,35-55,0,90,Fail
+745,CCC,2024B,M,Scotland,Post Graduate Qualification,55<=,1,120,Fail
+746,BBB,2024J,M,North,A Level or Equivalent,0-35,0,30,Distinction
+747,AAA,2024J,F,North,A Level or Equivalent,55<=,1,60,Pass
+748,DDD,2024B,F,Wales,HE Qualification,55<=,0,90,Fail
+749,AAA,2024J,M,West,A Level or Equivalent,0-35,1,60,Withdrawn
+750,BBB,2024J,M,Central,Lower Than A Level,0-35,0,60,Pass
+751,CCC,2024B,M,North,HE Qualification,55<=,0,60,Distinction
+752,CCC,2024B,F,Wales,Post Graduate Qualification,35-55,0,90,Distinction
+753,AAA,2024J,F,East,A Level or Equivalent,55<=,0,90,Fail
+754,DDD,2024B,M,Central,HE Qualification,0-35,0,90,Fail
+755,CCC,2024B,M,South,A Level or Equivalent,0-35,0,30,Withdrawn
+756,DDD,2024B,M,Scotland,Lower Than A Level,35-55,1,90,Withdrawn
+757,CCC,2024B,F,South,Post Graduate Qualification,35-55,2,30,Withdrawn
+758,CCC,2024B,F,Central,HE Qualification,35-55,0,60,Withdrawn
+759,CCC,2024B,M,Central,A Level or Equivalent,55<=,1,30,Withdrawn
+760,CCC,2024B,M,Wales,Lower Than A Level,0-35,1,120,Fail
+761,AAA,2024J,M,Scotland,Lower Than A Level,35-55,1,60,Fail
+762,CCC,2024B,F,Wales,HE Qualification,55<=,1,60,Withdrawn
+763,AAA,2024J,M,East,A Level or Equivalent,35-55,0,90,Pass
+764,CCC,2024B,F,Scotland,Post Graduate Qualification,0-35,0,120,Fail
+765,DDD,2024B,M,North,Post Graduate Qualification,0-35,0,90,Fail
+766,CCC,2024B,M,East,A Level or Equivalent,35-55,1,120,Withdrawn
+767,CCC,2024B,F,Scotland,HE Qualification,0-35,1,90,Withdrawn
+768,AAA,2024J,F,Scotland,HE Qualification,35-55,1,60,Fail
+769,BBB,2024J,M,West,Lower Than A Level,55<=,0,120,Withdrawn
+770,DDD,2024B,M,South,Post Graduate Qualification,35-55,0,90,Withdrawn
+771,DDD,2024B,M,Scotland,Post Graduate Qualification,0-35,0,60,Withdrawn
+772,DDD,2024B,M,East,Lower Than A Level,0-35,0,90,Fail
+773,BBB,2024J,F,South,A Level or Equivalent,35-55,2,90,Pass
+774,AAA,2024J,F,North,A Level or Equivalent,0-35,1,60,Pass
+775,CCC,2024B,F,North,A Level or Equivalent,55<=,0,90,Distinction
+776,BBB,2024J,M,North,A Level or Equivalent,35-55,1,90,Pass
+777,CCC,2024B,F,East,Lower Than A Level,0-35,0,90,Pass
+778,CCC,2024B,F,Wales,Post Graduate Qualification,35-55,0,60,Withdrawn
+779,CCC,2024B,M,Central,Lower Than A Level,0-35,0,30,Fail
+780,CCC,2024B,F,East,HE Qualification,35-55,0,30,Pass
+781,BBB,2024J,F,Scotland,A Level or Equivalent,55<=,0,90,Withdrawn
+782,BBB,2024J,F,Wales,Post Graduate Qualification,35-55,0,60,Fail
+783,DDD,2024B,F,West,A Level or Equivalent,0-35,1,90,Pass
+784,AAA,2024J,F,Scotland,HE Qualification,35-55,0,120,Pass
+785,BBB,2024J,M,Central,Lower Than A Level,55<=,1,60,Pass
+786,AAA,2024J,F,North,Post Graduate Qualification,0-35,0,60,Fail
+787,AAA,2024J,F,East,Post Graduate Qualification,0-35,0,30,Withdrawn
+788,CCC,2024B,F,East,Lower Than A Level,0-35,2,90,Withdrawn
+789,CCC,2024B,M,Wales,A Level or Equivalent,35-55,2,120,Distinction
+790,BBB,2024J,F,Wales,Lower Than A Level,0-35,0,30,Fail
+791,DDD,2024B,F,East,A Level or Equivalent,55<=,0,90,Fail
+792,BBB,2024J,M,West,HE Qualification,35-55,1,30,Withdrawn
+793,DDD,2024B,M,Central,Post Graduate Qualification,0-35,1,90,Distinction
+794,CCC,2024B,F,Wales,HE Qualification,0-35,0,30,Fail
+795,CCC,2024B,M,Scotland,A Level or Equivalent,35-55,0,90,Fail
+796,AAA,2024J,F,Central,Post Graduate Qualification,0-35,0,90,Pass
+797,CCC,2024B,F,West,Post Graduate Qualification,55<=,0,60,Withdrawn
+798,AAA,2024J,F,South,A Level or Equivalent,0-35,1,30,Withdrawn
+799,DDD,2024B,M,Wales,Lower Than A Level,0-35,0,120,Distinction
+800,BBB,2024J,M,East,Lower Than A Level,0-35,0,60,Distinction
+801,DDD,2024B,F,West,HE Qualification,35-55,0,30,Fail
+802,DDD,2024B,M,East,A Level or Equivalent,0-35,2,30,Distinction
+803,BBB,2024J,F,North,HE Qualification,35-55,0,60,Pass
+804,BBB,2024J,M,West,Post Graduate Qualification,0-35,0,30,Distinction
+805,AAA,2024J,M,Wales,A Level or Equivalent,0-35,2,120,Pass
+806,BBB,2024J,F,Scotland,A Level or Equivalent,0-35,0,90,Withdrawn
+807,AAA,2024J,F,East,Lower Than A Level,35-55,2,90,Withdrawn
+808,DDD,2024B,F,Wales,HE Qualification,0-35,1,30,Pass
+809,AAA,2024J,M,West,HE Qualification,35-55,1,30,Withdrawn
+810,AAA,2024J,F,Wales,Post Graduate Qualification,55<=,1,90,Distinction
+811,BBB,2024J,M,South,A Level or Equivalent,35-55,0,90,Fail
+812,DDD,2024B,M,East,A Level or Equivalent,0-35,0,60,Fail
+813,DDD,2024B,F,Wales,HE Qualification,35-55,1,90,Pass
+814,AAA,2024J,M,North,A Level or Equivalent,55<=,2,90,Withdrawn
+815,BBB,2024J,F,Wales,A Level or Equivalent,0-35,3,90,Distinction
+816,DDD,2024B,F,South,A Level or Equivalent,35-55,3,120,Withdrawn
+817,AAA,2024J,F,North,Lower Than A Level,55<=,1,120,Withdrawn
+818,BBB,2024J,M,North,Post Graduate Qualification,55<=,0,60,Fail
+819,AAA,2024J,M,Scotland,Post Graduate Qualification,55<=,1,60,Pass
+820,DDD,2024B,M,West,HE Qualification,0-35,2,30,Pass
+821,CCC,2024B,F,Central,Lower Than A Level,35-55,0,120,Pass
+822,AAA,2024J,M,Central,A Level or Equivalent,35-55,0,90,Pass
+823,BBB,2024J,F,Wales,A Level or Equivalent,0-35,0,120,Pass
+824,CCC,2024B,M,South,HE Qualification,35-55,2,60,Pass
+825,CCC,2024B,M,North,Lower Than A Level,35-55,0,60,Withdrawn
+826,CCC,2024B,F,Central,HE Qualification,0-35,3,60,Distinction
+827,CCC,2024B,M,North,A Level or Equivalent,35-55,0,90,Withdrawn
+828,AAA,2024J,M,East,Post Graduate Qualification,55<=,0,120,Pass
+829,CCC,2024B,F,East,A Level or Equivalent,0-35,0,30,Withdrawn
+830,BBB,2024J,F,West,A Level or Equivalent,35-55,0,90,Withdrawn
+831,BBB,2024J,F,East,HE Qualification,35-55,0,90,Distinction
+832,CCC,2024B,M,Scotland,Lower Than A Level,0-35,0,60,Fail
+833,DDD,2024B,F,Scotland,HE Qualification,35-55,0,60,Distinction
+834,AAA,2024J,F,South,A Level or Equivalent,35-55,1,30,Distinction
+835,DDD,2024B,M,Scotland,A Level or Equivalent,35-55,0,90,Fail
+836,DDD,2024B,F,East,HE Qualification,55<=,1,30,Withdrawn
+837,CCC,2024B,F,West,Post Graduate Qualification,55<=,3,30,Pass
+838,BBB,2024J,M,Wales,HE Qualification,55<=,0,60,Withdrawn
+839,BBB,2024J,M,Central,HE Qualification,35-55,0,60,Withdrawn
+840,CCC,2024B,F,Central,HE Qualification,55<=,0,120,Fail
+841,DDD,2024B,M,North,A Level or Equivalent,0-35,1,90,Withdrawn
+842,AAA,2024J,M,Central,Post Graduate Qualification,0-35,0,90,Withdrawn
+843,DDD,2024B,M,Scotland,HE Qualification,0-35,1,120,Pass
+844,AAA,2024J,F,Wales,Post Graduate Qualification,0-35,1,30,Withdrawn
+845,BBB,2024J,M,North,A Level or Equivalent,55<=,0,30,Withdrawn
+846,DDD,2024B,F,Wales,A Level or Equivalent,35-55,0,60,Distinction
+847,BBB,2024J,F,East,Post Graduate Qualification,55<=,3,120,Withdrawn
+848,BBB,2024J,M,South,Post Graduate Qualification,35-55,0,120,Withdrawn
+849,DDD,2024B,F,Wales,HE Qualification,35-55,0,30,Pass
+850,AAA,2024J,M,North,Post Graduate Qualification,55<=,0,120,Distinction
+851,DDD,2024B,F,Wales,HE Qualification,0-35,1,60,Pass
+852,DDD,2024B,F,West,HE Qualification,35-55,0,90,Fail
+853,DDD,2024B,F,East,Lower Than A Level,0-35,0,120,Distinction
+854,DDD,2024B,F,Central,Post Graduate Qualification,55<=,1,60,Fail
+855,AAA,2024J,F,East,Lower Than A Level,35-55,0,30,Distinction
+856,CCC,2024B,M,West,Lower Than A Level,35-55,0,30,Distinction
+857,CCC,2024B,M,Scotland,A Level or Equivalent,35-55,0,90,Pass
+858,BBB,2024J,M,Scotland,Lower Than A Level,0-35,0,120,Pass
+859,DDD,2024B,F,East,Post Graduate Qualification,35-55,0,60,Fail
+860,CCC,2024B,M,Scotland,Post Graduate Qualification,0-35,0,60,Pass
+861,BBB,2024J,M,West,Post Graduate Qualification,35-55,0,60,Withdrawn
+862,AAA,2024J,F,Central,HE Qualification,55<=,0,60,Pass
+863,DDD,2024B,M,South,Post Graduate Qualification,35-55,0,120,Pass
+864,CCC,2024B,M,South,A Level or Equivalent,35-55,1,90,Withdrawn
+865,CCC,2024B,F,Wales,Lower Than A Level,0-35,0,120,Pass
+866,BBB,2024J,F,West,A Level or Equivalent,55<=,0,30,Withdrawn
+867,DDD,2024B,M,Wales,Lower Than A Level,0-35,1,90,Withdrawn
+868,AAA,2024J,M,East,Post Graduate Qualification,0-35,0,90,Distinction
+869,CCC,2024B,M,West,Post Graduate Qualification,0-35,0,60,Pass
+870,BBB,2024J,M,North,A Level or Equivalent,35-55,0,30,Fail
+871,BBB,2024J,F,North,A Level or Equivalent,35-55,1,30,Pass
+872,CCC,2024B,F,South,A Level or Equivalent,55<=,2,120,Distinction
+873,DDD,2024B,M,North,Lower Than A Level,0-35,0,120,Withdrawn
+874,BBB,2024J,M,East,Lower Than A Level,0-35,2,30,Pass
+875,CCC,2024B,F,Central,HE Qualification,35-55,0,60,Withdrawn
+876,DDD,2024B,F,Central,Lower Than A Level,0-35,1,60,Withdrawn
+877,AAA,2024J,F,Central,Post Graduate Qualification,55<=,0,30,Fail
+878,BBB,2024J,M,West,Post Graduate Qualification,0-35,0,30,Withdrawn
+879,AAA,2024J,F,East,Post Graduate Qualification,0-35,3,30,Pass
+880,BBB,2024J,F,Central,Lower Than A Level,55<=,1,60,Withdrawn
+881,CCC,2024B,F,West,Lower Than A Level,55<=,0,90,Fail
+882,AAA,2024J,M,Central,A Level or Equivalent,35-55,1,120,Distinction
+883,BBB,2024J,F,Wales,A Level or Equivalent,35-55,1,120,Withdrawn
+884,DDD,2024B,M,West,Post Graduate Qualification,0-35,0,60,Withdrawn
+885,DDD,2024B,M,Scotland,Lower Than A Level,35-55,1,120,Withdrawn
+886,BBB,2024J,M,South,Lower Than A Level,55<=,0,120,Fail
+887,BBB,2024J,F,East,HE Qualification,55<=,1,30,Pass
+888,CCC,2024B,M,East,HE Qualification,0-35,1,30,Pass
+889,CCC,2024B,F,South,HE Qualification,55<=,0,30,Withdrawn
+890,BBB,2024J,F,Central,A Level or Equivalent,55<=,1,120,Withdrawn
+891,BBB,2024J,M,East,A Level or Equivalent,0-35,1,120,Withdrawn
+892,BBB,2024J,F,South,HE Qualification,35-55,1,30,Pass
+893,AAA,2024J,F,North,Post Graduate Qualification,55<=,0,30,Fail
+894,BBB,2024J,F,Wales,HE Qualification,35-55,1,90,Distinction
+895,DDD,2024B,M,East,HE Qualification,55<=,0,120,Fail
+896,CCC,2024B,M,Central,Post Graduate Qualification,35-55,0,60,Withdrawn
+897,AAA,2024J,F,Scotland,Lower Than A Level,35-55,1,90,Pass
+898,DDD,2024B,F,West,Lower Than A Level,0-35,0,60,Fail
+899,BBB,2024J,F,East,A Level or Equivalent,35-55,0,30,Fail
+900,DDD,2024B,M,East,Post Graduate Qualification,0-35,0,120,Distinction
+901,BBB,2024J,M,North,A Level or Equivalent,0-35,0,30,Pass
+902,BBB,2024J,M,North,Lower Than A Level,35-55,0,120,Withdrawn
+903,BBB,2024J,F,West,Lower Than A Level,55<=,1,30,Pass
+904,CCC,2024B,F,South,A Level or Equivalent,0-35,0,60,Pass
+905,CCC,2024B,F,East,Lower Than A Level,0-35,0,120,Pass
+906,AAA,2024J,M,West,Post Graduate Qualification,0-35,1,120,Distinction
+907,DDD,2024B,M,Scotland,A Level or Equivalent,35-55,1,30,Distinction
+908,DDD,2024B,M,Central,A Level or Equivalent,35-55,1,60,Withdrawn
+909,CCC,2024B,M,West,HE Qualification,55<=,0,90,Withdrawn
+910,CCC,2024B,M,South,Post Graduate Qualification,35-55,2,30,Withdrawn
+911,CCC,2024B,F,Central,Lower Than A Level,0-35,0,90,Fail
+912,AAA,2024J,M,Wales,Lower Than A Level,55<=,1,120,Fail
+913,CCC,2024B,F,Scotland,Post Graduate Qualification,0-35,0,120,Fail
+914,DDD,2024B,F,South,Lower Than A Level,0-35,0,90,Pass
+915,AAA,2024J,F,East,Lower Than A Level,35-55,1,120,Withdrawn
+916,CCC,2024B,M,West,HE Qualification,0-35,0,120,Withdrawn
+917,CCC,2024B,F,South,HE Qualification,35-55,0,30,Withdrawn
+918,BBB,2024J,F,South,A Level or Equivalent,0-35,0,120,Pass
+919,AAA,2024J,F,Central,HE Qualification,0-35,0,120,Distinction
+920,DDD,2024B,M,North,A Level or Equivalent,35-55,0,60,Fail
+921,BBB,2024J,M,East,Lower Than A Level,0-35,0,60,Withdrawn
+922,BBB,2024J,M,Wales,HE Qualification,35-55,1,90,Withdrawn
+923,DDD,2024B,M,North,HE Qualification,35-55,3,60,Pass
+924,AAA,2024J,F,North,Post Graduate Qualification,55<=,0,90,Pass
+925,CCC,2024B,F,South,Lower Than A Level,0-35,3,60,Fail
+926,CCC,2024B,F,North,A Level or Equivalent,55<=,0,90,Fail
+927,CCC,2024B,F,West,HE Qualification,35-55,0,120,Withdrawn
+928,BBB,2024J,F,Central,Lower Than A Level,35-55,0,120,Distinction
+929,DDD,2024B,M,Scotland,Lower Than A Level,55<=,0,120,Withdrawn
+930,DDD,2024B,F,East,Lower Than A Level,35-55,3,60,Withdrawn
+931,AAA,2024J,M,Wales,Lower Than A Level,55<=,1,120,Withdrawn
+932,DDD,2024B,F,East,A Level or Equivalent,0-35,3,60,Fail
+933,BBB,2024J,M,Scotland,A Level or Equivalent,35-55,0,90,Withdrawn
+934,AAA,2024J,M,Scotland,A Level or Equivalent,35-55,0,120,Fail
+935,BBB,2024J,M,East,HE Qualification,35-55,0,30,Fail
+936,CCC,2024B,F,North,HE Qualification,35-55,1,30,Pass
+937,DDD,2024B,M,Scotland,HE Qualification,55<=,1,30,Pass
+938,CCC,2024B,M,West,Lower Than A Level,0-35,0,30,Withdrawn
+939,CCC,2024B,F,North,HE Qualification,35-55,0,60,Distinction
+940,AAA,2024J,M,Central,Lower Than A Level,55<=,3,90,Distinction
+941,BBB,2024J,F,North,A Level or Equivalent,55<=,0,60,Fail
+942,CCC,2024B,F,North,HE Qualification,55<=,0,120,Fail
+943,CCC,2024B,M,North,HE Qualification,35-55,0,60,Pass
+944,CCC,2024B,M,North,Post Graduate Qualification,35-55,0,120,Pass
+945,AAA,2024J,M,Scotland,Post Graduate Qualification,35-55,0,30,Distinction
+946,AAA,2024J,M,Wales,Post Graduate Qualification,55<=,0,90,Pass
+947,DDD,2024B,F,East,Lower Than A Level,55<=,2,60,Pass
+948,BBB,2024J,F,East,Lower Than A Level,55<=,0,120,Fail
+949,BBB,2024J,M,East,A Level or Equivalent,0-35,0,90,Pass
+950,DDD,2024B,F,West,HE Qualification,35-55,1,90,Distinction
+951,BBB,2024J,M,South,Lower Than A Level,0-35,3,60,Pass
+952,CCC,2024B,F,Central,Lower Than A Level,55<=,3,60,Fail
+953,AAA,2024J,F,North,Post Graduate Qualification,35-55,0,120,Fail
+954,AAA,2024J,M,North,A Level or Equivalent,55<=,0,30,Pass
+955,BBB,2024J,M,West,HE Qualification,35-55,0,60,Pass
+956,DDD,2024B,F,North,A Level or Equivalent,35-55,0,90,Withdrawn
+957,CCC,2024B,F,Central,A Level or Equivalent,55<=,0,90,Fail
+958,CCC,2024B,M,North,A Level or Equivalent,0-35,0,120,Withdrawn
+959,BBB,2024J,F,Central,HE Qualification,55<=,0,30,Withdrawn
+960,AAA,2024J,F,South,A Level or Equivalent,0-35,0,120,Distinction
+961,BBB,2024J,M,East,Post Graduate Qualification,0-35,2,30,Withdrawn
+962,AAA,2024J,F,Central,A Level or Equivalent,0-35,0,90,Fail
+963,AAA,2024J,M,North,A Level or Equivalent,35-55,1,60,Fail
+964,AAA,2024J,M,Wales,Lower Than A Level,0-35,0,90,Withdrawn
+965,DDD,2024B,M,South,HE Qualification,55<=,0,120,Withdrawn
+966,BBB,2024J,F,Scotland,A Level or Equivalent,55<=,0,90,Fail
+967,CCC,2024B,F,North,HE Qualification,55<=,1,90,Withdrawn
+968,BBB,2024J,F,West,A Level or Equivalent,35-55,1,30,Fail
+969,CCC,2024B,M,Central,A Level or Equivalent,55<=,1,60,Pass
+970,DDD,2024B,M,Scotland,A Level or Equivalent,0-35,0,60,Withdrawn
+971,AAA,2024J,F,North,Lower Than A Level,55<=,2,90,Distinction
+972,AAA,2024J,M,West,Lower Than A Level,0-35,1,60,Withdrawn
+973,DDD,2024B,M,South,HE Qualification,35-55,1,30,Fail
+974,BBB,2024J,M,Central,Post Graduate Qualification,0-35,0,30,Distinction
+975,BBB,2024J,M,South,HE Qualification,35-55,0,60,Fail
+976,CCC,2024B,F,North,Post Graduate Qualification,0-35,1,30,Distinction
+977,BBB,2024J,F,East,Lower Than A Level,0-35,2,90,Withdrawn
+978,AAA,2024J,F,Wales,A Level or Equivalent,35-55,1,120,Pass
+979,BBB,2024J,M,Scotland,HE Qualification,35-55,0,60,Withdrawn
+980,DDD,2024B,F,Central,HE Qualification,35-55,2,30,Distinction
+981,AAA,2024J,F,Central,Lower Than A Level,55<=,3,60,Withdrawn
+982,DDD,2024B,F,South,A Level or Equivalent,35-55,0,120,Pass
+983,DDD,2024B,F,North,HE Qualification,55<=,2,90,Withdrawn
+984,DDD,2024B,M,East,A Level or Equivalent,0-35,1,30,Withdrawn
+985,BBB,2024J,M,East,A Level or Equivalent,55<=,0,120,Distinction
+986,DDD,2024B,M,East,Post Graduate Qualification,35-55,2,90,Pass
+987,CCC,2024B,M,North,HE Qualification,55<=,0,120,Pass
+988,DDD,2024B,F,Wales,A Level or Equivalent,35-55,1,60,Fail
+989,AAA,2024J,F,Scotland,Lower Than A Level,0-35,1,90,Pass
+990,AAA,2024J,M,South,Lower Than A Level,55<=,0,120,Distinction
+991,CCC,2024B,M,North,HE Qualification,35-55,0,30,Withdrawn
+992,DDD,2024B,F,North,HE Qualification,55<=,1,90,Pass
+993,AAA,2024J,M,Central,Lower Than A Level,35-55,0,120,Distinction
+994,BBB,2024J,M,West,A Level or Equivalent,35-55,0,120,Withdrawn
+995,AAA,2024J,M,Central,A Level or Equivalent,35-55,0,90,Pass
+996,DDD,2024B,F,Wales,HE Qualification,55<=,0,30,Pass
+997,DDD,2024B,M,South,Post Graduate Qualification,0-35,3,30,Pass
+998,BBB,2024J,F,East,A Level or Equivalent,35-55,0,90,Withdrawn
+999,BBB,2024J,F,Central,Post Graduate Qualification,0-35,2,30,Withdrawn
+1000,CCC,2024B,M,North,HE Qualification,55<=,1,120,Fail
